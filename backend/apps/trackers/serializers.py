@@ -1,0 +1,109 @@
+from rest_framework import serializers
+
+from .models import (
+    Tracker,
+    TrackerType,
+    TrackerCategory,
+    TrackerRangeConfig,
+    TrackerValueConfig
+)
+
+class TrackerCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrackerCategory
+        fields = ['id', 'name', 'icon', 'color']
+
+
+class TrackerRangeConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrackerRangeConfig
+        fields = ['min_value', 'max_value', 'min_label', 'max_label']
+
+
+class TrackerValueConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrackerValueConfig
+        fields = ["unit"]
+
+
+class TrackerSerializer(serializers.ModelSerializer):
+    range_config = TrackerRangeConfigSerializer(required=False)
+    value_config = TrackerValueConfigSerializer(required=False)
+
+    class Meta:
+        model = Tracker
+        fields = [
+            'id',
+            'category',
+            'name',
+            'type',
+            'icon',
+            'color',
+            'summary_method',
+            'is_archived',
+            'range_config',
+            'value_config',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+    
+    def get_fields(self):
+        fields = super().get_fields()
+        if self.instance is not None:
+            fields['type'].read_only = True
+        return fields
+
+    
+    def validate(self, attrs):
+        tracker_type = attrs.get('type', getattr(self.instance, 'type', None))
+        range_config = attrs.get('range_config')
+        value_config = attrs.get('value_config')
+
+        if tracker_type == TrackerType.RANGE and range_config is None and self.instance is None:
+            raise serializers.ValidationError({'range_config': 'Required for range trackers.'})
+        if tracker_type == TrackerType.VALUE and value_config is None and self.instance is None:
+            raise serializers.ValidationError({'value_config': 'Required for value trackers.'})
+        if tracker_type != TrackerType.RANGE and range_config is not None:
+            raise serializers.ValidationError({'range_config': 'Only allowed for range trackers.'})
+        if tracker_type != TrackerType.VALUE and value_config is not None:
+            raise serializers.ValidationError({'value_config': 'Only allowed for value trackers.'})
+
+        return attrs
+
+    
+    def create(self, validated_data):
+        range_config_data = validated_data.pop('range_config', None)
+        value_config_data = validated_data.pop('value_config', None)
+        validated_data['user'] = self.context['request'].user
+
+        tracker = Tracker.objects.create(**validated_data)
+
+        if range_config_data is not None:
+            TrackerRangeConfig.objects.create(tracker=tracker, **range_config_data)
+        if value_config_data is not None:
+            TrackerValueConfig.objects.create(tracker=tracker, **value_config_data)
+
+        return tracker
+
+
+    def update(self, instance, validated_data):
+        range_config_data = validated_data.pop('range_config', None)
+        value_config_data = validated_data.pop('value_config', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if range_config_data is not None and hasattr(instance, 'range_config'):
+            for attr, value in range_config_data.items():
+                setattr(instance.range_config, attr, value)
+            instance.range_config.save()
+
+        if value_config_data is not None and hasattr(instance, 'value_config'):
+            for attr, value in value_config_data.items():
+                setattr(instance.value_config, attr, value)
+            instance.value_config.save()
+
+        return instance

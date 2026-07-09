@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
 import authenticationRoutes from '@/modules/authentication/routes'
+import trackerRoutes from '@/modules/trackers/routes'
 
 import { useAuthStore } from '@/modules/authentication/store'
 
@@ -20,6 +21,7 @@ const router = createRouter({
     },
 
     ...authenticationRoutes,
+    ...trackerRoutes,
   ],
 })
 
