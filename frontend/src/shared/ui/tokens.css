@@ -1,0 +1,70 @@
+:root {
+
+  /*** Primitive/semantic tokens ***/
+
+  /* Color */
+  --color-app-bg: #DFE5EA;
+  --color-app-backdrop: rgba(54 54 54 / 46%);
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+  --color-text: #1f2937;
+  --color-text-light: #5b5b5b;
+  --color-focus: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f5f5;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Typography */
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-h1: 2rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --padding-app: var(--spacing-md);
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* Shadow */
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+
+  /*** Component tokens ***/
+
+  /* Inputs and fields */
+  --input-font-size-label: var(--font-size-sm);
+  --input-color-border: #E5E7EB;
+  --input-color-background: var(--color-surface);
+  --input-color-text: var(--color-text);
+  --input-color-label: var(--color-text-light);
+  --input-border: 2px solid var(--input-color-border);
+  --input-border-focus: 2px solid var(--color-focus);
+  --input-shadow-focus: 0 0 0 4px oklab(from var(--color-focus) l a b / 0.2);
+  --input-radius: var(--radius-sm);
+  --input-height: 35px;
+
+
+  /* Dialog */
+  --dialog-padding: var(--spacing-md);
+  --dialog-radius: var(--radius-lg);
+
+  /* Color picker */
+  --colorpicker-area-color-border: #cdcdcd;
+}
+
+[data-theme='dark'] {
+  /* Todo */
+}

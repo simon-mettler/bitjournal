@@ -1,4 +1,4 @@
-import './assets/main.css'
+import './shared/ui/tokens.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -19,6 +19,4 @@ setupApiInterceptors()
 
 const auth = useAuthStore()
 
-auth.tryRefresh().finally(() => {
-  app.mount('#app')
-})
+app.mount('#app')
