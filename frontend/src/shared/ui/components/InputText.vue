@@ -20,7 +20,7 @@ const id = useId()
       {{ label }}
     </Label>
     <input :id="id" class="input" :type="type" :placeholder="placeholder" v-model="model">
-    <p class="error-text">{{ error }}</p>
+    <p v-if="error" class="error-text">{{ error }}</p>
   </div>
 </template>
 
@@ -33,13 +33,14 @@ input {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  width: 100%;
 }
 
 .label {
-  font-size: var(--font-size-sm);
   padding-left: 8px;
-  font-weight: 500;
+  margin-bottom: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
   color: var(--input-color-label);
 }
 

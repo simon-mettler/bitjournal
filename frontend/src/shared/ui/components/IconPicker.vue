@@ -69,6 +69,7 @@ function selectIcon(name: IconName) {
   align-items: center;
   justify-content: center;
   width: 44px;
+  min-width: 44px;
   height: 44px;
   border-radius: var(--input-radius);
   border: var(--input-border);

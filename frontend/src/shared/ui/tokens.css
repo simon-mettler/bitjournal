@@ -13,6 +13,7 @@
   --color-text-light: #5b5b5b;
   --color-focus: var(--color-primary);
   --color-surface: #ffffff;
+  --color-surface-medium: #8c8c8c;
   --color-surface-muted: #f5f5f5;
 
   /* Spacing */
@@ -48,13 +49,14 @@
   --input-font-size-label: var(--font-size-sm);
   --input-color-border: #E5E7EB;
   --input-color-background: var(--color-surface);
+  --input-color-background: var(--color-surface);
   --input-color-text: var(--color-text);
   --input-color-label: var(--color-text-light);
   --input-border: 2px solid var(--input-color-border);
   --input-border-focus: 2px solid var(--color-focus);
   --input-shadow-focus: 0 0 0 4px oklab(from var(--color-focus) l a b / 0.2);
   --input-radius: var(--radius-sm);
-  --input-height: 35px;
+  --input-height: 40px;
 
 
   /* Dialog */
@@ -62,7 +64,7 @@
   --dialog-radius: var(--radius-lg);
 
   /* Color picker */
-  --colorpicker-area-color-border: #cdcdcd;
+  --colorpicker-area-color-border: var(--input-color-border);
 }
 
 [data-theme='dark'] {
