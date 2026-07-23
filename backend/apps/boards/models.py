@@ -1,16 +1,15 @@
 """
-Defines tracker boards: curated, ordered collections of trackers 
+Defines signal boards: curated, ordered collections of signals 
 used for quick selection when logging events.
-Depends only on 'trackers'.
+Depends only on 'signals'.
 
 """
 
 from django.db import models
 from django.conf import settings
-
 from uuid import uuid7
 
-class TrackerBoard(models.Model):
+class SignalBoard(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -19,9 +18,9 @@ class TrackerBoard(models.Model):
     )
     name = models.CharField(max_length=100)
 
-    trackers = models.ManyToManyField(
-        'trackers.Tracker',
-        through='BoardTracker',
+    signals = models.ManyToManyField(
+        'signals.Signal',
+        through='BoardSignal',
         related_name='boards',
     )
 
@@ -36,18 +35,18 @@ class TrackerBoard(models.Model):
         return self.name
 
 
-class BoardTracker(models.Model):
-    """Through model to control tracker display order."""
+class BoardSignal(models.Model):
+    """Through model to control signal display order."""
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
-    board = models.ForeignKey(TrackerBoard, on_delete=models.CASCADE, related_name='board_trackers')
-    tracker = models.ForeignKey('trackers.Tracker', on_delete=models.CASCADE, related_name='board_tracker')
+    board = models.ForeignKey(SignalBoard, on_delete=models.CASCADE, related_name='board_singnals')
+    signal = models.ForeignKey('signals.Signal', on_delete=models.CASCADE, related_name='board_signal')
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['order']
         constraints = [
-            models.UniqueConstraint(fields=['board', 'tracker'], name='unique_tracker_per_board'),
+            models.UniqueConstraint(fields=['board', 'signal'], name='unique_signal_per_board'),
         ]
 
     def __str__(self):
-        return f"{self.tracker.name} in {self.board.name}"
+        return f"{self.signal.name} in {self.board.name}"

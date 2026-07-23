@@ -1,6 +1,6 @@
 """
-Core models that define what can be tracked, including 
-tracker definitions, categories and type specific configuration.
+Core models that defines signals, including 
+signal definitions, categories and type specific configuration.
 Does not depend on any other app.
 
 """
@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from uuid import uuid7
 
-class TrackerType(models.TextChoices):
+class SignalType(models.TextChoices):
     TALLY = 'tally', 'Tally'
     RANGE = 'range', 'Range'
     VALUE = 'value', 'Value'
@@ -22,14 +22,14 @@ class SummaryMethod(models.TextChoices):
     SUM = 'sum', 'Sum (total)'
 
 
-class TrackerCategory(models.Model):
-    """ User defined grouping for trackers."""
+class SignalCategory(models.Model):
+    """ User defined grouping for signals."""
 
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='tracker_categories',
+        related_name='signal_categories',
     )
     name = models.CharField(max_length=100)
     icon = models.CharField(max_length=50, blank=True)
@@ -40,28 +40,28 @@ class TrackerCategory(models.Model):
             models.UniqueConstraint(fields=['user', 'name'], name='unique_category_name_per_user')
         ]
         ordering = ['name']
-        verbose_name_plural = 'tracker categories'
+        verbose_name_plural = 'signal categories'
 
     def __str__(self):
         return self.name
 
 
-class Tracker(models.Model):
+class Signal(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='trackers',
+        related_name='signals',
     )
     category = models.ForeignKey(
-        TrackerCategory,
+        SignalCategory,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='trackers'
+        related_name='signals'
     )
     name = models.CharField(max_length=100)
-    type = models.CharField(max_length=20, choices=TrackerType.choices)
+    type = models.CharField(max_length=20, choices=SignalType.choices)
     icon= models.CharField(max_length=50, blank=True)
     color = models.CharField(max_length=7, blank=True)
     summary_method = models.CharField(
@@ -82,24 +82,24 @@ class Tracker(models.Model):
 
     def clean(self):
         if self.pk is not None:
-            original_type = Tracker.objects.filter(pk=self.pk).values_list('type', flat=True).first()
+            original_type = Signal.objects.filter(pk=self.pk).values_list('type', flat=True).first()
             if original_type is not None and original_type != self.type:
-                raise ValidationError('Tracker type cannot be changed after creation.')
+                raise ValidationError('Signal type cannot be changed after creation.')
 
-        if self.type == TrackerType.RANGE and not hasattr(self, 'range_config'):
-            raise ValidationError("Range trackers require a range_config.")
-        if self.type == TrackerType.VALUE and not hasattr(self, 'value_config'):
-            raise ValidationError('Value tracker require a value_config.')
+        if self.type == SignalType.RANGE and not hasattr(self, 'range_config'):
+            raise ValidationError("Range signals require a range_config.")
+        if self.type == SignalType.VALUE and not hasattr(self, 'value_config'):
+            raise ValidationError('Value signal require a value_config.')
 
 
-class TrackerRangeConfig(models.Model):
-    """Additional attributes for TrackerType.RANGE."""
+class SignalRangeConfig(models.Model):
+    """Additional attributes for SignalType.RANGE."""
 
-    tracker = models.OneToOneField(
-        Tracker,
+    signal = models.OneToOneField(
+        Signal,
         on_delete=models.CASCADE,
         related_name='range_config',
-        limit_choices_to={'type': TrackerType.RANGE},
+        limit_choices_to={'type': SignalType.RANGE},
     )
     min_value = models.DecimalField(max_digits=10, decimal_places=2)
     max_value = models.DecimalField(max_digits=10, decimal_places=2)
@@ -119,13 +119,13 @@ class TrackerRangeConfig(models.Model):
             raise ValidationError('max_value mus be greater than min_value.')
 
 
-class TrackerValueConfig(models.Model):
-    """Additional attributes for TrackerType.VALUE."""
+class SignalValueConfig(models.Model):
+    """Additional attributes for SignalType.VALUE."""
 
-    tracker = models.OneToOneField(
-        Tracker,
+    signal = models.OneToOneField(
+        Signal,
         on_delete=models.CASCADE,
         related_name='value_config',
-        limit_choices_to={'type': TrackerType.VALUE},
+        limit_choices_to={'type': SignalType.VALUE},
     )
     unit = models.CharField(max_length=20)

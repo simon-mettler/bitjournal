@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'apps.authentication',
     'apps.users',
-    'apps.trackers',
+    'apps.signals',
     'apps.events',
     'apps.boards',
 ]

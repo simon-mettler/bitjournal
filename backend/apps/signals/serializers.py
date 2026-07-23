@@ -1,40 +1,40 @@
 from rest_framework import serializers
 
 from .models import (
-    Tracker,
-    TrackerType,
-    TrackerCategory,
-    TrackerRangeConfig,
-    TrackerValueConfig
+    Signal,
+    SignalType,
+    SignalCategory,
+    SignalRangeConfig,
+    SignalValueConfig
 )
 
-class TrackerCategorySerializer(serializers.ModelSerializer):
+class SignalCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = TrackerCategory
+        model = SignalCategory
         fields = ['id', 'name', 'icon', 'color']
 
 
-class TrackerRangeConfigSerializer(serializers.ModelSerializer):
+class SignalRangeConfigSerializer(serializers.ModelSerializer):
     min_value = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
     max_value = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
 
     class Meta:
-        model = TrackerRangeConfig
+        model = SignalRangeConfig
         fields = ['min_value', 'max_value', 'min_label', 'max_label']
 
 
-class TrackerValueConfigSerializer(serializers.ModelSerializer):
+class SignalValueConfigSerializer(serializers.ModelSerializer):
     class Meta:
-        model = TrackerValueConfig
+        model = SignalValueConfig
         fields = ["unit"]
 
 
-class TrackerSerializer(serializers.ModelSerializer):
-    range_config = TrackerRangeConfigSerializer(required=False)
-    value_config = TrackerValueConfigSerializer(required=False)
+class SignalSerializer(serializers.ModelSerializer):
+    range_config = SignalRangeConfigSerializer(required=False)
+    value_config = SignalValueConfigSerializer(required=False)
 
     class Meta:
-        model = Tracker
+        model = Signal 
         fields = [
             'id',
             'category',
@@ -60,18 +60,18 @@ class TrackerSerializer(serializers.ModelSerializer):
 
     
     def validate(self, attrs):
-        tracker_type = attrs.get('type', getattr(self.instance, 'type', None))
+        signal_type = attrs.get('type', getattr(self.instance, 'type', None))
         range_config = attrs.get('range_config')
         value_config = attrs.get('value_config')
 
-        if tracker_type == TrackerType.RANGE and range_config is None and self.instance is None:
-            raise serializers.ValidationError({'range_config': 'Required for range trackers.'})
-        if tracker_type == TrackerType.VALUE and value_config is None and self.instance is None:
-            raise serializers.ValidationError({'value_config': 'Required for value trackers.'})
-        if tracker_type != TrackerType.RANGE and range_config is not None:
-            raise serializers.ValidationError({'range_config': 'Only allowed for range trackers.'})
-        if tracker_type != TrackerType.VALUE and value_config is not None:
-            raise serializers.ValidationError({'value_config': 'Only allowed for value trackers.'})
+        if signal_type == SignalType.RANGE and range_config is None and self.instance is None:
+            raise serializers.ValidationError({'range_config': 'Required for range signals.'})
+        if signal_type == SignalType.VALUE and value_config is None and self.instance is None:
+            raise serializers.ValidationError({'value_config': 'Required for value signals.'})
+        if signal_type != SignalType.RANGE and range_config is not None:
+            raise serializers.ValidationError({'range_config': 'Only allowed for range signals.'})
+        if signal_type != SignalType.VALUE and value_config is not None:
+            raise serializers.ValidationError({'value_config': 'Only allowed for value signals.'})
 
         return attrs
 
@@ -81,14 +81,14 @@ class TrackerSerializer(serializers.ModelSerializer):
         value_config_data = validated_data.pop('value_config', None)
         validated_data['user'] = self.context['request'].user
 
-        tracker = Tracker.objects.create(**validated_data)
+        signal = Signal.objects.create(**validated_data)
 
         if range_config_data is not None:
-            TrackerRangeConfig.objects.create(tracker=tracker, **range_config_data)
+            SignalRangeConfig.objects.create(signal=signal, **range_config_data)
         if value_config_data is not None:
-            TrackerValueConfig.objects.create(tracker=tracker, **value_config_data)
+            SignalValueConfig.objects.create(signal=signal, **value_config_data)
 
-        return tracker
+        return signal
 
 
     def update(self, instance, validated_data):

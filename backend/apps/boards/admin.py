@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import TrackerBoard
-from .models import BoardTracker
+from .models import SignalBoard
+from .models import BoardSignal
 
-admin.site.register(TrackerBoard)
-admin.site.register(BoardTracker)
+admin.site.register(SignalBoard)
+admin.site.register(BoardSignal)
