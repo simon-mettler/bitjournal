@@ -1,55 +1,58 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import Button from '@/shared/ui/components/Button.vue';
 import {
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogOverlay,
-  DialogPortal,
-  DialogRoot,
-  DialogTitle,
-  DialogTrigger,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogOverlay,
+  AlertDialogPortal,
+  AlertDialogRoot,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from 'reka-ui'
-import { X } from '@lucide/vue'
 
 defineProps<{
   title: string
   description?: string
+  confirmText: string
 }>()
 
-const open = ref<boolean>(false)
+const emit = defineEmits<{
+  confirm: []
+}>()
 
+const open = defineModel<boolean>('open', { default: false })
 </script>
 
 <template>
-  <DialogRoot v-model:open="open">
-    <DialogTrigger as-child>
+  <AlertDialogRoot v-model:open="open">
+    <AlertDialogTrigger as-child>
       <slot name="trigger" />
-    </DialogTrigger>
-    <DialogPortal>
-      <DialogOverlay class="dialog-overlay" />
-      <DialogContent class="dialog-content">
-        <DialogTitle class="dialog-title">
+    </AlertDialogTrigger>
+    <AlertDialogPortal>
+      <AlertDialogOverlay class="dialog-overlay" />
+      <AlertDialogContent class="dialog-content">
+        <AlertDialogTitle class="dialog-title">
           {{ title }}
-        </DialogTitle>
-        <DialogDescription v-if="description" class="dialog-description">
+        </AlertDialogTitle>
+        <AlertDialogDescription v-if="description" class="dialog-description">
           {{ description }}
-        </DialogDescription>
-
+        </AlertDialogDescription>
         <div class="dialog-body">
           <slot />
         </div>
-
         <div class="dialog-footer">
-          <slot name="footer" />
+          <AlertDialogCancel as-child>
+            <Button variant="secondary">Cancel</Button>
+          </AlertDialogCancel>
+          <AlertDialogAction as-child>
+            <Button variant="warn" @click="emit('confirm')">{{ confirmText }}</Button>
+          </AlertDialogAction>
         </div>
-
-        <DialogClose class="dialog-close" aria-label="Close">
-          <X />
-        </DialogClose>
-      </DialogContent>
-    </DialogPortal>
-  </DialogRoot>
+      </AlertDialogContent>
+    </AlertDialogPortal>
+  </AlertDialogRoot>
 </template>
 
 <style scoped>
@@ -98,23 +101,6 @@ const open = ref<boolean>(false)
   margin-top: var(--dialog-padding);
   justify-content: flex-end;
   gap: var(--spacing-sm);
-}
-
-.dialog-close {
-  font-family: inherit;
-  border-radius: 100%;
-  height: 40px;
-  width: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text);
-  position: absolute;
-  top: var(--dialog-padding);
-  right: var(--dialog-padding);
-  background: none;
-  border: none;
-  cursor: pointer;
 }
 
 @keyframes overlayShow {

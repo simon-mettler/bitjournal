@@ -153,7 +153,7 @@ const hexId = useId()
 
 .field-label {
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-normal);
   color: var(--input-color-label);
 }
 

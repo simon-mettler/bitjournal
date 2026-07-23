@@ -49,7 +49,6 @@
   --input-font-size-label: var(--font-size-sm);
   --input-color-border: #E5E7EB;
   --input-color-background: var(--color-surface);
-  --input-color-background: var(--color-surface);
   --input-color-text: var(--color-text);
   --input-color-label: var(--color-text-light);
   --input-border: 2px solid var(--input-color-border);
@@ -62,6 +61,12 @@
   /* Dialog */
   --dialog-padding: var(--spacing-md);
   --dialog-radius: var(--radius-lg);
+  --dialog-color-background: var(--color-surface);
+
+  /* Dialog */
+  --card-padding: var(--spacing-md);
+  --card-radius: var(--radius-lg);
+  --card-color-background: var(--color-surface);
 
   /* Color picker */
   --colorpicker-area-color-border: var(--input-color-border);

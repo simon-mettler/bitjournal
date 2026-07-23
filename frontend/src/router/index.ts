@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
 import authenticationRoutes from '@/modules/authentication/routes'
-import trackerRoutes from '@/modules/trackers/routes'
+import signalRoutes from '@/modules/signals/routes'
 
 import { useAuthStore } from '@/modules/authentication/store'
 
@@ -21,20 +21,23 @@ const router = createRouter({
     },
 
     ...authenticationRoutes,
-    ...trackerRoutes,
+    ...signalRoutes,
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
+
+  if (!auth.initialized) {
+    await auth.tryRefresh()
+  }
+
   if (to.matched.some(record => record.meta.public)) {
     next()
+  } else if (auth.isAuthenticated) {
+    next()
   } else {
-    if (auth.isAuthenticated) {
-      next()
-    } else {
-      next('/login')
-    }
+    next('/login')
   }
 })
 export default router

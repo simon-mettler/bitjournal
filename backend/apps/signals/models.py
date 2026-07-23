@@ -19,7 +19,7 @@ class SignalType(models.TextChoices):
 
 class SummaryMethod(models.TextChoices):
     AVERAGE = 'average', 'Average'
-    SUM = 'sum', 'Sum (total)'
+    SUM = 'total', 'Total'
 
 
 class SignalCategory(models.Model):

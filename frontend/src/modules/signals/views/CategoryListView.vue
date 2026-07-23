@@ -2,9 +2,9 @@
 import { api } from '@/shared/api'
 import { onMounted, ref } from 'vue'
 import { isAxiosError } from 'axios'
-import type { TrackerCategory } from '@/modules/trackers/types'
+import type { SignalCategory } from '@/modules/signals/types'
 
-const categories = ref<TrackerCategory[]>([])
+const categories = ref<SignalCategory[]>([])
 const categoriesError = ref('')
 
 onMounted(() => {
@@ -14,7 +14,7 @@ onMounted(() => {
 async function getCategories() {
   categoriesError.value = ''
   try {
-    const { data } = await api.get<TrackerCategory[]>('/categories/')
+    const { data } = await api.get<SignalCategory[]>('/categories/')
     categories.value = data
   } catch (err) {
     if (isAxiosError(err)) {

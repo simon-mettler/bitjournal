@@ -2,19 +2,8 @@
 import { ref, computed } from 'vue'
 import Dialog from '@/shared/ui/components/Dialog.vue'
 
-import {
-  Camera, Heart, Star, Book, Coffee, Dumbbell, Droplet, Moon, Sun, Smile,
-  Music, Pencil, Target, Wallet, ShoppingCart, Utensils, Bike, Car, Plane,
-  Home, Briefcase, Brain, Pill, BedDouble, Flame, Leaf, Dog, Cat, Gamepad2,
-} from '@lucide/vue'
+import { icons, type IconName } from '@/shared/lib/iconRegistry'
 
-const icons = {
-  Camera, Heart, Star, Book, Coffee, Dumbbell, Droplet, Moon, Sun, Smile,
-  Music, Pencil, Target, Wallet, ShoppingCart, Utensils, Bike, Car, Plane,
-  Home, Briefcase, Brain, Pill, BedDouble, Flame, Leaf, Dog, Cat, Gamepad2,
-} as const
-
-type IconName = keyof typeof icons
 
 const model = defineModel<string>()
 const open = ref<boolean>(false)
@@ -52,7 +41,7 @@ function selectIcon(name: IconName) {
       <input v-model="search" type="text" placeholder="Search icons..." class="icon-picker-search" />
       <div class="icon-picker-grid">
         <button v-for="name in filteredIcons" :key="name" type="button" class="icon-picker-item"
-          :class="{ 'icon-picker-item-selected': modelValue === name }" :title="name" @click="selectIcon(name)">
+          :class="{ 'icon-picker-item-selected': model === name }" :title="name" @click="selectIcon(name)">
           <component :is="icons[name]" :size="24" />
         </button>
         <p v-if="filteredIcons.length === 0" class="icon-picker-empty">
@@ -73,7 +62,7 @@ function selectIcon(name: IconName) {
   height: 44px;
   border-radius: var(--input-radius);
   border: var(--input-border);
-  background-color: var(--input-color-background);
+  background-color: var(--color-surface);
   color: var(--input-color-text);
   cursor: pointer;
 }

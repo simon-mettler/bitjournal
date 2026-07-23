@@ -1,7 +1,7 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    variant?: 'primary' | 'secondary'
+    variant?: 'primary' | 'secondary' | 'warn'
     disabled?: boolean
     type?: 'button' | 'submit' | 'reset'
   }>(),
@@ -29,18 +29,20 @@ withDefaults(
   gap: 6px;
   height: var(--input-height);
   padding: 0 14px;
+  border: 2px solid transparent;
   border-radius: var(--input-radius);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
   line-height: 1;
   cursor: pointer;
-  border: none;
 
-  &:focus-visible {
+  &:focus {
     box-shadow: var(--input-shadow-focus);
+    border: var(--input-border-focus);
   }
 
   &:disabled {
+
     cursor: not-allowed;
     opacity: 0.5;
   }
@@ -52,13 +54,14 @@ withDefaults(
 }
 
 .button.secondary {
-  background-color: var(--input-color-background);
+  background-color: var(--color-surface);
   color: var(--input-color-text);
   border: var(--input-border);
+}
 
-  &:focus {
-    border: var(--input-border-focus);
-  }
+.button.warn {
+  background-color: var(--color-danger);
+  color: var(--color-surface);
 }
 
 .button-icon {

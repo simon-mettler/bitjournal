@@ -3,7 +3,7 @@ import { Label } from 'reka-ui'
 import { useId } from 'vue'
 
 defineProps<{
-  label: string
+  label?: string
   placeholder?: string
   type?: string
   error?: string

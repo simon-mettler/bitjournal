@@ -90,7 +90,7 @@ const id = useId()
   border: var(--input-border);
   box-shadow: var(--shadow-md);
   color: var(--input-color-text);
-  background-color: var(--input-color-background);
+  background-color: var(--color-surface);
 }
 </style>
 
