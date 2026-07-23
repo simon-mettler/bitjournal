@@ -6,10 +6,12 @@ Depends on 'trackers'.
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
+from uuid import uuid7
 
 from apps.trackers.models import TrackerType
 
 class Event(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -45,7 +47,7 @@ class TrackerEntry(models.Model):
     related tracker's type.
 
     """
-
+    id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='entries')
     tracker = models.ForeignKey('trackers.tracker', on_delete=models.CASCADE, related_name='entries')
 

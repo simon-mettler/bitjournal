@@ -8,6 +8,7 @@ Does not depend on any other app.
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from uuid import uuid7
 
 class TrackerType(models.TextChoices):
     TALLY = 'tally', 'Tally'
@@ -24,6 +25,7 @@ class SummaryMethod(models.TextChoices):
 class TrackerCategory(models.Model):
     """ User defined grouping for trackers."""
 
+    id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -45,6 +47,7 @@ class TrackerCategory(models.Model):
 
 
 class Tracker(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

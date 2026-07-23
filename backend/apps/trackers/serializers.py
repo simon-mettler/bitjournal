@@ -15,6 +15,9 @@ class TrackerCategorySerializer(serializers.ModelSerializer):
 
 
 class TrackerRangeConfigSerializer(serializers.ModelSerializer):
+    min_value = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    max_value = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+
     class Meta:
         model = TrackerRangeConfig
         fields = ['min_value', 'max_value', 'min_label', 'max_label']

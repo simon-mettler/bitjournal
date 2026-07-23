@@ -8,7 +8,10 @@ Depends only on 'trackers'.
 from django.db import models
 from django.conf import settings
 
+from uuid import uuid7
+
 class TrackerBoard(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -35,7 +38,7 @@ class TrackerBoard(models.Model):
 
 class BoardTracker(models.Model):
     """Through model to control tracker display order."""
-
+    id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     board = models.ForeignKey(TrackerBoard, on_delete=models.CASCADE, related_name='board_trackers')
     tracker = models.ForeignKey('trackers.Tracker', on_delete=models.CASCADE, related_name='board_tracker')
     order = models.PositiveIntegerField(default=0)
