@@ -102,9 +102,9 @@ onMounted(loadSignals)
           :description="`Are you sure you want to delete ${signal.name}? This action can't be undone.`"
           @confirm="onDeleteConfirm(signal)">
           <template #trigger>
-            <button type="button" class="icon-btn icon-btn-danger" :aria-label="`Delete ${signal.name}`">
+            <Button type="button" class="icon-btn icon-btn-danger" :aria-label="`Delete ${signal.name}`">
               <Trash2 />
-            </button>
+            </Button>
           </template>
         </AlertDialog>
       </li>
