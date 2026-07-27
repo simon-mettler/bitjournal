@@ -17,6 +17,7 @@ class SignalBoard(models.Model):
         related_name='boards',
     )
     name = models.CharField(max_length=100)
+    order = models.PositiveIntegerField(default=0)
 
     signals = models.ManyToManyField(
         'signals.Signal',
@@ -27,6 +28,7 @@ class SignalBoard(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        ordering = ['order']
         constraints = [
             models.UniqueConstraint(fields=['user', 'name'], name='unique_board_name_per_user'),
         ]
@@ -38,7 +40,7 @@ class SignalBoard(models.Model):
 class BoardSignal(models.Model):
     """Through model to control signal display order."""
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
-    board = models.ForeignKey(SignalBoard, on_delete=models.CASCADE, related_name='board_singnals')
+    board = models.ForeignKey(SignalBoard, on_delete=models.CASCADE, related_name='board_signals')
     signal = models.ForeignKey('signals.Signal', on_delete=models.CASCADE, related_name='board_signal')
     order = models.PositiveIntegerField(default=0)
 
