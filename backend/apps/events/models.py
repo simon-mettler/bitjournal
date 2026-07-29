@@ -76,7 +76,7 @@ class SignalEntry(models.Model):
 
             if self.signal.type == SignalType.RANGE:
                 cfg = self.signal.range_config
-                if not (cfg.min_value <= self.value <= cfg.maxvalue):
+                if not (cfg.min_value <= self.value <= cfg.max_value):
                     raise ValidationError(f"Value must be between {cfg.min_value} and {cfg.max_value}.")
 
     def __str__(self):
