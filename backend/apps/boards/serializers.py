@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import SignalBoard, BoardSignal
-from signals.serializers import SignalSerializer  # adjust import to your actual module
+from apps.signals.serializers import SignalSerializer
 
 
 class BoardSignalSerializer(serializers.ModelSerializer):

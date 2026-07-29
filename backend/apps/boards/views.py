@@ -11,7 +11,7 @@ from .serializers import (
     SignalBoardUpdateSerializer,
     BoardReorderSerializer,
 )
-from signals.models import Signal
+from apps.signals.models import Signal
 
 
 class SignalBoardViewSet(viewsets.ModelViewSet):
@@ -38,7 +38,7 @@ class SignalBoardViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
         return Response(
-            SignalBoardSerializer(seriqlizer.instance).data,
+            SignalBoardSerializer(serializer.instance).data,
             status=status.HTTP_201_CREATED
         )
 
