@@ -9,7 +9,7 @@ export type SignalType = 'tally' | 'range' | 'value' | 'duration'
 export type SummaryMethod = 'total' | 'average'
 
 export interface Signal {
-  id: number
+  id: string
   category?: number
   name: string
   type: SignalType

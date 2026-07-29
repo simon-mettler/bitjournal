@@ -14,7 +14,7 @@ import { Pencil, Trash2 } from '@lucide/vue'
 const signals = ref<Signal[]>([])
 const search = ref('')
 const loading = ref(false)
-const deletingId = ref<number | null>(null)
+const deletingId = ref<string | null>(null)
 import { resolveIcon } from '@/shared/lib/iconRegistry'
 
 const signalsWithIcon = computed(() =>

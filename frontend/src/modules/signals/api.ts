@@ -20,7 +20,7 @@ export function getSignals() {
   return api.get<Signal[]>('signals/')
 }
 
-export function getSignal(id: number) {
+export function getSignal(id: string) {
   return api.get<Signal>(`signals/${id}/`)
 }
 
@@ -28,11 +28,11 @@ export function createSignal(payload: CreateSignalPayload) {
   return api.post<Signal>('signals/', payload)
 }
 
-export function updateSignal(id: number, payload: UpdateSignalPayload) {
+export function updateSignal(id: string, payload: UpdateSignalPayload) {
   return api.patch<Signal>(`signals/${id}/`, payload)
 }
 
-export function deleteSignal(id: number) {
+export function deleteSignal(id: string) {
   return api.delete(`signals/${id}/`)
 }
 
@@ -45,10 +45,10 @@ export function createCategory(payload: CreateCategoryPayload) {
   return api.post<SignalCategory>('categories/', payload)
 }
 
-export function updateCategory(id: number, payload: UpdateCategoryPayload) {
+export function updateCategory(id: string, payload: UpdateCategoryPayload) {
   return api.patch<SignalCategory>(`categories/${id}/`, payload)
 }
 
-export function deleteCategory(id: number) {
+export function deleteCategory(id: string) {
   return api.delete(`categories/${id}/`)
 }
