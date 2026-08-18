@@ -48,9 +48,9 @@ const maxLabel = defineModel<string>('maxLabel', { required: true })
 
   <InputText v-if="selectedSignalType === 'value'" v-model="signalUnit" label="Unit" placeholder="Unit" />
   <template v-if="selectedSignalType === 'range'">
-    <InputNumber v-model.number="minValue" label="Min value" />
+    <InputNumber v-model.number="minValue" label="Min value" signToggle />
     <InputText v-model="minLabel" label="Min label" />
-    <InputNumber v-model.number="maxValue" label="Max value" />
+    <InputNumber v-model.number="maxValue" label="Max value" signToggle />
     <InputText v-model="maxLabel" label="Max label" />
   </template>
 
