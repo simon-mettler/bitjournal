@@ -57,7 +57,7 @@ onMounted(loadBoards)
 
         <div class="board-info">
           <span class="board-name">{{ board.name }}</span>
-          <span class="board-count">{{ board.board_signals.length }} trackers</span>
+          <span class="board-count">{{ board.board_signals.length }} signals</span>
         </div>
 
         <ChevronRight :size="20" class="board-chevron" />
