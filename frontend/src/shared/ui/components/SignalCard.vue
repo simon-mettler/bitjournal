@@ -4,13 +4,20 @@ import type { Signal } from '@/modules/signals/types'
 defineProps<{
   signal: Signal
 }>()
+
+const emit = defineEmits<{
+  select: []
+}>()
 </script>
 
 <template>
-  <div class="signal-card">
+  <div class="signal-card" @click="emit('select')">
     <div class="signal-card-top">
       <span v-if="$slots.handle" class="signal-card-handle">
         <slot name="handle" />
+      </span>
+      <span v-else-if="$slots.icon" class="signal-card-icon">
+        <slot name="icon" />
       </span>
       <span class="signal-card-spacer" />
       <span v-if="$slots.actions" class="signal-card-actions">
@@ -34,6 +41,7 @@ defineProps<{
   border-radius: var(--input-radius);
   background-color: var(--input-color-background);
   box-shadow: var(--shadow-sm, var(--shadow-md));
+  cursor: pointer;
 }
 
 .signal-card-top {
@@ -54,6 +62,12 @@ defineProps<{
 
 .signal-card-handle:active {
   cursor: grabbing;
+}
+
+.signal-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .signal-card-actions {

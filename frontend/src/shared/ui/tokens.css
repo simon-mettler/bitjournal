@@ -63,10 +63,9 @@
   --dialog-radius: var(--radius-lg);
   --dialog-color-background: var(--color-surface);
 
-  /* Dialog */
-  --card-padding: var(--spacing-md);
-  --card-radius: var(--radius-lg);
-  --card-color-background: var(--color-surface);
+  /* Drawer */
+  --drawer-color-background: var(--color-surface);
+  --drawer-handle-color: var(--color-surface-muted);
 
   /* Color picker */
   --colorpicker-area-color-border: var(--input-color-border);

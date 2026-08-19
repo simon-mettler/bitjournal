@@ -33,8 +33,7 @@ const emit = defineEmits<{
   height: 60px;
   background-color: var(--input-color-background);
   border-top: var(--input-border);
-  padding-bottom: env(safe-area-inset-bottom);
-  z-index: 100;
+  z-index: 1;
 }
 
 .bottom-nav-item {
