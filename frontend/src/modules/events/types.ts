@@ -7,8 +7,7 @@ export interface SignalEntryInput {
 }
 
 export interface CreateEventPayload {
-  date: string // YYYY-MM-DD
-  time: string // HH:MM:SS
+  occurred_at: string
   note?: string
   entries: SignalEntryInput[]
 }
@@ -21,8 +20,7 @@ export interface SignalEventEntry {
 
 export interface Event {
   id: string
-  date: string
-  time: string
+  occurred_at: string
   note: string
   entries: SignalEventEntry[]
   created_at: string

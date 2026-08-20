@@ -1,36 +1,59 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, type Ref } from 'vue'
 import { MoreVertical, Settings } from '@lucide/vue'
 import Tabs from '@/shared/ui/components/Tabs.vue'
 import SignalCard from '@/shared/ui/components/SignalCard.vue'
 import LogEntryDrawer from '@/modules/events/components/LogEntryDrawer.vue'
 import EventDraftBar from '@/modules/events/components/EventDraftBar.vue'
-import { getBoards } from '../api'
+import { getBoards } from '@/modules/boards/api'
 import { getSignals } from '@/modules/signals/api'
 import { createEvent } from '@/modules/events/api'
+import { useToast } from '@/shared/lib/useToast'
+import { resolveIcon } from '@/shared/lib/iconRegistry'
+import { now, getLocalTimeZone, toCalendarDate, toTime } from '@internationalized/date'
 import type { Board } from '@/modules/boards/types'
 import type { Signal } from '@/modules/signals/types'
 import type { DraftEntry } from '@/modules/events/types'
-import { resolveIcon } from '@/shared/lib/iconRegistry'
-import { useToast } from '@/shared/lib/useToast'
+import type { DateValue, ZonedDateTime } from '@internationalized/date'
+import type { TimeValue } from 'reka-ui'
 
+const loading = ref(true)
 const toast = useToast()
 
 const boards = ref<Board[]>([])
 const signals = ref<Signal[]>([])
-
-const loading = ref(true)
-
 const selectedSignal = ref<Signal | null>(null)
+
 const entryDrawerOpen = ref(false)
 const editingSignalEntry = ref<DraftEntry | null>(null)
 const editingSignalEntryId = ref<string | null>(null)
 
 const draftSignalEntries = ref<DraftEntry[]>([])
-const now = new Date()
-const draftDate = ref(now.toISOString().slice(0, 10))
-const draftHours = ref(now.getHours())
-const draftMinutes = ref(now.getMinutes())
+
+const draftDateTime = ref<ZonedDateTime>(now(getLocalTimeZone())) as Ref<ZonedDateTime>
+
+const draftDate = computed<DateValue>({
+  get: () => toCalendarDate(draftDateTime.value),
+  set: (newDate) => {
+    draftDateTime.value = draftDateTime.value.set({
+      year: newDate.year,
+      month: newDate.month,
+      day: newDate.day,
+    })
+  }
+})
+
+const draftTime = computed<TimeValue>({
+  get: () => toTime(draftDateTime.value),
+  set: (newTime) => {
+    draftDateTime.value = draftDateTime.value.set({
+      hour: newTime.hour,
+      minute: newTime.minute,
+      second: newTime.second,
+    })
+  },
+})
+
 
 const ALL_TAB = 'all'
 const activeTab = ref<string>(ALL_TAB)
@@ -62,7 +85,14 @@ async function load() {
   }
 }
 
+function setDraftTimestamp() {
+  if (draftSignalEntries.value.length === 0) {
+    draftDateTime.value = now(getLocalTimeZone())
+  }
+}
+
 function onAddSignalEntry(signal: Signal) {
+  setDraftTimestamp()
   if (signal.type === 'tally') {
     draftSignalEntries.value.push({
       id: crypto.randomUUID(),
@@ -78,7 +108,7 @@ function onAddSignalEntry(signal: Signal) {
   entryDrawerOpen.value = true
 }
 
-// tapping a chip in the draft bar: reopen the sheet pre-filled, by entry id
+// tapping a chip in the draft bar: reopen the drawer pre-filled, by entry id
 function onEditSignalEntry(entryId: string) {
   const entry = draftSignalEntries.value.find((e) => e.id === entryId)
   if (!entry) return
@@ -125,11 +155,9 @@ function onCancelDraft() {
 }
 
 async function onSaveDraft() {
-  const pad = (n: number) => String(n).padStart(2, '0')
   try {
     await createEvent({
-      date: draftDate.value,
-      time: `${pad(draftHours.value)}:${pad(draftMinutes.value)}:00`,
+      occurred_at: draftDateTime.value.toDate().toISOString(),
       entries: draftSignalEntries.value.map((e) => ({
         signal_id: e.signal.id,
         value: e.value,
@@ -143,7 +171,6 @@ async function onSaveDraft() {
     console.error(err)
   }
 }
-
 onMounted(load)
 </script>
 
@@ -154,6 +181,7 @@ onMounted(load)
       <Settings :size="22" />
     </button>
   </div>
+
 
   <Tabs v-if="tabs.length > 1" v-model="activeTab" :items="tabs" class="track-tabs" />
 
@@ -181,9 +209,9 @@ onMounted(load)
     :initial-duration="editingSignalEntry?.duration" @save="onSignalEntrySaved" />
 
   <EventDraftBar v-if="draftSignalEntries.length > 0" :entries="draftSignalEntries" v-model:date="draftDate"
-    v-model:hours="draftHours" v-model:minutes="draftMinutes" @edit-entry="onEditSignalEntry"
-    @remove-entry="onRemoveSignalEntry" @note-click="onNoteClick" @location-click="onLocationClick"
-    @people-click="onPeopleClick" @cancel="onCancelDraft" @save="onSaveDraft" />
+    v-model:time="draftTime" @edit-entry="onEditSignalEntry" @remove-entry="onRemoveSignalEntry"
+    @note-click="onNoteClick" @location-click="onLocationClick" @people-click="onPeopleClick" @cancel="onCancelDraft"
+    @save="onSaveDraft" />
 </template>
 
 <style scoped>
@@ -217,7 +245,6 @@ onMounted(load)
 }
 
 .signal-grid.has-draft-bar {
-  /* TODO: check draft bar height */
   padding-bottom: 220px;
 }
 

@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { Pencil, MapPin, Users, X } from '@lucide/vue'
 import Button from '@/shared/ui/components/Button.vue'
-import { formatDraftEntryLabel } from '@/modules/events/format'
+import TimeField from '@/shared/ui/components/TimeField.vue'
+import DatePicker from '@/shared/ui/components/DatePicker.vue'
 import type { DraftEntry } from '@/modules/events/types'
+import { formatDraftEntryLabel } from '@/modules/events/format'
+import type { DateValue } from '@internationalized/date'
+import type { TimeValue } from 'reka-ui'
 
 defineProps<{
   entries: DraftEntry[]
@@ -24,9 +28,8 @@ function editEntry(entry: DraftEntry) {
   emit('editEntry', entry.id)
 }
 
-const date = defineModel<string>('date', { required: true })
-const hours = defineModel<number>('hours', { required: true })
-const minutes = defineModel<number>('minutes', { required: true })
+const date = defineModel<DateValue>('date')
+const time = defineModel<TimeValue>('time')
 </script>
 
 <template>
@@ -56,11 +59,9 @@ const minutes = defineModel<number>('minutes', { required: true })
 
       <span class="draft-spacer" />
 
-      <input v-model="date" type="date" class="draft-date-input" />
       <div class="draft-time-input">
-        <input v-model.number="hours" type="number" min="0" max="23" class="draft-time-field" />
-        <span class="draft-time-divider" />
-        <input v-model.number="minutes" type="number" min="0" max="59" class="draft-time-field" />
+        <DatePicker v-model="date" />
+        <TimeField v-model="time" />
       </div>
     </div>
 
@@ -184,9 +185,6 @@ const minutes = defineModel<number>('minutes', { required: true })
 .draft-time-input {
   display: flex;
   align-items: center;
-  border: var(--input-border);
-  border-radius: var(--input-radius);
-  overflow: hidden;
 }
 
 .draft-time-field {
