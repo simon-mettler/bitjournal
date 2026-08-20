@@ -17,8 +17,9 @@ class Event(models.Model):
         on_delete=models.CASCADE,
         related_name='events',
     )
-    date = models.DateField()
-    time = models.TimeField()
+
+    occurred_at = models.DateTimeField() # UTC
+
     note = models.TextField(blank=True)
 
     signal = models.ManyToManyField(
@@ -31,13 +32,13 @@ class Event(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-date', '-time']
+        ordering = ['-occurred_at']
         indexes = [
-            models.Index(fields=['user', 'date'])
+            models.Index(fields=['user', 'occurred_at'])
         ]
 
     def __str__(self):
-        return f"Event {self.date} {self.time} ({self.user})"
+        return f"Event {self.occurred_at} ({self.user})"
 
 
 class SignalEntry(models.Model):
@@ -49,7 +50,7 @@ class SignalEntry(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='entries')
-    signal = models.ForeignKey('signals.signal', on_delete=models.CASCADE, related_name='entries')
+    signal = models.ForeignKey('signals.Signal', on_delete=models.CASCADE, related_name='entries')
 
     value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     duration = models.DurationField(null=True, blank=True)
@@ -60,6 +61,15 @@ class SignalEntry(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['signal', 'event'])
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(value__isnull=False, duration__isnull=True) |
+                    models.Q(value__isnull=True, duration__isnull=False)
+                ),
+                name='signalentry_exactly_one_of_value_duration',
+            )
         ]
 
     def clean(self):
@@ -78,6 +88,10 @@ class SignalEntry(models.Model):
                 cfg = self.signal.range_config
                 if not (cfg.min_value <= self.value <= cfg.max_value):
                     raise ValidationError(f"Value must be between {cfg.min_value} and {cfg.max_value}.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.signal.name} @ {self.event}" 

@@ -124,8 +124,7 @@ class EventViewSet(viewsets.ModelViewSet):
         if errors:
             return Response({'entries': errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        event.date = data['date']
-        event.time = data['time']
+        event.occurred_at = data['occurred_at']
         event.note = data.get('note', '')
         event.save()
 

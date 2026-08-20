@@ -16,7 +16,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['id', 'date', 'time', 'note', 'entries', 'created_at', 'updated_at']
+        fields = ['id', 'occurred_at', 'note', 'entries', 'created_at', 'updated_at']
 
 
 class SignalEntryInputSerializer(serializers.Serializer):
@@ -35,8 +35,7 @@ class SignalEntryInputSerializer(serializers.Serializer):
 
 
 class EventWriteSerializer(serializers.Serializer):
-    date = serializers.DateField()
-    time = serializers.TimeField()
+    occurred_at = serializers.DateTimeField()
     note = serializers.CharField(required=False, allow_blank=True, default='')
     entries = SignalEntryInputSerializer(many=True)
 
