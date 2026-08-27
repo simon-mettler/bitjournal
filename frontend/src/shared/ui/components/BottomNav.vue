@@ -33,6 +33,8 @@ const emit = defineEmits<{
   height: 60px;
   background-color: var(--input-color-background);
   border-top: var(--input-border);
+  padding: 10px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
   z-index: 1;
 }
 

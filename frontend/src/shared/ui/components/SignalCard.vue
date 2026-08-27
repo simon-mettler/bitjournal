@@ -36,7 +36,8 @@ const emit = defineEmits<{
 .signal-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: space-between;
+  height: 90px;
   padding: 12px;
   border-radius: var(--input-radius);
   background-color: var(--input-color-background);

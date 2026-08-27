@@ -44,7 +44,7 @@ const model = defineModel<string>({ required: true })
   flex-shrink: 0;
   padding: 8px 16px;
   border-radius: var(--radius-xl);
-  border: var(--input-border);
+  border: 1px solid #62656B;
   font-size: var(--font-size-sm);
   color: var(--input-color-text);
   cursor: pointer;
