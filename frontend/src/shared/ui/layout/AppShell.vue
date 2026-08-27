@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, provide } from 'vue'
 import { useRoute } from 'vue-router'
+import { useScroll } from '@vueuse/core'
 import { X } from '@lucide/vue'
 import BottomNav from '@/shared/ui/components/BottomNav.vue'
 import Sidebar from '@/shared/ui/components/Sidebar.vue'
+import { SCROLL_KEY } from '@/shared/lib/useAppShellScroll'
 
 const route = useRoute()
 const drawerOpen = ref(false)
 
-// close the drawer whenever navigation happens (covers both explicit
-// item clicks and any other route change, e.g. back button)
+const contentRef = ref<HTMLElement | null>(null)
+const scroll = useScroll(contentRef)
+
+provide(SCROLL_KEY, scroll)
+
 watch(() => route.fullPath, () => {
   drawerOpen.value = false
 })
@@ -19,7 +24,7 @@ watch(() => route.fullPath, () => {
   <div class="app-shell">
     <Sidebar class="app-shell-sidebar-desktop" />
 
-    <main class="app-shell-content">
+    <main ref="contentRef" class="app-shell-content">
       <RouterView />
     </main>
 
@@ -42,13 +47,14 @@ watch(() => route.fullPath, () => {
 <style scoped>
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100dvh;
 }
 
 .app-shell-content {
   flex: 1;
   min-width: 0;
-  padding-bottom: 60px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .app-shell-content.no-nav {
@@ -119,7 +125,6 @@ watch(() => route.fullPath, () => {
     padding-bottom: 0;
   }
 
-  /* drawer never needed on desktop — sidebar is already always visible */
   .drawer,
   .drawer-overlay {
     display: none;
