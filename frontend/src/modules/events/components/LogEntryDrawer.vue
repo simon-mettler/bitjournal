@@ -5,17 +5,24 @@ import Drawer from '@/shared/ui/components/Drawer.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import RangeSlider from '@/shared/ui/components/RangeSlider.vue'
 import DurationInput from '@/shared/ui/components/DurationInput.vue'
+import NumberPad from '@/shared/ui/components/NumberPad.vue'
+import InputNumber from '@/shared/ui/components/InputNumber.vue'
+import { provideNumpadGroup } from '@/shared/lib/useNumpadGroup'
 import { resolveIcon } from '@/shared/lib/iconRegistry'
 import type { Signal } from '@/modules/signals/types'
 import type { DraftEntry } from '@/modules/events/types'
-import InputNumber from '@/shared/ui/components/InputNumber.vue'
 
 const props = defineProps<{
   signal: Signal
   initialValue?: number
   initialDuration?: string
   editing?: boolean
+  numpad?: boolean // false = native number keyboard, true = custom pad
 }>()
+
+// covers the lone "value" field; DurationInput provides its own nested
+// group for hours/minutes/seconds, which shadows this one for its children.
+provideNumpadGroup(props.numpad ?? false)
 
 const emit = defineEmits<{ save: [entry: DraftEntry] }>()
 const open = defineModel<boolean>('open', { default: false })
@@ -32,7 +39,6 @@ const seconds = ref(0)
 watch(open, (isOpen) => {
   if (!isOpen) return
 
-  // Reset values
   numberValue.value = props.initialValue ?? 0
   rangeValue.value = props.initialValue ?? defaultRange.value
 
@@ -91,26 +97,32 @@ function submit() {
       :max-label="signal.range_config?.max_label" />
 
     <DurationInput v-else-if="signal.type === 'duration'" v-model:hours="hours" v-model:minutes="minutes"
-      v-model:seconds="seconds" />
+      v-model:seconds="seconds" :numpad="numpad" />
 
     <p v-else class="tally-note">
       Tap add to log this.
     </p>
 
+    <NumberPad v-if="numpad && signal.type === 'value'" enable-decimal enable-sign />
+
     <template #footer>
-      <Button variant="secondary" @click="open = false">
-        Cancel
-      </Button>
+      <div class="footer">
 
-      <Button variant="primary" @click="submit">
-        <template #icon>
-          <CircleCheck v-if="editing" :size="18" />
-          <CirclePlus v-else :size="18" />
-        </template>
+        <Button variant="secondary" @click="open = false">
+          Cancel
+        </Button>
 
-        {{ editing ? 'Save' : 'Add' }}
-      </Button>
+        <Button variant="primary" @click="submit">
+          <template #icon>
+            <CircleCheck v-if="editing" :size="18" />
+            <CirclePlus v-else :size="18" />
+          </template>
+          {{ editing ? 'Save' : 'Add' }}
+        </Button>
+
+      </div>
     </template>
+
   </Drawer>
 </template>
 
@@ -119,5 +131,15 @@ function submit() {
   text-align: center;
   color: var(--input-color-label);
   padding: var(--spacing-lg) 0;
+}
+
+.footer {
+  display: flex;
+  width: 100%;
+  gap: var(--spacing-md);
+}
+
+button {
+  flex: 1;
 }
 </style>

@@ -4,9 +4,10 @@ import {
   NumberFieldRoot,
 } from 'reka-ui'
 import { Diff } from '@lucide/vue';
-import { useId } from 'vue'
+import { computed, onMounted, onUnmounted, useId } from 'vue'
+import { useNumpadGroup } from '@/shared/lib/useNumpadGroup'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     label: string
     placeholder?: string
@@ -16,15 +17,41 @@ withDefaults(
     step?: number
     disabled?: boolean
     signToggle?: boolean
+    maxLength?: number // digit cap when driven by the numpad, e.g. 2 for "59"
   }>(),
   {
     step: 1,
-    signToggle: false
+    signToggle: false,
   },
 )
 
 const model = defineModel<number>()
 const id = useId()
+
+const group = useNumpadGroup()
+const numpadActive = computed(() => !!group?.enabled)
+const isActiveField = computed(() => numpadActive.value && group?.activeId.value === id)
+
+onMounted(() => {
+  group?.register({
+    id,
+    value: model,
+    min: props.min,
+    max: props.max,
+    maxLength: props.maxLength,
+    label: props.label,
+  })
+})
+onUnmounted(() => group?.unregister(id))
+
+function focusField() {
+  if (numpadActive.value) group?.focus(id)
+}
+
+// stop the native focus/keyboard from firing at all when the numpad drives input
+function blockNative(e: Event) {
+  if (numpadActive.value) e.preventDefault()
+}
 
 function toggleSign() {
   if (model.value) {
@@ -38,13 +65,15 @@ function toggleSign() {
     <label class="label" :for="id">
       {{ label }}
     </label>
-    <NumberFieldRoot :id="id" v-model="model" class="number-root" :min="min" :max="max" :step="step"
-      :disabled="disabled">
-      <button v-if="signToggle" class="number-sign-toggle" type="button" tabindex="-1" aria-label="Toggle positive or
+    <NumberFieldRoot :id="id" v-model="model" class="number-root" :class="{ 'number-root-active': isActiveField }"
+      :min="min" :max="max" :step="step" :disabled="disabled" @click="focusField">
+      <button v-if="signToggle && !numpadActive" class="number-sign-toggle" type="button" tabindex="-1" aria-label="Toggle positive or
         negative" @click="toggleSign">
         <Diff :size="20" />
       </button>
-      <NumberFieldInput class="number-input" :placeholder="placeholder" />
+      <NumberFieldInput class="number-input" :placeholder="placeholder" :readonly="numpadActive"
+        :inputmode="numpadActive ? 'none' : undefined" :tabindex="numpadActive ? -1 : undefined"
+        @mousedown="blockNative" @focus="focusField" />
     </NumberFieldRoot>
     <p v-if="error" class="error-text">{{ error }}</p>
   </div>
@@ -70,9 +99,8 @@ function toggleSign() {
   display: flex;
   align-items: center;
   width: 100%;
-  min-width: 120px;
+  box-sizing: border-box;
   min-height: var(--input-height);
-
   border-radius: var(--input-radius);
   color: var(--input-color-text);
   background-color: var(--input-color-background);
@@ -82,6 +110,11 @@ function toggleSign() {
     box-shadow: var(--input-shadow-focus);
     border: var(--input-border-focus);
   }
+}
+
+.number-root-active {
+  border: var(--input-border-focus);
+  box-shadow: var(--input-shadow-focus);
 }
 
 .number-input {
