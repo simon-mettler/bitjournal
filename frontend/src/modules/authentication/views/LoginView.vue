@@ -3,6 +3,9 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store'
 import { isAxiosError } from 'axios'
+import InputText from '@/shared/ui/components/InputText.vue'
+import Button from '@/shared/ui/components/Button.vue'
+import Header from '@/shared/ui/components/Header.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -31,11 +34,33 @@ async function handleSubmit() {
 </script>
 
 <template>
-  TEST
+  <Header heading="Login"></Header>
   <form @submit.prevent="handleSubmit">
-    <input v-model="username" placeholder="Username" required />
-    <input v-model="password" type="password" placeholder="Password" required />
-    <button type="submit" :disabled="loading">Login</button>
+    <InputText v-model="username" label="Username" required />
+    <InputText v-model="password" type="password" label="Password" required />
+    <Button type="submit" :disabled="loading">Login</Button>
     <p v-if="error">{{ error }}</p>
   </form>
+
+  <p class="login-hint">
+    No account yet?
+    <RouterLink :to="{ name: 'register' }">Register here</RouterLink>
+  </p>
 </template>
+
+<style scoped>
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--padding-app);
+}
+
+form>button {
+  margin-top: 16px;
+}
+
+.login-hint {
+  text-align: center;
+}
+</style>

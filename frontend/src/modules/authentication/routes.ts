@@ -8,6 +8,7 @@ const authenticationRoutes = [
     component: RegisterView,
     meta: {
       public: true,
+      hideNav: true,
     }
   },
   {
@@ -16,6 +17,7 @@ const authenticationRoutes = [
     component: LoginView,
     meta: {
       public: true,
+      hideNav: true,
     }
   },
 ]

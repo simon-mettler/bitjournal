@@ -1,10 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const authApi = axios.create({
-  baseURL: 'http://localhost:8000/api/',
-  withCredentials: true,
-})
+import { api } from '@/shared/api';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -18,17 +13,20 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async register(payload: { username: string; email: string; password: string }) {
-      await authApi.post('register/', payload)
-      await this.login({ username: payload.username, password: payload.password })
+      await api.post('register/', payload)
+      await this.login({
+        username: payload.username,
+        password: payload.password,
+      })
     },
 
     async login(payload: { username: string; password: string }) {
-      const { data } = await authApi.post<{ access: string }>('token/', payload)
+      const { data } = await api.post<{ access: string }>('token/', payload)
       this.accessToken = data.access
     },
 
     async refreshAccessToken(): Promise<string> {
-      const { data } = await authApi.post<{ access: string }>('token/refresh/')
+      const { data } = await api.post<{ access: string }>('token/refresh/')
       this.accessToken = data.access
       return data.access
     },
@@ -45,7 +43,7 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
-        await authApi.post('logout/')
+        await api.post('logout/')
       } finally {
         this.accessToken = ''
       }
