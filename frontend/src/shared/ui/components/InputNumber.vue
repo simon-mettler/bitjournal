@@ -66,7 +66,8 @@ function toggleSign() {
       {{ label }}
     </label>
     <NumberFieldRoot :id="id" v-model="model" class="number-root" :class="{ 'number-root-active': isActiveField }"
-      :min="min" :max="max" :step="step" :disabled="disabled" @click="focusField">
+      :min="min" :max="max" :step="step" :disabled="disabled" @click="focusField"
+      :format-options="{ useGrouping: false, maximumFractionDigits: 2 }">
       <button v-if="signToggle && !numpadActive" class="number-sign-toggle" type="button" tabindex="-1" aria-label="Toggle positive or
         negative" @click="toggleSign">
         <Diff :size="20" />

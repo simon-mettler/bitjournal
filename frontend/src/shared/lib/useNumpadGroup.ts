@@ -97,6 +97,9 @@ export function provideNumpadGroup(enabled: boolean): NumpadGroup {
         freshEntry = false
       }
 
+      // limit the entered number to 2 decimal places
+      if (buffer.includes('.') && buffer.split('.')[1].length >= 2) return
+
       const hasDecimal = buffer.includes('.')
       const digitsSoFar = buffer.replace('-', '').length
       if (field.maxLength && !hasDecimal && digitsSoFar >= field.maxLength) {
