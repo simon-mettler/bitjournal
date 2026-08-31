@@ -36,7 +36,7 @@ import {
 import { computed, ref, type Ref, watch } from 'vue'
 import { ArrowLeft, ArrowRight, CalendarDays } from '@lucide/vue'
 import Drawer from '@/shared/ui/components/Drawer.vue'
-import Button from '@/shared/ui/components/Button.vue'
+import IconButton from '@/shared/ui/components/IconButton.vue'
 import { getLocalTimeZone, today, type DateValue } from '@internationalized/date'
 
 type View = 'day' | 'month' | 'year'
@@ -111,9 +111,9 @@ const yearLabel = computed(() => String(placeholder.value.year))
 </script>
 
 <template>
-  <Button type="button" variant="secondary" class="date-picker-button" @click="openDrawer">
-    <CalendarDays :size="18" />
-  </Button>
+  <IconButton variant="secondary" @click="openDrawer">
+    <CalendarDays />
+  </IconButton>
 
   <Drawer v-model:open="drawerOpen" title="Select date">
     <div ref="containerRef" class="dp-container">

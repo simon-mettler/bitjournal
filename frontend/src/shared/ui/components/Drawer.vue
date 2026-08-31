@@ -35,6 +35,7 @@ const open = defineModel<boolean>('open', { default: false })
 </template>
 
 <style scoped>
+/* see https://reka-ui.com/docs/components/drawer#animating-the-drawer */
 .drawer-overlay {
   background-color: var(--color-app-backdrop);
   position: fixed;
@@ -52,7 +53,7 @@ const open = defineModel<boolean>('open', { default: false })
 
 .drawer-header {
   display: flex;
-  margin: var(--spacing-md) var(--spacing-lg);
+  margin: 12px var(--spacing-lg) 0 var(--spacing-lg);
   gap: 10px;
 }
 

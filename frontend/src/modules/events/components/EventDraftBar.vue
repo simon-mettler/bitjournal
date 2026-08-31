@@ -3,6 +3,8 @@ import { Pencil, MapPin, Users, X } from '@lucide/vue'
 import Button from '@/shared/ui/components/Button.vue'
 import TimeField from '@/shared/ui/components/TimeField.vue'
 import DatePicker from '@/shared/ui/components/DatePicker.vue'
+import SignalChip from '@/shared/ui/components/SignalChip.vue'
+import IconButton from '@/shared/ui/components/IconButton.vue'
 import type { DraftEntry } from '@/modules/events/types'
 import { formatDraftEntryLabel } from '@/modules/events/format'
 import type { DateValue } from '@internationalized/date'
@@ -35,31 +37,34 @@ const time = defineModel<TimeValue>('time')
 <template>
   <div class="draft-bar">
     <div class="draft-chips">
-      <button v-for="entry in entries" :key="entry.id" type="button" class="draft-chip" @click="editEntry(entry)">
-        <span class="draft-chip-dot" :style="{ backgroundColor: entry.signal.color }" />
-        <span class="draft-chip-label">{{ formatDraftEntryLabel(entry) }}</span>
-        <span class="draft-chip-remove" role="button" :aria-label="`Remove ${entry.signal.name}`"
-          @click.stop="emit('removeEntry', entry.id)">
-          <X :size="14" />
-        </span>
+      <button v-for="entry in entries" :key="entry.id" class="draft-chip-wrapper" type="button"
+        @click="editEntry(entry)">
+        <SignalChip :signal="entry.signal" :value="formatDraftEntryLabel(entry)">
+          <template #suffix>
+            <span class="draft-chip-remove" role="button" :aria-label="`Remove ${entry.signal.name}`"
+              @click.stop="emit('removeEntry', entry.id)">
+              <X :size="14" />
+            </span>
+          </template>
+        </SignalChip>
       </button>
     </div>
 
     <div class="draft-controls">
-      <button type="button" class="draft-icon-btn" aria-label="Add note" @click="emit('noteClick')">
-        <Pencil :size="18" />
-      </button>
-      <button type="button" class="draft-icon-btn" aria-label="Set location" @click="emit('locationClick')">
-        <MapPin :size="18" />
-      </button>
-      <button type="button" class="draft-icon-btn" aria-label="Tag people" @click="emit('peopleClick')">
-        <Users :size="18" />
+      <IconButton variant="secondary" aria-label="Add note" @click="emit('noteClick')">
+        <Pencil />
+      </IconButton>
+      <IconButton variant="secondary" aria-label="Set location" @click="emit('locationClick')">
+        <MapPin />
+      </IconButton>
+      <IconButton variant="secondary" aria-label="Tag people" @click="emit('peopleClick')">
+        <Users />
         <span v-if="participantCount" class="draft-icon-badge">{{ participantCount }}</span>
-      </button>
+      </IconButton>
 
       <span class="draft-spacer" />
 
-      <div class="draft-time-input">
+      <div class="draft-datetime-input">
         <DatePicker v-model="date" />
         <TimeField v-model="time" />
       </div>
@@ -85,7 +90,8 @@ const time = defineModel<TimeValue>('time')
   background-color: var(--color-surface);
   border-top: var(--input-border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: var(--spacing-md) var(--spacing-md) calc(var(--spacing-md) + env(safe-area-inset-bottom));
+  padding: var(--spacing-md);
+  padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
   box-shadow: var(--shadow-md);
 }
 
@@ -95,24 +101,8 @@ const time = defineModel<TimeValue>('time')
   gap: 8px;
 }
 
-.draft-chip {
+.draft-chip-wrapper {
   all: unset;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px 6px 10px;
-  border-radius: var(--radius-xl);
-  background-color: var(--color-surface-muted);
-  font-size: var(--font-size-sm);
-  color: var(--color-text);
-  cursor: pointer;
-}
-
-.draft-chip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
 }
 
 .draft-chip-remove {
@@ -168,37 +158,10 @@ const time = defineModel<TimeValue>('time')
   flex: 1;
 }
 
-.draft-date-input,
-.draft-time-field {
-  border: var(--input-border);
-  border-radius: var(--input-radius);
-  color: var(--input-color-text);
-  background-color: var(--input-color-background);
-  height: 40px;
-  font-size: var(--font-size-sm);
-}
-
-.draft-date-input {
-  padding: 0 8px;
-}
-
-.draft-time-input {
+.draft-datetime-input {
   display: flex;
+  gap: var(--spacing-sm);
   align-items: center;
-}
-
-.draft-time-field {
-  all: unset;
-  box-sizing: border-box;
-  width: 32px;
-  text-align: center;
-  padding: 0 4px;
-}
-
-.draft-time-divider {
-  width: 1px;
-  height: 20px;
-  background-color: var(--input-color-border);
 }
 
 .draft-footer {
