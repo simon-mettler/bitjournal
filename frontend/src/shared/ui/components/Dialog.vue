@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import {
   DialogClose,
   DialogContent,
@@ -54,24 +54,40 @@ const open = ref<boolean>(false)
 
 <style scoped>
 .dialog-overlay {
+  z-index: 10;
   background-color: var(--color-app-backdrop);
   position: fixed;
   inset: 0;
-  animation: overlayShow 1000ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: overlayShow 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
 }
 
 .dialog-content {
+  z-index: 11;
   background-color: var(--dialog-color-background);
   border-radius: var(--dialog-radius);
-  box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+  box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
+    hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
   position: fixed;
-  top: 50%;
+  top: calc(var(--visual-viewport-offset-top) + var(--visual-viewport-height) / 2);
   left: 50%;
   transform: translate(-50%, -50%);
   width: 83vw;
   max-width: 450px;
+  max-height: calc(var(--visual-viewport-height) - var(--spacing-md) - var(--spacing-md));
+  box-sizing: border-box;
   padding: var(--dialog-padding);
-  animation: contentShow 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  animation: contentShow 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .dialog-title {
@@ -85,12 +101,6 @@ const open = ref<boolean>(false)
   margin: 0 0 var(--spacing-md) 0;
   color: var(--color-text);
   font-size: var(--font-size-base);
-}
-
-.dialog-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
 }
 
 .dialog-footer {
