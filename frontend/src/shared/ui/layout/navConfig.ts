@@ -24,7 +24,7 @@ export interface NavGroup {
 export const primaryNavItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, to: { name: '' } },
   { label: 'Track', icon: ListChecks, to: { name: 'track' } },
-  { label: 'Journal', icon: BookOpen, to: { name: '' } },
+  { label: 'Journal', icon: BookOpen, to: { name: 'journal' } },
 ]
 
 export const moreNavIcon = MoreHorizontal

@@ -6,13 +6,12 @@ import { X } from '@lucide/vue'
 import BottomNav from '@/shared/ui/components/BottomNav.vue'
 import Sidebar from '@/shared/ui/components/Sidebar.vue'
 import { SCROLL_KEY } from '@/shared/lib/useAppShellScroll'
+import { APP_SHELL_HEADER_ID, APP_SHELL_FOOTER_ID } from '@/shared/lib/appShellSlots'
 
 const route = useRoute()
 const drawerOpen = ref(false)
-
 const contentRef = ref<HTMLElement | null>(null)
 const scroll = useScroll(contentRef)
-
 provide(SCROLL_KEY, scroll)
 
 watch(() => route.fullPath, () => {
@@ -24,13 +23,21 @@ watch(() => route.fullPath, () => {
   <div class="app-shell">
     <Sidebar class="app-shell-sidebar-desktop" />
 
-    <main ref="contentRef" class="app-shell-content">
-      <RouterView />
-    </main>
+    <div class="app-shell-main">
+      <header :id="APP_SHELL_HEADER_ID" class="app-shell-header" />
+
+      <main ref="contentRef" class="app-shell-content">
+        <RouterView />
+      </main>
+
+      <footer :id="APP_SHELL_FOOTER_ID" class="app-shell-footer" />
+
+      <template v-if="!route.meta.hideNav">
+        <BottomNav class="app-shell-bottom-nav" @more-click="drawerOpen = true" />
+      </template>
+    </div>
 
     <template v-if="!route.meta.hideNav">
-      <BottomNav class="app-shell-bottom-nav" @more-click="drawerOpen = true" />
-
       <Teleport to="body">
         <div v-if="drawerOpen" class="drawer-overlay" @click="drawerOpen = false" />
         <div class="drawer" :class="{ open: drawerOpen }">
@@ -50,23 +57,40 @@ watch(() => route.fullPath, () => {
   height: 100dvh;
 }
 
-.app-shell-content {
+.app-shell-main {
+  display: grid;
+  grid-template-areas:
+    "header"
+    "content"
+    "footer"
+    "bottom-nav";
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   flex: 1;
   min-width: 0;
   min-height: 0;
+}
+
+.app-shell-header {
+  grid-area: header;
+}
+
+.app-shell-content {
   overflow-y: auto;
+  min-height: 0;
+  grid-area: content;
 }
 
-.app-shell-content.no-nav {
-  padding-bottom: 0;
-}
-
-.app-shell-sidebar-desktop {
-  display: none;
+.app-shell-footer {
+  grid-area: footer;
 }
 
 .app-shell-bottom-nav {
   display: flex;
+  grid-area: bottom-nav;
+}
+
+.app-shell-sidebar-desktop {
+  display: none;
 }
 
 .drawer-overlay {
@@ -119,10 +143,6 @@ watch(() => route.fullPath, () => {
 
   .app-shell-bottom-nav {
     display: none;
-  }
-
-  .app-shell-content {
-    padding-bottom: 0;
   }
 
   .drawer,

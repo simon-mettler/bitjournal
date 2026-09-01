@@ -23,10 +23,6 @@ const emit = defineEmits<{
 
 <style scoped>
 .bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -35,7 +31,6 @@ const emit = defineEmits<{
   border-top: var(--input-border);
   padding: 10px;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
-  z-index: 1;
 }
 
 .bottom-nav-item {

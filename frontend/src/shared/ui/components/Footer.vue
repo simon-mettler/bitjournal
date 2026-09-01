@@ -10,9 +10,7 @@
 <style scoped>
 .footer {
   display: flex;
-  position: fixed;
   gap: 16px;
-  bottom: 0;
   width: 100%;
   box-sizing: border-box;
   background-color: var(--color-surface);
