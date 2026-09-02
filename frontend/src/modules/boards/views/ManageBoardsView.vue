@@ -7,6 +7,7 @@ import AddBoardDialog from '@/modules/boards/components/AddBoardDialog.vue'
 import { getBoards, reorderBoards } from '@/modules/boards/api'
 import type { Board } from '@/modules/boards/types'
 import { useToast } from '@/shared/lib/useToast'
+import Header from '@/shared/ui/components/Header.vue'
 
 const router = useRouter()
 const toast = useToast()
@@ -46,12 +47,16 @@ onMounted(loadBoards)
 </script>
 
 <template>
-  <h1>Signal boards</h1>
+  <Header heading="Manage boards">
+  </Header>
 
-  <div class="card">
+  <div class="manage-boards-content">
+
+    <AddBoardDialog @created="onBoardCreated" />
+
     <ul ref="listEl" class="board-list">
-      <li v-for="board in boards" :key="board.id" class="board-row" @click="openBoard(board)">
-        <span class="drag-handle" @click.stop>
+      <li v-for="board in boards" :key="board.id" class="drag-handle board-row" @click="openBoard(board)">
+        <span @click.stop>
           <GripVertical :size="18" />
         </span>
 
@@ -67,19 +72,17 @@ onMounted(loadBoards)
         No boards yet.
       </li>
     </ul>
+
   </div>
 
-  <AddBoardDialog @created="onBoardCreated" />
 </template>
 
 <style scoped>
-.card {
+.manage-boards-content {
+  padding: var(--padding-app);
   display: flex;
   flex-direction: column;
-  padding: 8px;
-  border-radius: var(--input-radius);
-  background-color: var(--color-surface-muted, transparent);
-  margin-bottom: 16px;
+  gap: 32px;
 }
 
 .board-list {

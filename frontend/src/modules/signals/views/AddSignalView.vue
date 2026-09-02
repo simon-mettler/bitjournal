@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Modal from '@/shared/ui/components/Dialog.vue'
+import { useRouter } from 'vue-router'
 import Button from '@/shared/ui/components/Button.vue'
 import SignalForm from '@/modules/signals/components/SignalForm.vue'
-import { DialogClose } from 'reka-ui'
+import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
+import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
 import { createSignal, type CreateSignalPayload } from '@/modules/signals/api'
 import type { Signal } from '@/modules/signals/types'
 import { useToast } from '@/shared/lib/useToast'
-
+import Header from '@/shared/ui/components/Header.vue'
+import Footer from '@/shared/ui/components/Footer.vue'
 const toast = useToast()
 const emit = defineEmits<{ created: [signal: Signal] }>()
+const router = useRouter()
 
-const open = ref(false)
 const signalName = ref('')
 const color = ref('#324245')
 const icon = ref('')
@@ -68,34 +70,37 @@ async function submitSignal() {
     const { data } = await createSignal(payload)
     emit('created', data)
     resetForm()
-    open.value = false
   } catch (err) {
     console.error(err)
   } finally {
     submitting.value = false
+    router.back()
   }
 }
 </script>
 
 <template>
-  <Modal v-model:open="open" title="Create signal">
-    <template #trigger>
-      <slot name="trigger">
-        <Button>Create signal</Button>
-      </slot>
-    </template>
+  <AppShellHeader>
+    <Header heading="Create signal"></Header>
+  </AppShellHeader>
 
+  <div class="add-signal-content">
     <SignalForm v-model:name="signalName" v-model:color="color" v-model:icon="icon" v-model:unit="signalUnit"
       v-model:type="selectedSignalType" v-model:summary-method="selectedSummaryMethod" v-model:min-value="minValue"
       v-model:max-value="maxValue" v-model:min-label="minLabel" v-model:max-label="maxLabel" :errors="errors" />
-
-    <template #footer>
-      <DialogClose as-child>
-        <Button variant="secondary">Cancel</Button>
-      </DialogClose>
+  </div>
+  <AppShellFooter>
+    <Footer>
+      <Button variant="secondary">Cancel</Button>
       <Button :disabled="submitting" variant="primary" @click="submitSignal()">
         {{ submitting ? 'Saving...' : 'Create signal' }}
       </Button>
-    </template>
-  </Modal>
+    </Footer>
+  </AppShellFooter>
 </template>
+
+<style scoped>
+.add-signal-content {
+  padding: 0 var(--padding-app);
+}
+</style>

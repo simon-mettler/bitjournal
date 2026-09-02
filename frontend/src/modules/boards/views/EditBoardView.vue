@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, GripVertical, Trash2 } from '@lucide/vue'
+import { GripVertical, Trash2 } from '@lucide/vue'
 import { useSortable } from '@vueuse/integrations/useSortable'
 import type { UseSortableOptions } from '@vueuse/integrations/useSortable'
+import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
+import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
 import Button from '@/shared/ui/components/Button.vue'
+import IconButton from '@/shared/ui/components/IconButton.vue'
 import InputText from '@/shared/ui/components/InputText.vue'
 import AlertDialog from '@/shared/ui/components/AlertDialog.vue'
+import Header from '@/shared/ui/components/Header.vue'
 import SignalCard from '@/shared/ui/components/SignalCard.vue'
 import SignalPickerDialog from '@/modules/boards/components/SignalPickerDialog.vue'
+import Footer from '@/shared/ui/components/Footer.vue'
 import { deleteBoard, getBoard, updateBoard } from '@/modules/boards/api'
 import type { Signal } from '@/modules/signals/types'
 import { useToast } from '@/shared/lib/useToast'
@@ -78,73 +83,73 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="edit-board-header">
-    <button type="button" class="back-btn" aria-label="Back to boards" @click="router.push({ name: 'manage-boards' })">
-      <ArrowLeft :size="22" />
-    </button>
-    <h1>Edit board</h1>
-    <Button variant="primary" :disabled="saving || loading" @click="save">
-      {{ saving ? 'Saving...' : 'Save' }}
-    </Button>
-  </div>
 
-  <div v-if="!loading" class="card">
-    <InputText v-model="boardName" label="Board name" placeholder="" />
+  <AppShellHeader>
+    <Header heading="Edit board">
+    </Header>
+  </AppShellHeader>
 
-    <div class="board-actions">
-      <AlertDialog title="Delete board" confirm-text="Delete"
-        :description="`Are you sure you want to delete &quot;${boardName}&quot;? This can't be undone.`"
-        @confirm="confirmDeleteBoard">
-        <template #trigger>
-          <Button variant="secondary" class="danger-btn">Delete board</Button>
-        </template>
-        <template #cancel>
-          <Button variant="secondary">Cancel</Button>
-        </template>
-        <template #action>
-          <Button variant="primary">Delete</Button>
-        </template>
-      </AlertDialog>
+  <div class="edit-board-content">
+    <div v-if="!loading" class="card">
+      <InputText v-model="boardName" label="Board name" placeholder="" />
 
-      <SignalPickerDialog :exclude-ids="signals.map(s => s.id)" @add="onSignalsAdded" />
+      <div class="board-actions">
+        <AlertDialog title="Delete board" confirm-text="Delete"
+          :description="`Are you sure you want to delete &quot;${boardName}&quot;? This can't be undone.`"
+          @confirm="confirmDeleteBoard">
+          <template #trigger>
+            <Button variant="secondary" class="danger-btn">Delete board</Button>
+          </template>
+          <template #cancel>
+            <Button variant="secondary">Cancel</Button>
+          </template>
+          <template #action>
+            <Button variant="primary">Delete</Button>
+          </template>
+        </AlertDialog>
+
+        <SignalPickerDialog :exclude-ids="signals.map(s => s.id)" @add="onSignalsAdded">
+          <template #trigger>
+            <Button variant="tertiary">Add signal</Button>
+          </template>
+        </SignalPickerDialog>
+      </div>
     </div>
+
+    <div ref="gridEl" class="signal-grid">
+      <SignalCard class="drag-handle" v-for="signal in signals" :key="signal.id" :signal="signal">
+        <template #handle>
+          <span>
+            <GripVertical :size="20" />
+          </span>
+        </template>
+        <template #actions>
+          <IconButton class="danger" variant="tertiary" size="sm" @click="removeSignal(signal.id)"
+            :aria-label="`Remove ${signal.name} from board`">
+            <Trash2 />
+          </IconButton>
+        </template>
+      </SignalCard>
+    </div>
+
   </div>
 
-  <div ref="gridEl" class="signal-grid">
-    <SignalCard v-for="signal in signals" :key="signal.id" :signal="signal">
-      <template #handle>
-        <span class="drag-handle">
-          <GripVertical :size="18" />
-        </span>
-      </template>
-      <template #actions>
-        <button type="button" class="icon-btn icon-btn-danger" :aria-label="`Remove ${signal.name} from board`"
-          @click="removeSignal(signal.id)">
-          <Trash2 :size="18" />
-        </button>
-      </template>
-    </SignalCard>
-  </div>
+  <AppShellFooter>
+    <Footer>
+      <Button variant="secondary" @click="router.back()">
+        Cancel
+      </Button>
+      <Button variant="primary" :disabled="saving || loading" @click="save">
+        {{ saving ? 'Saving...' : 'Save' }}
+      </Button>
+    </Footer>
+  </AppShellFooter>
+
 </template>
 
 <style scoped>
-.edit-board-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.edit-board-header h1 {
-  flex: 1;
-  margin: 0;
-}
-
-.back-btn {
-  all: unset;
-  display: inline-flex;
-  cursor: pointer;
-  color: var(--color-primary);
+.edit-board-content {
+  padding: 0 var(--padding-app);
 }
 
 .card {
@@ -163,9 +168,8 @@ onMounted(load)
   flex-wrap: wrap;
 }
 
-.danger-btn {
-  color: var(--color-danger);
-  border-color: var(--color-danger);
+.board-actions button {
+  flex: 1;
 }
 
 .signal-grid {
@@ -185,19 +189,7 @@ onMounted(load)
   cursor: grabbing;
 }
 
-.icon-btn {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--input-radius);
-  cursor: pointer;
+.danger>svg {
   color: var(--color-danger);
-}
-
-.icon-btn-danger:hover {
-  background-color: var(--color-surface-muted);
 }
 </style>

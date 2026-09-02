@@ -35,24 +35,30 @@ const maxLabel = defineModel<string>('maxLabel', { required: true })
 </script>
 
 <template>
-  <div class="form-name">
-    <InputText v-model="signalName" label="Name" placeholder="" />
-    <IconPicker v-model="icon" />
-    <ColorPicker v-model="color" />
+  <div class="form">
+    <div class="form-name">
+      <InputText v-model="signalName" label="Name" placeholder="" />
+      <IconPicker v-model="icon" />
+      <ColorPicker v-model="color" />
+    </div>
+
+    <Select v-model="selectedSummaryMethod" :options="summaryMethod" label="Summary method"
+      placeholder="Summary method" />
+    <Select v-model="selectedSignalType" :options="signalType" label="Signal type" placeholder="Choose a type"
+      :disabled="lockType" />
+
+    <InputText v-if="selectedSignalType === 'value'" v-model="signalUnit" label="Unit" placeholder="Unit" />
+    <template v-if="selectedSignalType === 'range'">
+      <div class='form-group'>
+        <InputNumber v-model.number="minValue" label="Min value" signToggle />
+        <InputText v-model="minLabel" label="Min label" />
+      </div>
+      <div class='form-group'>
+        <InputNumber v-model.number="maxValue" label="Max value" signToggle />
+        <InputText v-model="maxLabel" label="Max label" />
+      </div>
+    </template>
   </div>
-
-  <Select v-model="selectedSummaryMethod" :options="summaryMethod" label="Summary method"
-    placeholder="Summary method" />
-  <Select v-model="selectedSignalType" :options="signalType" label="Signal type" placeholder="Choose a type"
-    :disabled="lockType" />
-
-  <InputText v-if="selectedSignalType === 'value'" v-model="signalUnit" label="Unit" placeholder="Unit" />
-  <template v-if="selectedSignalType === 'range'">
-    <InputNumber v-model.number="minValue" label="Min value" signToggle />
-    <InputText v-model="minLabel" label="Min label" />
-    <InputNumber v-model.number="maxValue" label="Max value" signToggle />
-    <InputText v-model="maxLabel" label="Max label" />
-  </template>
 
   <p v-if="errors.name" class="error">{{ errors.name[0] }}</p>
   <p v-if="errors.value_config" class="error">{{ errors.value_config }}</p>
@@ -60,9 +66,26 @@ const maxLabel = defineModel<string>('maxLabel', { required: true })
 </template>
 
 <style scoped>
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .form-name {
   display: flex;
   align-items: flex-end;
   gap: 8px;
+}
+
+.form-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.form-group>* {
+  flex: 1;
+  min-width: 0;
 }
 </style>

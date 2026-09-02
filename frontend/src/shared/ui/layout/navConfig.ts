@@ -40,7 +40,7 @@ export const sidebarGroups: NavGroup[] = [
     label: 'Configuration',
     items: [
       { label: 'General', icon: Settings, to: { name: '' } },
-      { label: 'Signals', icon: Radio, to: { name: 'managesignals' } },
+      { label: 'Signals', icon: Radio, to: { name: 'manage-signals' } },
       { label: 'Signal boards', icon: LayoutGrid, to: { name: 'manage-boards' } },
     ],
   },

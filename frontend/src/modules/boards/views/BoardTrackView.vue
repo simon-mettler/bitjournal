@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, type Ref } from 'vue'
 import { MoreVertical, Settings } from '@lucide/vue'
+import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Tabs from '@/shared/ui/components/Tabs.vue'
 import SignalCard from '@/shared/ui/components/SignalCard.vue'
+import Header from '@/shared/ui/components/Header.vue'
+import IconButton from '@/shared/ui/components/IconButton.vue'
 import LogEntryDrawer from '@/modules/events/components/LogEntryDrawer.vue'
 import EventDraftBar from '@/modules/events/components/EventDraftBar.vue'
+import { useRouter } from 'vue-router'
 import { getBoards } from '@/modules/boards/api'
 import { getSignals } from '@/modules/signals/api'
 import { createEvent } from '@/modules/events/api'
@@ -16,6 +20,8 @@ import type { Signal } from '@/modules/signals/types'
 import type { DraftEntry } from '@/modules/events/types'
 import type { DateValue, ZonedDateTime } from '@internationalized/date'
 import type { TimeValue } from 'reka-ui'
+
+const router = useRouter()
 
 const loading = ref(true)
 const toast = useToast()
@@ -95,7 +101,7 @@ function onAddSignalEntry(signal: Signal) {
   setDraftTimestamp()
   if (signal.type === 'tally') {
     draftSignalEntries.value.push({
-      id: crypto.randomUUID(),
+      id: Date.now().toString(),
       signal,
       value: 1,
     })
@@ -131,7 +137,7 @@ function onSignalEntrySaved(entry: Omit<DraftEntry, 'id'> & { id?: string }) {
     }
   } else {
     // new entry, even if it's the same signal as an existing one
-    draftSignalEntries.value.push({ ...entry, id: crypto.randomUUID() })
+    draftSignalEntries.value.push({ ...entry, id: Date.now().toString() })
   }
 }
 
@@ -153,7 +159,13 @@ function onPeopleClick() {
 function onCancelDraft() {
   draftSignalEntries.value = []
 }
-
+function goToManage() {
+  if (activeTab.value === ALL_TAB) {
+    router.push({ name: 'manage-boards' })
+  } else {
+    router.push({ name: 'board-edit', params: { id: activeTab.value } })
+  }
+}
 async function onSaveDraft() {
   try {
     await createEvent({
@@ -175,15 +187,19 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="track-header">
-    <h1>Track</h1>
-    <button type="button" class="settings-btn" aria-label="Settings">
-      <Settings :size="22" />
-    </button>
-  </div>
 
-
-  <Tabs v-if="tabs.length > 1" v-model="activeTab" :items="tabs" class="track-tabs" />
+  <AppShellHeader>
+    <Header heading="Log events">
+      <template #actions>
+        <IconButton variant="tertiary" @click="goToManage">
+          <Settings />
+        </IconButton>
+      </template>
+      <template #content>
+        <Tabs v-if="tabs.length > 1" v-model="activeTab" :items="tabs" class="track-tabs" />
+      </template>
+    </Header>
+  </AppShellHeader>
 
   <div v-if="!loading" class="signal-grid" :class="{ 'has-draft-bar': draftSignalEntries.length > 0 }">
     <SignalCard v-for="signal in activeSignals" :key="signal.id" :signal="signal" @select="onAddSignalEntry(signal)">
@@ -192,10 +208,10 @@ onMounted(load)
       </template>
 
       <template #actions>
-        <button type="button" class="icon-btn" :aria-label="`Options for ${signal.name}`"
-          @click.stop="onSignalOptions(signal)">
-          <MoreVertical :size="18" />
-        </button>
+        <IconButton @click.stop="onSignalOptions(signal)" :aria-label="`Options for ${signal.name}`" variant="tertiary"
+          size="sm">
+          <MoreVertical />
+        </IconButton>
       </template>
     </SignalCard>
 
@@ -204,7 +220,7 @@ onMounted(load)
     </p>
   </div>
 
-  <LogEntryDrawer v-if="selectedSignal" v-model:open="entryDrawerOpen" :signal="selectedSignal"
+  <LogEntryDrawer v-if="selectedSignal" v-model:open="entryDrawerOpen" :numpad="true" :signal="selectedSignal"
     :editing="!!editingSignalEntry" :initial-value="editingSignalEntry?.value"
     :initial-duration="editingSignalEntry?.duration" @save="onSignalEntrySaved" />
 
@@ -215,18 +231,6 @@ onMounted(load)
 </template>
 
 <style scoped>
-.track-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.track-header h1 {
-  color: var(--color-primary);
-  margin: 0;
-}
-
 .settings-btn {
   all: unset;
   display: inline-flex;
@@ -234,34 +238,15 @@ onMounted(load)
   color: var(--input-color-label);
 }
 
-.track-tabs {
-  margin-bottom: 16px;
-}
-
 .signal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  padding: 0 var(--padding-app);
 }
 
 .signal-grid.has-draft-bar {
   padding-bottom: 220px;
-}
-
-.icon-btn {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--input-radius);
-  cursor: pointer;
-  color: var(--input-color-label);
-}
-
-.icon-btn:hover {
-  background-color: var(--color-surface-muted);
 }
 
 .empty-state {
