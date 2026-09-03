@@ -73,7 +73,7 @@ function toggleSign() {
         <Diff :size="20" />
       </button>
       <NumberFieldInput class="number-input" :placeholder="placeholder" :readonly="numpadActive"
-        :inputmode="numpadActive ? 'none' : undefined" :tabindex="numpadActive ? -1 : undefined"
+        :inputmode="numpadActive ? 'none' : 'decimal'" :tabindex="numpadActive ? -1 : undefined"
         @mousedown="blockNative" @focus="focusField" />
     </NumberFieldRoot>
     <p v-if="error" class="error-text">{{ error }}</p>
@@ -126,7 +126,8 @@ function toggleSign() {
   text-align: center;
   font-size: var(--font-size-base);
   border-radius: var(--input-radius);
-  height: 100%;
+  height: calc(var(--input-height) - 2px);
+  box-sizing: border-box;
 }
 
 .number-sign-toggle {

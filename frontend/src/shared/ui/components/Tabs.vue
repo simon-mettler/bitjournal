@@ -33,6 +33,10 @@ const model = defineModel<string>({ required: true })
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
+
+  &>:first-child {
+    margin-left: 16px;
+  }
 }
 
 .tabs-list::-webkit-scrollbar {

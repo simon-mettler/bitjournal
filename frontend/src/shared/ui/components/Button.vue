@@ -1,7 +1,7 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    variant?: 'primary' | 'secondary' | 'warn'
+    variant?: 'primary' | 'secondary' | 'tertiary' | 'warn'
     disabled?: boolean
     type?: 'button' | 'submit' | 'reset'
   }>(),
@@ -57,6 +57,12 @@ withDefaults(
   background-color: var(--color-surface);
   color: var(--input-color-text);
   border: var(--input-border);
+}
+
+.button.tertiary {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
 }
 
 .button.warn {

@@ -75,7 +75,6 @@ const open = ref<boolean>(false)
   width: 83vw;
   max-width: 450px;
   max-height: calc(var(--visual-viewport-height) - var(--spacing-md) - var(--spacing-md));
-  box-sizing: border-box;
   padding: var(--dialog-padding);
   display: flex;
   flex-direction: column;
@@ -88,6 +87,8 @@ const open = ref<boolean>(false)
   gap: var(--spacing-md);
   overflow-y: auto;
   min-height: 0;
+  padding: 4px;
+  margin: -4px;
 }
 
 .dialog-title {

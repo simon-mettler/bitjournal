@@ -1,9 +1,22 @@
 <script setup lang="ts">
 import { sidebarGroups } from '@/shared/ui/layout/navConfig'
 
+import { useAuthStore } from '@/modules/authentication/store'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const auth = useAuthStore()
 const emit = defineEmits<{
   navigate: []
 }>()
+
+async function logout() {
+  try {
+    await auth.logout()
+  } finally {
+    router.push('login')
+  }
+}
 </script>
 
 <template>
@@ -19,6 +32,7 @@ const emit = defineEmits<{
         </li>
       </ul>
     </div>
+    <button @click="logout()">Logout</button>
   </nav>
 </template>
 
@@ -28,7 +42,7 @@ const emit = defineEmits<{
   flex-direction: column;
   gap: 20px;
   width: 220px;
-  height: 100%;
+  height: 100vh;
   padding: 16px 8px;
 }
 

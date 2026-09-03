@@ -13,7 +13,6 @@ const model = defineModel<string>()
 const id = useId()
 </script>
 
-
 <template>
   <div class="field">
     <Label class="label" :for="id">
@@ -24,7 +23,6 @@ const id = useId()
   </div>
 </template>
 
-
 <style scoped>
 input {
   all: unset;
@@ -34,6 +32,7 @@ input {
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
 }
 
 .label {
@@ -55,6 +54,7 @@ input {
   color: var(--input-color-text);
   background-color: var(--input-color-background);
   border: var(--input-border);
+  box-sizing: border-box;
 
   &:focus {
     box-shadow: var(--input-shadow-focus);

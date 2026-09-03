@@ -115,6 +115,7 @@ button {
 
 .select-trigger {
   display: inline-flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;

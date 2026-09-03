@@ -12,8 +12,8 @@ withDefaults(
     size: 'lg',
   }
 )
-
 </script>
+
 <template>
   <button :type="type" class="button" :class="variant, size" :disabled="disabled">
     <slot />
@@ -42,7 +42,6 @@ withDefaults(
   &:hover {
     background-color: var(--color-surface-muted) !important;
   }
-
 }
 
 .button.lg {
@@ -69,5 +68,9 @@ withDefaults(
 .button.tertiary {
   background-color: transparent;
   color: var(--input-color-text);
+}
+
+:deep(svg) {
+  color: var(--color-text);
 }
 </style>

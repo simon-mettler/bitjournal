@@ -31,6 +31,8 @@ defineProps<{
   border-bottom: 2px solid transparent;
   background-color: var(--color-app-bg);
   padding: var(--padding-app);
+  box-sizing: border-box;
+  max-width: 100vw;
 
   transition:
     box-shadow 150ms ease,
