@@ -8,7 +8,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from 'reka-ui'
-import { X } from '@lucide/vue'
+import { X, Lightbulb, Check, Flag } from '@lucide/vue'
 import { useToast } from '@/shared/lib/useToast'
 
 const { toasts, dismiss } = useToast()
@@ -24,8 +24,14 @@ function handleOpenChange(id: number, open: boolean) {
 <template>
   <ToastProvider swipe-direction="right">
     <ToastRoot v-for="item in toasts" :key="item.id" class="toast-root" :class="item.variant" :duration="item.duration"
-      :type="item.variant === 'error' ? 'foreground' : 'background'"
+      :type="item.variant === 'danger' ? 'foreground' : 'background'"
       @update:open="(open) => handleOpenChange(item.id, open)">
+      <div class="toast-icon">
+        <Lightbulb :size="20" v-if="item.variant == 'info'" />
+        <Check :size="20" v-if="item.variant == 'success'" />
+        <Flag :size="20" v-if="item.variant == 'warn'" />
+        <X :size="20" v-if="item.variant == 'danger'" />
+      </div>
       <ToastTitle v-if="item.title" class="toast-title">
         {{ item.title }}
       </ToastTitle>
@@ -51,67 +57,133 @@ function handleOpenChange(id: number, open: boolean) {
 <style>
 .toast-viewport {
   position: fixed;
-  bottom: 0;
+  bottom: calc(85px + env(safe-area-inset-bottom));
   right: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px;
-  width: 380px;
-  max-width: 100vw;
+  padding: 0;
+  width: 100vw;
   list-style: none;
   z-index: 100;
+  align-items: center;
 }
 
 .toast-root {
-  position: relative;
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 4px 12px;
-  padding: 14px 16px;
+  grid-template-areas:
+    'icon title action close'
+    'icon desc  action close';
+  grid-template-rows: auto auto;
+  grid-template-columns: 30px auto auto 48px;
+  position: relative;
+  gap: 0 12px;
+  padding: 12px;
   border-radius: var(--input-radius);
   background-color: white;
   box-shadow: var(--shadow-md);
   border-left: 4px solid var(--color-primary);
+  width: 70vw;
+  max-width: 380px;
 }
 
-.toast-root.success {
-  border-left-color: var(--color-success, #16a34a);
+.toast-root:not(:has(.toast-title)) {
+  grid-template-areas:
+    'icon desc action close';
+  grid-template-rows: auto;
 }
 
-.toast-root.error {
-  border-left-color: var(--color-danger);
+
+
+.toast-icon {
+  grid-area: icon;
+  display: grid;
+  place-self: center;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 40px;
+
+  &>svg {
+    color: white;
+  }
+}
+
+
+.info {
+  &.toast-root {
+    border: 1px solid var(--color-info);
+    background-color: var(--color-info-bg);
+  }
+
+  .toast-icon {
+    background-color: var(--color-info);
+  }
+}
+
+.success {
+  &.toast-root {
+    border: 1px solid var(--color-success);
+    background-color: var(--color-success-bg);
+  }
+
+  .toast-icon {
+    background-color: var(--color-success);
+  }
+}
+
+.warn {
+  &.toast-root {
+    border: 1px solid var(--color-warn);
+    background-color: var(--color-warn-bg);
+  }
+
+  .toast-icon {
+    background-color: var(--color-warn);
+  }
+}
+
+.danger {
+
+  &.toast-root {
+    border: 1px solid var(--color-danger);
+    background-color: var(--color-danger-bg);
+  }
+
+  .toast-icon {
+    background-color: var(--color-danger);
+  }
 }
 
 .toast-title {
-  grid-column: 1 / 2;
+  grid-area: title;
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-base);
   color: var(--color-text);
 }
 
 .toast-description {
-  grid-column: 1 / 2;
+  grid-area: desc;
   font-size: var(--font-size-sm);
   color: var(--color-text);
+  align-self: center;
 }
 
 .toast-action {
-  grid-column: 2 / 3;
-  grid-row: 1 / 3;
+  grid-area: action;
   all: unset;
   cursor: pointer;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   white-space: nowrap;
+  grid-area: action;
+  place-self: center;
 }
 
 .toast-close {
   all: unset;
-  grid-column: 3 / 4;
-  grid-row: 1 / 3;
+  grid-area: close;
   display: inline-flex;
   align-items: center;
   justify-content: center;

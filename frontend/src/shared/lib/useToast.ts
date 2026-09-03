@@ -2,8 +2,8 @@ import { ref } from 'vue'
 
 export interface ToastOptions {
   title?: string
-  description: string
-  variant?: 'default' | 'success' | 'error'
+  description?: string
+  variant?: 'info' | 'success' | 'warn' | 'danger'
   duration?: number
   actionLabel?: string
   actionAltText?: string
@@ -20,7 +20,7 @@ let nextId = 0
 export function useToast() {
   function toast(options: ToastOptions) {
     const id = nextId++
-    toasts.value.push({ variant: 'default', ...options, id })
+    toasts.value.push({ variant: 'info', ...options, id })
     return id
   }
 
