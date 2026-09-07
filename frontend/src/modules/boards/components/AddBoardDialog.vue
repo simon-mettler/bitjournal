@@ -8,18 +8,25 @@ import { DialogClose } from 'reka-ui'
 import { createBoard } from '@/modules/boards/api'
 import type { Board } from '@/modules/boards/types'
 import { useToast } from '@/shared/lib/useToast'
+import { useFormValidation } from '@/shared/lib/useFormValidation'
+import { required, maxLength } from '@/shared/lib/validators'
 
 const emit = defineEmits<{ created: [board: Board] }>()
 const router = useRouter()
-const toast = useToast()
+const toaster = useToast()
 
 const open = ref(false)
 const name = ref('')
 const submitting = ref(false)
 const error = ref<string>()
 
+const { errors: validationErrors, validateField, validateAll } = useFormValidation(
+  { name: () => name.value },
+  { name: [required('Name is required'), maxLength(100, '100 characters or fewer')] },
+)
+
 async function submit() {
-  if (!name.value.trim()) return
+  if (!validateAll()) return
   submitting.value = true
   error.value = undefined
   try {
@@ -30,7 +37,7 @@ async function submit() {
     router.push({ name: 'board-edit', params: { id: data.id } })
   } catch (err) {
     error.value = 'Could not create board. Try again.'
-    toast.toast({ description: error.value, variant: 'error' })
+    toaster.toast({ description: error.value, variant: 'danger' })
   } finally {
     submitting.value = false
   }
@@ -45,7 +52,8 @@ async function submit() {
       </slot>
     </template>
 
-    <InputText v-model="name" label="Board name" placeholder="" :error="error" />
+    <InputText v-model="name" label="Board name" placeholder="" @blur="validateField('name')"
+      :error="validationErrors['name']" />
 
     <template #footer>
       <DialogClose as-child>

@@ -10,7 +10,7 @@ import { useToast } from '@/shared/lib/useToast'
 import Header from '@/shared/ui/components/Header.vue'
 
 const router = useRouter()
-const toast = useToast()
+const toaster = useToast()
 
 const boards = ref<Board[]>([])
 const listEl = ref<HTMLElement | null>(null)
@@ -32,7 +32,7 @@ async function persistOrder() {
   try {
     await reorderBoards({ board_ids: boards.value.map(b => b.id) })
   } catch {
-    toast.toast({ description: 'Could not save new order.', variant: 'error' })
+    toaster.toast({ description: 'Could not save new order.', variant: 'danger' })
     loadBoards()
   }
 }

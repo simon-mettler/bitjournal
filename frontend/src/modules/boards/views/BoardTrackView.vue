@@ -24,7 +24,7 @@ import type { TimeValue } from 'reka-ui'
 const router = useRouter()
 
 const loading = ref(true)
-const toast = useToast()
+const toaster = useToast()
 
 const boards = ref<Board[]>([])
 const signals = ref<Signal[]>([])
@@ -177,9 +177,9 @@ async function onSaveDraft() {
       })),
     })
     draftSignalEntries.value = []
-    toast.toast({ description: 'Entry saved.', variant: 'success' })
+    toaster.toast({ description: 'Entry saved.', variant: 'success' })
   } catch (err) {
-    toast.toast({ description: 'Could not save entry.', variant: 'error' })
+    toaster.toast({ description: 'Could not save entry.', variant: 'danger' })
     console.error(err)
   }
 }
@@ -231,6 +231,11 @@ onMounted(load)
 </template>
 
 <style scoped>
+.track-tabs {
+  width: 100vw;
+  margin-left: -16px;
+}
+
 .settings-btn {
   all: unset;
   display: inline-flex;

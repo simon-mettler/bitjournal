@@ -59,7 +59,7 @@ onMounted(loadSignals)
 
     <ul class="picker-list">
       <li v-for="signal in filteredSignals" :key="signal.id" class="picker-row"
-        :class="{ selected: selectedIds.has(signal.id) }" @click="toggle(signal.id)">
+        :class="{ selected: selectedIds.has(signal.id) }" @click="toggle(signal.id)" @mousedown.prevent>
         <span class="picker-name">{{ signal.name }}</span>
         <span class="picker-type">{{ signal.type }}</span>
       </li>

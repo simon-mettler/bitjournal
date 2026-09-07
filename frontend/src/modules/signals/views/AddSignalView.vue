@@ -7,10 +7,8 @@ import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
 import { createSignal, type CreateSignalPayload } from '@/modules/signals/api'
 import type { Signal } from '@/modules/signals/types'
-import { useToast } from '@/shared/lib/useToast'
 import Header from '@/shared/ui/components/Header.vue'
 import Footer from '@/shared/ui/components/Footer.vue'
-const toast = useToast()
 const emit = defineEmits<{ created: [signal: Signal] }>()
 const router = useRouter()
 
@@ -26,6 +24,7 @@ const minLabel = ref('')
 const maxLabel = ref('')
 const errors = ref<Record<string, string[]>>({})
 const submitting = ref(false)
+const signalFormRef = ref<InstanceType<typeof SignalForm>>()
 
 function resetForm() {
   signalName.value = ''
@@ -42,7 +41,8 @@ function resetForm() {
 }
 
 async function submitSignal() {
-  if (!selectedSignalType.value || !selectedSummaryMethod.value || !signalName.value) return
+  const valid = signalFormRef.value?.validateAll()
+  if (!valid) return
 
   const payload: CreateSignalPayload = {
     name: signalName.value,
@@ -70,11 +70,11 @@ async function submitSignal() {
     const { data } = await createSignal(payload)
     emit('created', data)
     resetForm()
+    router.back()
   } catch (err) {
     console.error(err)
   } finally {
     submitting.value = false
-    router.back()
   }
 }
 </script>
@@ -85,13 +85,14 @@ async function submitSignal() {
   </AppShellHeader>
 
   <div class="add-signal-content">
-    <SignalForm v-model:name="signalName" v-model:color="color" v-model:icon="icon" v-model:unit="signalUnit"
-      v-model:type="selectedSignalType" v-model:summary-method="selectedSummaryMethod" v-model:min-value="minValue"
-      v-model:max-value="maxValue" v-model:min-label="minLabel" v-model:max-label="maxLabel" :errors="errors" />
+    <SignalForm ref="signalFormRef" v-model:name="signalName" v-model:color="color" v-model:icon="icon"
+      v-model:unit="signalUnit" v-model:type="selectedSignalType" v-model:summary-method="selectedSummaryMethod"
+      v-model:min-value="minValue" v-model:max-value="maxValue" v-model:min-label="minLabel"
+      v-model:max-label="maxLabel" :errors="errors" />
   </div>
   <AppShellFooter>
     <Footer>
-      <Button variant="secondary">Cancel</Button>
+      <Button variant="secondary" @click="router.back()">Cancel</Button>
       <Button :disabled="submitting" variant="primary" @click="submitSignal()">
         {{ submitting ? 'Saving...' : 'Create signal' }}
       </Button>

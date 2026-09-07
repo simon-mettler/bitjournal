@@ -17,18 +17,25 @@ import Footer from '@/shared/ui/components/Footer.vue'
 import { deleteBoard, getBoard, updateBoard } from '@/modules/boards/api'
 import type { Signal } from '@/modules/signals/types'
 import { useToast } from '@/shared/lib/useToast'
+import { useFormValidation } from '@/shared/lib/useFormValidation'
+import { required, maxLength } from '@/shared/lib/validators'
 
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
+const toaster = useToast()
 
 const boardId = route.params.id as string
 
-const boardName = ref('')
+const name = ref('')
 const signals = ref<Signal[]>([])
 const gridEl = ref<HTMLElement | null>(null)
 const saving = ref(false)
 const loading = ref(true)
+
+const { errors: validationErrors, validateField, validateAll } = useFormValidation(
+  { name: () => name.value },
+  { name: [required('Name is required'), maxLength(100, '100 characters or fewer')] },
+)
 
 useSortable(gridEl, signals, {
   handle: '.drag-handle',
@@ -39,7 +46,7 @@ async function load() {
   loading.value = true
   try {
     const { data } = await getBoard(boardId)
-    boardName.value = data.name
+    name.value = data.name
     signals.value = data.board_signals.map(bs => bs.signal)
   } finally {
     loading.value = false
@@ -55,16 +62,17 @@ function removeSignal(id: string) {
 }
 
 async function save() {
+  if (!validateAll()) return
   saving.value = true
   try {
     await updateBoard(boardId, {
-      name: boardName.value.trim(),
+      name: name.value.trim(),
       signal_ids: signals.value.map(s => s.id),
     })
-    toast.toast({ description: 'Board saved.', variant: 'success' })
+    toaster.toast({ description: 'Board saved.', variant: 'success' })
     router.push({ name: 'manage-boards' })
   } catch {
-    toast.toast({ description: 'Could not save board.', variant: 'error' })
+    toaster.toast({ description: 'Could not save board.', variant: 'danger' })
   } finally {
     saving.value = false
   }
@@ -75,7 +83,7 @@ async function confirmDeleteBoard() {
     await deleteBoard(boardId)
     router.push({ name: 'manage-boards' })
   } catch {
-    toast.toast({ description: 'Could not delete board.', variant: 'error' })
+    toaster.toast({ description: 'Could not delete board.', variant: 'danger' })
   }
 }
 
@@ -91,11 +99,12 @@ onMounted(load)
 
   <div class="edit-board-content">
     <div v-if="!loading" class="card">
-      <InputText v-model="boardName" label="Board name" placeholder="" />
+      <InputText v-model="name" label="Board name" placeholder="" @blur="validateField('name')"
+        :error="validationErrors['name']" />
 
       <div class="board-actions">
         <AlertDialog title="Delete board" confirm-text="Delete"
-          :description="`Are you sure you want to delete &quot;${boardName}&quot;? This can't be undone.`"
+          :description="`Are you sure you want to delete &quot;${name}&quot;? This can't be undone.`"
           @confirm="confirmDeleteBoard">
           <template #trigger>
             <Button variant="secondary" class="danger-btn">Delete board</Button>
