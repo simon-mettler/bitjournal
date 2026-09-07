@@ -133,6 +133,14 @@ button {
   }
 }
 
+.select-trigger[data-disabled] {
+  color: var(--input-color-placeholder);
+  background-color: var(--color-surface-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
 .select-trigger[data-placeholder] {
   color: var(--input-color-placeholder);
 }
@@ -167,7 +175,6 @@ button {
 
 .select-item[data-disabled] {
   color: red;
-  pointer-events: none;
 }
 
 .select-label {
@@ -175,6 +182,7 @@ button {
   margin-bottom: 6px;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
+  min-height: var(--font-size-sm);
   color: var(--input-color-label);
 }
 

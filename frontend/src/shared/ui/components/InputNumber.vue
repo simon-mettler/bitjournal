@@ -4,7 +4,7 @@ import {
   NumberFieldRoot,
 } from 'reka-ui'
 import { Diff } from '@lucide/vue';
-import { computed, onMounted, onUnmounted, useId } from 'vue'
+import { computed, onMounted, onUnmounted, useId, nextTick } from 'vue'
 import { useNumpadGroup } from '@/shared/lib/useNumpadGroup'
 
 const props = withDefaults(
@@ -25,12 +25,18 @@ const props = withDefaults(
   },
 )
 
+defineOptions({ inheritAttrs: false })
+
+const emit = defineEmits<{ blur: [] }>()
 const model = defineModel<number>()
 const id = useId()
-
 const group = useNumpadGroup()
 const numpadActive = computed(() => !!group?.enabled)
 const isActiveField = computed(() => numpadActive.value && group?.activeId.value === id)
+
+function handleBlur() {
+  nextTick(() => emit('blur'))
+}
 
 onMounted(() => {
   group?.register({
@@ -72,9 +78,9 @@ function toggleSign() {
         negative" @click="toggleSign">
         <Diff :size="20" />
       </button>
-      <NumberFieldInput class="number-input" :placeholder="placeholder" :readonly="numpadActive"
+      <NumberFieldInput class="number-input" v-bind="$attrs" :placeholder="placeholder" :readonly="numpadActive"
         :inputmode="numpadActive ? 'none' : 'decimal'" :tabindex="numpadActive ? -1 : undefined"
-        @mousedown="blockNative" @focus="focusField" />
+        @mousedown="blockNative" @focus="focusField" @blur="handleBlur" />
     </NumberFieldRoot>
     <p v-if="error" class="error-text">{{ error }}</p>
   </div>
@@ -92,6 +98,7 @@ function toggleSign() {
   padding-left: 8px;
   margin-bottom: 6px;
   font-size: var(--font-size-sm);
+  min-height: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
   color: var(--input-color-label);
 }
@@ -106,6 +113,7 @@ function toggleSign() {
   color: var(--input-color-text);
   background-color: var(--input-color-background);
   border: var(--input-border);
+  height: var(--input-height);
 
   &:focus {
     box-shadow: var(--input-shadow-focus);
@@ -126,7 +134,7 @@ function toggleSign() {
   text-align: center;
   font-size: var(--font-size-base);
   border-radius: var(--input-radius);
-  height: calc(var(--input-height) - 2px);
+  height: 100%;
   box-sizing: border-box;
 }
 
@@ -143,7 +151,7 @@ function toggleSign() {
 .error-text {
   font-size: var(--font-size-sm);
   color: var(--color-danger);
-  margin: 0;
+  margin: 6px 0 0 0;
   padding-left: 8px;
 }
 </style>

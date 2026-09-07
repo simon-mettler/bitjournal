@@ -10,6 +10,7 @@ defineProps<{
 }>()
 
 const model = defineModel<string>()
+defineOptions({ inheritAttrs: false })
 const id = useId()
 </script>
 
@@ -18,7 +19,7 @@ const id = useId()
     <Label class="label" :for="id">
       {{ label }}
     </Label>
-    <input :id="id" class="input" :type="type" :placeholder="placeholder" v-model="model">
+    <input :id="id" class="input" :type="type" :placeholder="placeholder" v-model="model" v-bind="$attrs">
     <p v-if="error" class="error-text">{{ error }}</p>
   </div>
 </template>
@@ -39,6 +40,7 @@ input {
   padding-left: 8px;
   margin-bottom: 6px;
   font-size: var(--font-size-sm);
+  min-height: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
   color: var(--input-color-label);
 }
@@ -65,7 +67,7 @@ input {
 .error-text {
   font-size: var(--font-size-sm);
   color: var(--color-danger);
-  margin: 0;
+  margin: 6px 0 0 0;
   padding-left: 8px;
 }
 </style>

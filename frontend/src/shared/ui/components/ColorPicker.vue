@@ -113,6 +113,7 @@ const hexId = useId()
   border: var(--input-border);
   cursor: pointer;
   overflow: hidden;
+  margin-top: 22px;
 }
 
 .swatch-preview {

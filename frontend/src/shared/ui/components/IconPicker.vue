@@ -65,6 +65,7 @@ function selectIcon(name: IconName) {
   background-color: var(--color-surface);
   color: var(--input-color-text);
   cursor: pointer;
+  margin-top: 22px;
 }
 
 .icon-trigger:hover {
