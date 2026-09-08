@@ -161,7 +161,7 @@ button {
   position: relative;
   height: 40px;
   padding: 0 35px 0 10px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   line-height: 1;
   border-radius: calc(var(--input-radius) - 5px);
   font-size: var(--font-size-base);
