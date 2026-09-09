@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LogOut, MoreVertical } from '@lucide/vue'
+import { Pencil, Trash, MoreVertical } from '@lucide/vue'
 import SignalChip from '@/shared/ui/components/SignalChip.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
 import DropdownMenu from '@/shared/ui/components/DropdownMenu.vue'
@@ -15,12 +15,22 @@ const props = defineProps<{
   event: Event
 }>()
 
+const emit = defineEmits<{
+  requestDelete: [event: Event]
+}>()
+
 const options: DropdownMenuOption[] = [
   {
     label: 'Edit entry',
     value: 'edit-entry',
-    icon: LogOut,
+    icon: Pencil,
     onSelect: () => router.push({ name: 'track', params: { eventId: props.event.id } })
+  },
+  {
+    label: 'Delete entry',
+    value: 'delete-entry',
+    icon: Trash,
+    onSelect: () => emit('requestDelete', props.event),
   },
 ]
 </script>
@@ -28,7 +38,6 @@ const options: DropdownMenuOption[] = [
 <template>
   <div class="journal-card">
     <div class="journal-card-top">
-
       <span class="journal-card-time">{{ formatEventTime(props.event.occurred_at) }}</span>
 
       <DropdownMenu :options="options">
@@ -39,7 +48,6 @@ const options: DropdownMenuOption[] = [
           </IconButton>
         </template>
       </DropdownMenu>
-
     </div>
 
     <p v-if="props.event.note" class="journal-card-note">{{ props.event.note }}</p>

@@ -16,3 +16,7 @@ export function updateEvent(id: string, payload: UpdateEventPayload) {
 export function createEvent(payload: CreateEventPayload) {
   return api.post<Event>('events/', payload)
 }
+
+export function deleteEvent(id: string) {
+  return api.delete<Event>(`events/${id}/`)
+}

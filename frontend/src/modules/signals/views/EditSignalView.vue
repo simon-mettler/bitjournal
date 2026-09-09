@@ -14,7 +14,7 @@ import { useToast } from '@/shared/lib/useToast'
 
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
+const toaster = useToast()
 
 const signalId = route.params.id as string
 
@@ -52,7 +52,7 @@ async function load() {
     }
   } catch (err) {
     console.error(err)
-    toast.toast({ description: 'Failed to load signal', variant: 'error' })
+    toaster.toast({ description: 'Failed to load signal', variant: 'danger' })
   }
 }
 
@@ -82,11 +82,11 @@ async function save() {
   errors.value = {}
   try {
     await updateSignal(signal.value.id, payload)
-    toast.toast({ description: 'Signal saved.', variant: 'success' })
+    toaster.toast({ description: 'Signal saved.', variant: 'success' })
     router.back()
   } catch (err) {
     console.error(err)
-    toast.toast({ description: 'Failed to save signal', variant: 'error' })
+    toaster.toast({ description: 'Failed to save signal', variant: 'danger' })
   } finally {
     saving.value = false
   }
@@ -98,7 +98,7 @@ async function confirmDeleteSignal() {
     router.push({ name: 'manage-signals' })
   } catch (err) {
     console.log(err)
-    toast.toast({ description: 'Could not delete signal.', variant: 'error' })
+    toaster.toast({ description: 'Could not delete signal.', variant: 'danger' })
   }
 }
 onMounted(load)
