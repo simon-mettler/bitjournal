@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { Pencil, MapPin, Users, X } from '@lucide/vue'
+import { Pencil, MapPin, Users } from '@lucide/vue'
 import Button from '@/shared/ui/components/Button.vue'
 import TimeField from '@/shared/ui/components/TimeField.vue'
 import DatePicker from '@/shared/ui/components/DatePicker.vue'
 import SignalChip from '@/shared/ui/components/SignalChip.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
-import type { DraftEntry } from '@/modules/events/types'
 import { formatDraftEntryLabel } from '@/modules/events/format'
+import type { DraftEntry } from '@/modules/events/types'
 import type { DateValue } from '@internationalized/date'
 import type { TimeValue } from 'reka-ui'
 
@@ -25,11 +25,6 @@ const emit = defineEmits<{
   save: []
 }>()
 
-function editEntry(entry: DraftEntry) {
-  if (entry.signal.type === 'tally') return
-  emit('editEntry', entry.id)
-}
-
 const date = defineModel<DateValue>('date')
 const time = defineModel<TimeValue>('time')
 </script>
@@ -37,17 +32,9 @@ const time = defineModel<TimeValue>('time')
 <template>
   <div class="draft-bar">
     <div class="draft-chips">
-      <button v-for="entry in entries" :key="entry.id" class="draft-chip-wrapper" type="button"
-        @click="editEntry(entry)">
-        <SignalChip :signal="entry.signal" :value="formatDraftEntryLabel(entry)">
-          <template #suffix>
-            <span class="draft-chip-remove" role="button" :aria-label="`Remove ${entry.signal.name}`"
-              @click.stop="emit('removeEntry', entry.id)">
-              <X :size="14" />
-            </span>
-          </template>
-        </SignalChip>
-      </button>
+      <SignalChip v-for="entry in entries" :key="entry.id" :signal="entry.signal" :value="formatDraftEntryLabel(entry)"
+        :clickable="entry.signal.type !== 'tally'" removable @click="emit('editEntry', entry.id)"
+        @remove="emit('removeEntry', entry.id)" />
     </div>
 
     <div class="draft-controls">
@@ -99,42 +86,14 @@ const time = defineModel<TimeValue>('time')
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.draft-chip-wrapper {
-  all: unset;
-}
-
-.draft-chip-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--input-color-label);
-  cursor: pointer;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 .draft-controls {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.draft-icon-btn {
-  all: unset;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--input-radius);
-  border: var(--input-border);
-  color: var(--input-color-text);
-  cursor: pointer;
-}
-
-.draft-icon-btn:hover {
-  background-color: var(--color-surface-muted);
 }
 
 .draft-icon-badge {

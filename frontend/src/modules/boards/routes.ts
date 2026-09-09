@@ -19,6 +19,11 @@ const boardRoutes = [
     name: 'track',
     component: BoardTrackView,
   },
+  {
+    path: '/track/:eventId?',
+    name: 'track',
+    component: BoardTrackView,
+  },
 ]
 
 export default boardRoutes

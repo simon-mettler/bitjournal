@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, type Ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { MoreVertical, Settings } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Tabs from '@/shared/ui/components/Tabs.vue'
@@ -8,34 +9,34 @@ import Header from '@/shared/ui/components/Header.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
 import LogEntryDrawer from '@/modules/events/components/LogEntryDrawer.vue'
 import EventDraftBar from '@/modules/events/components/EventDraftBar.vue'
-import { useRouter } from 'vue-router'
 import { getBoards } from '@/modules/boards/api'
 import { getSignals } from '@/modules/signals/api'
-import { createEvent } from '@/modules/events/api'
 import { useToast } from '@/shared/lib/useToast'
+import { createEvent, getEvent, updateEvent } from '@/modules/events/api'
 import { resolveIcon } from '@/shared/lib/iconRegistry'
-import { now, getLocalTimeZone, toCalendarDate, toTime } from '@internationalized/date'
 import type { Board } from '@/modules/boards/types'
 import type { Signal } from '@/modules/signals/types'
 import type { DraftEntry } from '@/modules/events/types'
-import type { DateValue, ZonedDateTime } from '@internationalized/date'
+import { now, getLocalTimeZone, ZonedDateTime, toCalendarDate, toTime, type DateValue, fromDate } from '@internationalized/date'
 import type { TimeValue } from 'reka-ui'
 
+const route = useRoute()
 const router = useRouter()
+const toaster = useToast()
+
 
 const loading = ref(true)
-const toaster = useToast()
+
+const editingEventId = computed(() => route.params.eventId as string | undefined)
+const isEditing = computed(() => !!editingEventId.value)
+const entryDrawerOpen = ref(false)
 
 const boards = ref<Board[]>([])
 const signals = ref<Signal[]>([])
 const selectedSignal = ref<Signal | null>(null)
-
-const entryDrawerOpen = ref(false)
 const editingSignalEntry = ref<DraftEntry | null>(null)
 const editingSignalEntryId = ref<string | null>(null)
-
 const draftSignalEntries = ref<DraftEntry[]>([])
-
 const draftDateTime = ref<ZonedDateTime>(now(getLocalTimeZone())) as Ref<ZonedDateTime>
 
 const draftDate = computed<DateValue>({
@@ -59,7 +60,6 @@ const draftTime = computed<TimeValue>({
     })
   },
 })
-
 
 const ALL_TAB = 'all'
 const activeTab = ref<string>(ALL_TAB)
@@ -114,7 +114,6 @@ function onAddSignalEntry(signal: Signal) {
   entryDrawerOpen.value = true
 }
 
-// tapping a chip in the draft bar: reopen the drawer pre-filled, by entry id
 function onEditSignalEntry(entryId: string) {
   const entry = draftSignalEntries.value.find((e) => e.id === entryId)
   if (!entry) return
@@ -130,14 +129,15 @@ function onRemoveSignalEntry(entryId: string) {
 
 function onSignalEntrySaved(entry: Omit<DraftEntry, 'id'> & { id?: string }) {
   if (editingSignalEntryId.value) {
-    // existing entry: keep its id, replace its contents
+    // existing entry: keep its local id and server-side entryId, replace its contents
     const index = draftSignalEntries.value.findIndex((e) => e.id === editingSignalEntryId.value)
     if (index !== -1) {
-      draftSignalEntries.value[index] = { ...entry, id: editingSignalEntryId.value }
+      const existing = draftSignalEntries.value[index]
+      draftSignalEntries.value[index] = { ...entry, id: existing.id, entryId: existing.entryId }
     }
   } else {
-    // new entry, even if it's the same signal as an existing one
-    draftSignalEntries.value.push({ ...entry, id: Date.now().toString() })
+    // new entry: no server-side entryId yet
+    draftSignalEntries.value.push({ ...entry, id: crypto.randomUUID() })
   }
 }
 
@@ -158,7 +158,11 @@ function onPeopleClick() {
 
 function onCancelDraft() {
   draftSignalEntries.value = []
+  if (editingEventId.value) {
+    router.back()
+  }
 }
+
 function goToManage() {
   if (activeTab.value === ALL_TAB) {
     router.push({ name: 'manage-boards' })
@@ -166,30 +170,60 @@ function goToManage() {
     router.push({ name: 'board-edit', params: { id: activeTab.value } })
   }
 }
+
 async function onSaveDraft() {
+  const payload = {
+    occurred_at: draftDateTime.value.toDate().toISOString(),
+    entries: draftSignalEntries.value.map((e) => ({
+      id: e.entryId,
+      signal_id: e.signal.id,
+      value: e.value,
+      duration: e.duration,
+    })),
+  }
+
   try {
-    await createEvent({
-      occurred_at: draftDateTime.value.toDate().toISOString(),
-      entries: draftSignalEntries.value.map((e) => ({
-        signal_id: e.signal.id,
-        value: e.value,
-        duration: e.duration,
-      })),
-    })
+    if (editingEventId.value) {
+      await updateEvent(editingEventId.value, payload)
+      toaster.toast({ description: 'Entry updated.', variant: 'success' })
+      router.back()
+    } else {
+      await createEvent(payload)
+      toaster.toast({ description: 'Entry saved.', variant: 'success' })
+    }
     draftSignalEntries.value = []
-    toaster.toast({ description: 'Entry saved.', variant: 'success' })
   } catch (err) {
     toaster.toast({ description: 'Could not save entry.', variant: 'danger' })
     console.error(err)
   }
 }
-onMounted(load)
+
+async function loadEventForEdit(id: string) {
+  const { data } = await getEvent(id)
+
+  draftDateTime.value = fromDate(new Date(data.occurred_at), getLocalTimeZone())
+
+  draftSignalEntries.value = data.entries.map((e) => ({
+    id: crypto.randomUUID(),
+    entryId: e.id,
+    signal: e.signal,
+    value: e.value,
+    duration: e.duration,
+  }))
+}
+
+onMounted(async () => {
+  await load()
+  if (editingEventId.value) {
+    await loadEventForEdit(editingEventId.value)
+  }
+})
 </script>
 
 <template>
 
   <AppShellHeader>
-    <Header heading="Log events">
+    <Header :heading="isEditing ? 'Edit entry' : 'Log events'">
       <template #actions>
         <IconButton variant="tertiary" @click="goToManage">
           <Settings />

@@ -1,9 +1,10 @@
 import type { Signal } from '@/modules/signals/types'
 
 export interface SignalEntryInput {
+  id?: string
   signal_id: string
   value?: number
-  duration?: string // "HH:MM:SS"
+  duration?: string
 }
 
 export interface CreateEventPayload {
@@ -12,10 +13,17 @@ export interface CreateEventPayload {
   entries: SignalEntryInput[]
 }
 
+export interface UpdateEventPayload {
+  occurred_at: string
+  note?: string
+  entries: SignalEntryInput[]
+}
+
 export interface SignalEventEntry {
+  id: string
   signal: Signal
-  value: string | null
-  duration: string | null
+  value?: number
+  duration?: string
 }
 
 export interface Event {
@@ -29,8 +37,9 @@ export interface Event {
 
 // A value staged in the draft bar before the event is actually saved.
 export interface DraftEntry {
-  id: string
+  id: string // local id for the draft bar, always present
+  entryId?: string // server-side id, present in entries that already exist in DB
   signal: Signal
   value?: number
-  duration?: string // "HH:MM:SS"
+  duration?: string
 }
