@@ -20,8 +20,6 @@ const props = defineProps<{
   numpad?: boolean // false = native number keyboard, true = custom pad
 }>()
 
-// covers the lone "value" field; DurationInput provides its own nested
-// group for hours/minutes/seconds, which shadows this one for its children.
 provideNumpadGroup(props.numpad ?? false)
 
 const emit = defineEmits<{ save: [entry: DraftEntry] }>()
@@ -36,18 +34,23 @@ const hours = ref(0)
 const minutes = ref(0)
 const seconds = ref(0)
 
-watch(open, (isOpen) => {
-  if (!isOpen) return
-
+function initialize() {
   numberValue.value = props.initialValue ?? 0
   rangeValue.value = props.initialValue ?? defaultRange.value
 
-  const [h = 0, m = 0, s = 0] = props.initialDuration?.split(':').map(Number) ?? []
+  const [h = 0, m = 0, s = 0] =
+    props.initialDuration?.split(':').map(Number) ?? []
 
   hours.value = h
   minutes.value = m
   seconds.value = s
-})
+}
+
+watch(open, (isOpen) => {
+  if (isOpen) {
+    initialize()
+  }
+}, { immediate: true })
 
 const duration = computed(() =>
   [hours.value, minutes.value, seconds.value]

@@ -24,7 +24,6 @@ const route = useRoute()
 const router = useRouter()
 const toaster = useToast()
 
-
 const loading = ref(true)
 
 const editingEventId = computed(() => route.params.eventId as string | undefined)
@@ -137,7 +136,7 @@ function onSignalEntrySaved(entry: Omit<DraftEntry, 'id'> & { id?: string }) {
     }
   } else {
     // new entry: no server-side entryId yet
-    draftSignalEntries.value.push({ ...entry, id: crypto.randomUUID() })
+    draftSignalEntries.value.push({ ...entry, id: Math.random().toString(36).slice(2) })
   }
 }
 
@@ -204,10 +203,10 @@ async function loadEventForEdit(id: string) {
   draftDateTime.value = fromDate(new Date(data.occurred_at), getLocalTimeZone())
 
   draftSignalEntries.value = data.entries.map((e) => ({
-    id: crypto.randomUUID(),
+    id: Math.random().toString(36).slice(2),
     entryId: e.id,
     signal: e.signal,
-    value: e.value,
+    value: e.value != null ? Number(e.value) : undefined,
     duration: e.duration,
   }))
 }
