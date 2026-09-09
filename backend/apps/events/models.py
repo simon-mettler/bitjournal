@@ -18,7 +18,7 @@ class Event(models.Model):
         related_name='events',
     )
 
-    occurred_at = models.DateTimeField() # UTC
+    occurred_at = models.DateTimeField()
 
     note = models.TextField(blank=True)
 
@@ -46,7 +46,6 @@ class SignalEntry(models.Model):
     Actual recorded value for a signal on a given event.
     Only one of 'value' or 'duration' should be populated, depending on the
     related signals type.
-
     """
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='entries')
@@ -56,6 +55,7 @@ class SignalEntry(models.Model):
     duration = models.DurationField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']

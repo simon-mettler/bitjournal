@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from rest_framework import viewsets, status
+from django.utils import timezone
+
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -23,37 +25,36 @@ class EventViewSet(viewsets.ModelViewSet):
             return EventWriteSerializer
         return EventSerializer
 
+
+    # HELPERS
+
     def _resolve_signals(self, entries_data, request):
         """
-        Resolve signal ids to Signal instances, scoped to the requesting user.
-        Returns (signals_by_id, None) on success, or (None, error_dict) on failure.
+        Check Signal for each entry, scoped to the requesting user.
         """
-        signal_ids = [e['signal_id'] for e in entries_data]
+        signal_ids = [entry['signal_id'] for entry in entries_data]
 
-        signals = {
-            s.id: s
-            for s in Signal.objects.filter(pk__in=signal_ids, user=request.user)
+        signals_by_id = {
+            signal.id: signal
+            for signal in Signal.objects.filter(pk__in=signal_ids, user=request.user)
             .select_related('range_config')
         }
 
-        unknown = {sid for sid in signal_ids if sid not in signals}
-        if unknown:
-            return None, {
+        unknown_ids = {sid for sid in signal_ids if sid not in signals_by_id}
+        if unknown_ids:
+            error = {
                 'entries': [
                     {'signal_id': f'Unknown or inaccessible signal id: {sid}'}
-                    for sid in sorted(unknown, key=str)
+                    for sid in sorted(unknown_ids, key=str)
                 ]
             }
+            return None, error
 
-        # duplicate signal_ids are already rejected by
-        # EventWriteSerializer.validate_entries before this is called.
-        return signals, None
+        return signals_by_id, None
 
     def _validate_entry(self, signal, value, duration):
         """
-        Run SignalEntry.clean() against an unsaved (or about-to-be-mutated)
-        instance, so create and update share exactly one source of truth
-        for entry validation.
+        Validate a SignalEntry without saving it.
         """
         probe = SignalEntry(signal=signal, value=value, duration=duration)
         try:
@@ -62,6 +63,27 @@ class EventViewSet(viewsets.ModelViewSet):
         except ValidationError as exc:
             return {'__all__': exc.messages}
 
+    def _validate_entries(self, entries_data, signals_by_id):
+        """
+        Validate every entry against its resolved signal.
+        Returns a dict of {entry_index: error}, empty if all entries are valid.
+        """
+        errors = {}
+        for index, entry_data in enumerate(entries_data):
+            signal = signals_by_id[entry_data['signal_id']]
+            error = self._validate_entry(
+                signal, entry_data.get('value'), entry_data.get('duration')
+            )
+            if error:
+                errors[index] = error
+        return errors
+
+    def _serialize_event(self, event):
+        instance = self.get_queryset().get(pk=event.pk)
+        return EventSerializer(instance).data
+
+    # CREATE
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -69,34 +91,88 @@ class EventViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         entries_data = data.pop('entries')
 
-        signals, error = self._resolve_signals(entries_data, request)
+        signals_by_id, error = self._resolve_signals(entries_data, request)
         if error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-        errors = {}
-        instances = []
-        for i, e in enumerate(entries_data):
-            signal = signals[e['signal_id']]
-            err = self._validate_entry(signal, e.get('value'), e.get('duration'))
-            if err:
-                errors[i] = err
-                continue
-            instances.append(SignalEntry(
-                signal=signal,
-                value=e.get('value'),
-                duration=e.get('duration'),
-            ))
-
+        errors = self._validate_entries(entries_data, signals_by_id)
         if errors:
             return Response({'entries': errors}, status=status.HTTP_400_BAD_REQUEST)
 
         event = Event.objects.create(user=request.user, **data)
-        for entry in instances:
-            entry.event = event
-        SignalEntry.objects.bulk_create(instances)
+        SignalEntry.objects.bulk_create([
+            SignalEntry(
+                event=event,
+                signal=signals_by_id[entry_data['signal_id']],
+                value=entry_data.get('value'),
+                duration=entry_data.get('duration'),
+            )
+            for entry_data in entries_data
+        ]) 
 
-        instance = self.get_queryset().get(pk=event.pk)
-        return Response(EventSerializer(instance).data, status=status.HTTP_201_CREATED)
+        return Response(self._serialize_event(event), status=status.HTTP_201_CREATED)
+
+    # UPDATE
+
+    def _check_entries_belong_to_event(self, entries_data, existing_entries_by_id):
+        """
+        Reject entries with unknown id
+        """
+        incoming_ids = {entry['id'] for entry in entries_data if entry.get('id')}
+        foreign_ids = incoming_ids - set(existing_entries_by_id)
+
+        if not foreign_ids:
+            return None
+
+        return {
+            'entries': [
+                {'id': f'Entry {entry_id} does not belong to this event.'}
+                for entry_id in foreign_ids
+            ]
+        }
+
+    def _apply_entry_changes(self, event, entries_data, signals_by_id, existing_entries_by_id):
+        """
+        Sync event entries with submitted payload. Delete entries missing from payload, create entriese without id
+        and update entries with matching id.
+        """
+        incoming_ids = {entry['id'] for entry in entries_data if entry.get('id')}
+
+        stale_ids = set(existing_entries_by_id) - incoming_ids
+        if stale_ids:
+            SignalEntry.objects.filter(pk__in=stale_ids).delete()
+
+        entries_to_update = []
+        entries_to_create = []
+
+        for entry_data in entries_data:
+            entry_id = entry_data.get('id')
+            signal = signals_by_id[entry_data['signal_id']]
+            value = entry_data.get('value')
+            duration = entry_data.get('duration')
+
+            if entry_id and entry_id in existing_entries_by_id:
+                entry = existing_entries_by_id[entry_id]
+                entry.signal = signal
+                entry.value = value
+                entry.duration = duration
+                entries_to_update.append(entry)
+            else:
+                entries_to_create.append(
+                    SignalEntry(event=event, signal=signal, value=value, duration=duration)
+                )
+
+        if entries_to_update:
+            now = timezone.now()
+            # set auto_now 'manually' because bulk_update() does not trigger save()
+            for entry in entries_to_update:
+                entry.updated_at = now
+            SignalEntry.objects.bulk_update(
+                entries_to_update, ['signal', 'value', 'duration', 'updated_at']
+            )
+
+        if entries_to_create:
+            SignalEntry.objects.bulk_create(entries_to_create)
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
@@ -106,21 +182,17 @@ class EventViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         entries_data = data.pop('entries')
 
-        signals, error = self._resolve_signals(entries_data, request)
+        signals_by_id, error = self._resolve_signals(entries_data, request)
         if error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate every incoming entry up front, against what it *would*
-        # become, before mutating anything — so a bad entry fails the whole
-        # request without partially updating existing rows.
-        existing = {e.signal_id: e for e in event.entries.all()}
-        errors = {}
-        for i, e in enumerate(entries_data):
-            signal = signals[e['signal_id']]
-            err = self._validate_entry(signal, e.get('value'), e.get('duration'))
-            if err:
-                errors[i] = err
+        existing_entries_by_id = {entry.id: entry for entry in event.entries.all()}
 
+        error = self._check_entries_belong_to_event(entries_data, existing_entries_by_id)
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        errors = self._validate_entries(entries_data, signals_by_id)
         if errors:
             return Response({'entries': errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -128,40 +200,9 @@ class EventViewSet(viewsets.ModelViewSet):
         event.note = data.get('note', '')
         event.save()
 
-        new_ids = {e['signal_id'] for e in entries_data}
+        self._apply_entry_changes(event, entries_data, signals_by_id, existing_entries_by_id)
 
-        # remove entries for signals no longer present
-        to_remove = set(existing) - new_ids
-        if to_remove:
-            SignalEntry.objects.filter(event=event, signal_id__in=to_remove).delete()
-
-        # update in place (preserving id/created_at) or create new
-        to_update = []
-        to_create = []
-        for e in entries_data:
-            sid = e['signal_id']
-            value = e.get('value')
-            duration = e.get('duration')
-            if sid in existing:
-                entry = existing[sid]
-                entry.value = value
-                entry.duration = duration
-                to_update.append(entry)
-            else:
-                to_create.append(SignalEntry(
-                    event=event,
-                    signal=signals[sid],
-                    value=value,
-                    duration=duration,
-                ))
-
-        if to_update:
-            SignalEntry.objects.bulk_update(to_update, ['value', 'duration'])
-        if to_create:
-            SignalEntry.objects.bulk_create(to_create)
-
-        instance = self.get_queryset().get(pk=event.pk)
-        return Response(EventSerializer(instance).data)
+        return Response(self._serialize_event(event))
 
     def partial_update(self, request, *args, **kwargs):
         return Response(

@@ -8,7 +8,7 @@ class SignalEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SignalEntry
-        fields = ['signal', 'value', 'duration']
+        fields = ['id', 'signal', 'value', 'duration']
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -20,6 +20,7 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class SignalEntryInputSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=False, allow_null=True)  # present = update, absent = create
     signal_id = serializers.UUIDField()
     value = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, allow_null=True)
     duration = serializers.DurationField(required=False, allow_null=True)
