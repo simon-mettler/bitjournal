@@ -4,6 +4,7 @@ import AboutView from '@/views/AboutView.vue'
 import authenticationRoutes from '@/modules/authentication/routes'
 import signalRoutes from '@/modules/signals/routes'
 import boardRoutes from '@/modules/boards/routes'
+import journalRoutes from '@/modules/journal/routes'
 
 import { useAuthStore } from '@/modules/authentication/store'
 
@@ -24,6 +25,7 @@ const router = createRouter({
     ...authenticationRoutes,
     ...signalRoutes,
     ...boardRoutes,
+    ...journalRoutes,
   ],
 })
 
