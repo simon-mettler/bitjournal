@@ -49,7 +49,7 @@ async function submitSignal() {
     type: selectedSignalType.value,
     summary_method: selectedSummaryMethod.value,
     color: color.value,
-    icon: icon.value,
+    icon: icon.value || 'Circle',
   }
 
   if (selectedSignalType.value === 'value') {

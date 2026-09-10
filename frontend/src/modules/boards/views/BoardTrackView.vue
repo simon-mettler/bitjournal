@@ -249,7 +249,7 @@ onMounted(async () => {
 
   <div v-if="!loading" class="signal-grid" :class="{ 'has-draft-bar': draftBarVisible }">
     <SignalCard v-for="signal in activeSignals" :key="signal.id" :signal="signal" @select="onAddSignalEntry(signal)">
-      <template v-if="resolveIcon(signal.icon)" #icon>
+      <template #icon>
         <component :is="resolveIcon(signal.icon)" :style="{ color: signal.color }" />
       </template>
 

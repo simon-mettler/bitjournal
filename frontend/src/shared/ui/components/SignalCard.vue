@@ -37,8 +37,8 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 90px;
-  padding: 12px;
+  height: 75px;
+  padding: 10px 7px 14px 14px;
   border-radius: var(--input-radius);
   background-color: var(--input-color-background);
   box-shadow: var(--shadow-sm, var(--shadow-md));

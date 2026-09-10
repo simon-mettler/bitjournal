@@ -1,13 +1,13 @@
 import {
   BedDouble, Book, Brain, Briefcase, Bike, Camera, Car, Cat, Coffee, Dog,
   Droplet, Dumbbell, Flame, Gamepad2, Heart, Home, Leaf, Moon, Music, Pencil,
-  Pill, Plane, ShoppingCart, Smile, Star, Sun, Target, Utensils, Wallet,
+  Pill, Plane, ShoppingCart, Smile, Star, Sun, Target, Utensils, Wallet, Circle,
 } from '@lucide/vue'
 
 export const icons = {
   Camera, Heart, Star, Book, Coffee, Dumbbell, Droplet, Moon, Sun, Smile,
   Music, Pencil, Target, Wallet, ShoppingCart, Utensils, Bike, Car, Plane,
-  Home, Briefcase, Brain, Pill, BedDouble, Flame, Leaf, Dog, Cat, Gamepad2,
+  Home, Briefcase, Brain, Pill, BedDouble, Flame, Leaf, Dog, Cat, Gamepad2, Circle
 } as const
 
 export type IconName = keyof typeof icons
