@@ -25,6 +25,7 @@ const router = useRouter()
 const toaster = useToast()
 
 const loading = ref(true)
+const draftBarVisible = ref(false)
 
 const editingEventId = computed(() => route.params.eventId as string | undefined)
 const isEditing = computed(() => !!editingEventId.value)
@@ -98,6 +99,7 @@ function setDraftTimestamp() {
 
 function onAddSignalEntry(signal: Signal) {
   setDraftTimestamp()
+  draftBarVisible.value = true
   if (signal.type === 'tally') {
     draftSignalEntries.value.push({
       id: Date.now().toString(),
@@ -127,6 +129,7 @@ function onRemoveSignalEntry(entryId: string) {
 }
 
 function onSignalEntrySaved(entry: Omit<DraftEntry, 'id'> & { id?: string }) {
+  draftBarVisible.value = true
   if (editingSignalEntryId.value) {
     // existing entry: keep its local id and server-side entryId, replace its contents
     const index = draftSignalEntries.value.findIndex((e) => e.id === editingSignalEntryId.value)
@@ -156,6 +159,7 @@ function onPeopleClick() {
 }
 
 function onCancelDraft() {
+  draftBarVisible.value = false
   draftSignalEntries.value = []
   if (editingEventId.value) {
     router.back()
@@ -188,6 +192,7 @@ async function onSaveDraft() {
       router.back()
     } else {
       await createEvent(payload)
+      draftBarVisible.value = false
       toaster.toast({ description: 'Entry saved.', variant: 'success' })
     }
     draftSignalEntries.value = []
@@ -200,6 +205,7 @@ async function onSaveDraft() {
 async function loadEventForEdit(id: string) {
   const { data } = await getEvent(id)
 
+  draftBarVisible.value = true
   draftDateTime.value = fromDate(new Date(data.occurred_at), getLocalTimeZone())
 
   draftSignalEntries.value = data.entries.map((e) => ({
@@ -234,7 +240,7 @@ onMounted(async () => {
     </Header>
   </AppShellHeader>
 
-  <div v-if="!loading" class="signal-grid" :class="{ 'has-draft-bar': draftSignalEntries.length > 0 }">
+  <div v-if="!loading" class="signal-grid" :class="{ 'has-draft-bar': draftBarVisible }">
     <SignalCard v-for="signal in activeSignals" :key="signal.id" :signal="signal" @select="onAddSignalEntry(signal)">
       <template v-if="resolveIcon(signal.icon)" #icon>
         <component :is="resolveIcon(signal.icon)" :style="{ color: signal.color }" />
@@ -257,10 +263,9 @@ onMounted(async () => {
     :editing="!!editingSignalEntry" :initial-value="editingSignalEntry?.value"
     :initial-duration="editingSignalEntry?.duration" @save="onSignalEntrySaved" />
 
-  <EventDraftBar v-if="draftSignalEntries.length > 0" :entries="draftSignalEntries" v-model:date="draftDate"
-    v-model:time="draftTime" @edit-entry="onEditSignalEntry" @remove-entry="onRemoveSignalEntry"
-    @note-click="onNoteClick" @location-click="onLocationClick" @people-click="onPeopleClick" @cancel="onCancelDraft"
-    @save="onSaveDraft" />
+  <EventDraftBar v-if="draftBarVisible" :entries="draftSignalEntries" v-model:date="draftDate" v-model:time="draftTime"
+    @edit-entry="onEditSignalEntry" @remove-entry="onRemoveSignalEntry" @note-click="onNoteClick"
+    @location-click="onLocationClick" @people-click="onPeopleClick" @cancel="onCancelDraft" @save="onSaveDraft" />
 </template>
 
 <style scoped>

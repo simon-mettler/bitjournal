@@ -32,6 +32,7 @@ const time = defineModel<TimeValue>('time')
 <template>
   <div class="draft-bar">
     <div class="draft-chips">
+      <span class="draft-chip-empty" v-if="entries.length === 0">Select a signal to add to this event</span>
       <SignalChip v-for="entry in entries" :key="entry.id" :signal="entry.signal" :value="formatDraftEntryLabel(entry)"
         :clickable="entry.signal.type !== 'tally'" removable @click="emit('editEntry', entry.id)"
         @remove="emit('removeEntry', entry.id)" />
@@ -59,7 +60,7 @@ const time = defineModel<TimeValue>('time')
 
     <div class="draft-footer">
       <Button variant="secondary" @click="emit('cancel')">Cancel</Button>
-      <Button variant="primary" @click="emit('save')">Save Entry</Button>
+      <Button variant="primary" :disabled="entries.length === 0" @click="emit('save')">Save Entry</Button>
     </div>
   </div>
 </template>
@@ -88,6 +89,17 @@ const time = defineModel<TimeValue>('time')
   gap: 8px;
   max-height: 150px;
   overflow-y: auto;
+}
+
+.draft-chip-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
+  background-color: var(--color-surface-muted);
+  border-radius: var(--radius-xl);
+  color: var(--color-text);
 }
 
 .draft-controls {
