@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, type Ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useLogEventsUiStore } from '@/modules/events/store/logEventsUiStore'
 import { MoreVertical, Settings } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Tabs from '@/shared/ui/components/Tabs.vue'
@@ -26,6 +28,7 @@ const toaster = useToast()
 
 const loading = ref(true)
 const draftBarVisible = ref(false)
+const logEventsUiStore = useLogEventsUiStore()
 
 const editingEventId = computed(() => route.params.eventId as string | undefined)
 const isEditing = computed(() => !!editingEventId.value)
@@ -61,8 +64,8 @@ const draftTime = computed<TimeValue>({
   },
 })
 
+const { activeTab } = storeToRefs(logEventsUiStore)
 const ALL_TAB = 'all'
-const activeTab = ref<string>(ALL_TAB)
 const tabs = computed(() => [
   { value: ALL_TAB, label: 'All' },
   ...boards.value.map((b) => ({ value: b.id, label: b.name })),
@@ -78,7 +81,6 @@ const activeSignals = computed<Signal[]>(() => {
 
 async function load() {
   loading.value = true
-
   try {
     const [{ data: boardsData }, { data: signalsData }] = await Promise.all([
       getBoards(),
@@ -86,6 +88,11 @@ async function load() {
     ])
     boards.value = boardsData
     signals.value = signalsData
+
+    const stillExists = activeTab.value === ALL_TAB || boards.value.some(b => b.id === activeTab.value)
+    if (!stillExists) {
+      activeTab.value = ALL_TAB
+    }
   } finally {
     loading.value = false
   }
@@ -230,7 +237,7 @@ onMounted(async () => {
   <AppShellHeader>
     <Header :heading="isEditing ? 'Edit entry' : 'Log events'">
       <template #actions>
-        <IconButton variant="tertiary" @click="goToManage">
+        <IconButton :disabled="draftBarVisible" variant="tertiary" @click="goToManage">
           <Settings />
         </IconButton>
       </template>
@@ -271,7 +278,7 @@ onMounted(async () => {
 <style scoped>
 .track-tabs {
   width: 100vw;
-  margin-left: -16px;
+  margin: 10px 0 0 -16px;
 }
 
 .settings-btn {
