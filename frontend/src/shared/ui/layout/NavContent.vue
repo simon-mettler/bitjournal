@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { sidebarGroups } from '@/shared/ui/layout/navConfig'
-
-import { useAuthStore } from '@/modules/authentication/store'
 import { useRouter } from 'vue-router'
+import Button from '@/shared/ui/components/Button.vue'
+import { sidebarGroups } from '@/shared/ui/layout/navConfig'
+import { useAuthStore } from '@/modules/authentication/store'
 
 const router = useRouter()
 const auth = useAuthStore()
-const emit = defineEmits<{
-  navigate: []
-}>()
+const emit = defineEmits<{ navigate: [] }>()
 
 async function logout() {
   try {
@@ -20,39 +18,36 @@ async function logout() {
 </script>
 
 <template>
-  <nav class="sidebar" aria-label="Settings and configuration">
+  <nav class="nav-content" aria-label="Settings and configuration">
     <div v-for="group in sidebarGroups" :key="group.label" class="sidebar-group">
-      <p class="sidebar-group-label">{{ group.label }}</p>
-      <ul class="sidebar-section">
+      <p class="nav-content-group-label">{{ group.label }}</p>
+      <ul class="nav-content-section">
         <li v-for="item in group.items" :key="item.label">
-          <RouterLink :to="item.to" class="sidebar-item" active-class="active" @click="emit('navigate')">
+          <RouterLink :to="item.to" class="nav-content-item" active-class="active" @click="emit('navigate')">
             <component :is="item.icon" :size="20" />
             <span>{{ item.label }}</span>
           </RouterLink>
         </li>
       </ul>
     </div>
-    <button @click="logout()">Logout</button>
+    <Button class="nav-content-logout" @click="logout()">Logout</Button>
   </nav>
 </template>
 
 <style scoped>
-.sidebar {
+.nav-content {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: 220px;
-  height: 100vh;
-  padding: 16px 8px;
 }
 
-.sidebar-group {
+.nav-content-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.sidebar-group-label {
+.nav-content-group-label {
   font-size: var(--font-size-sm);
   color: var(--input-color-label);
   padding: 0 12px;
@@ -60,7 +55,7 @@ async function logout() {
   text-transform: uppercase;
 }
 
-.sidebar-section {
+.nav-content-section {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -68,7 +63,7 @@ async function logout() {
   flex-direction: column;
 }
 
-.sidebar-item {
+.nav-content-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -79,10 +74,13 @@ async function logout() {
   font-size: var(--font-size-base);
 }
 
-
-.sidebar-item.active {
+.nav-content-item.active {
   background-color: var(--color-surface-muted);
   color: var(--color-primary);
   font-weight: var(--font-weight-bold);
+}
+
+.nav-content-logout {
+  margin-top: 20%;
 }
 </style>

@@ -70,7 +70,7 @@ async function save() {
       signal_ids: signals.value.map(s => s.id),
     })
     toaster.toast({ description: 'Board saved.', variant: 'success' })
-    router.push({ name: 'manage-boards' })
+    router.back()
   } catch {
     toaster.toast({ description: 'Could not save board.', variant: 'danger' })
   } finally {

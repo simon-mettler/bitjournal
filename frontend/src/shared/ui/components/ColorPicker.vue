@@ -18,6 +18,7 @@ import {
   DialogClose,
 } from 'reka-ui'
 import Dialog from '@/shared/ui/components/Dialog.vue'
+import Button from '@/shared/ui/components/Button.vue'
 
 const model = defineModel<string>({ default: '#4f46e5' })
 
@@ -95,7 +96,7 @@ const hexId = useId()
 
     <template #footer>
       <DialogClose as-child>
-        <button type="button" class="Button green">Done</button>
+        <Button type="button" class="button-done">Done</Button>
       </DialogClose>
     </template>
 
@@ -231,5 +232,10 @@ const hexId = useId()
 .field-input:focus {
   box-shadow: var(--input-shadow-focus);
   border: var(--input-border-focus);
+}
+
+.button-done {
+  flex: 1;
+  margin-top: 16px;
 }
 </style>

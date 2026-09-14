@@ -4,8 +4,6 @@ import {
   ListChecks,
   BookOpen,
   MoreHorizontal,
-  User,
-  Settings,
   Radio,
   LayoutGrid,
 } from '@lucide/vue'
@@ -31,17 +29,10 @@ export const moreNavIcon = MoreHorizontal
 
 export const sidebarGroups: NavGroup[] = [
   {
-    label: 'Settings',
-    items: [
-      { label: 'Account', icon: User, to: { name: '' } },
-    ],
-  },
-  {
     label: 'Configuration',
     items: [
-      { label: 'General', icon: Settings, to: { name: '' } },
-      { label: 'Signals', icon: Radio, to: { name: 'manage-signals' } },
-      { label: 'Signal boards', icon: LayoutGrid, to: { name: 'manage-boards' } },
+      { label: 'Manage signals', icon: Radio, to: { name: 'manage-signals' } },
+      { label: 'Manage boards', icon: LayoutGrid, to: { name: 'manage-boards' } },
     ],
   },
 ]

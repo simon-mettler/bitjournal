@@ -38,10 +38,6 @@ withDefaults(
     cursor: not-allowed;
     opacity: 0.5;
   }
-
-  &:hover {
-    background-color: var(--color-surface-muted) !important;
-  }
 }
 
 .button.lg {
