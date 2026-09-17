@@ -1,11 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.events.pagination import EventCursorPagination
 from apps.signals.models import Signal
 from .models import Event, SignalEntry
 from .serializers import EventSerializer, EventWriteSerializer
@@ -13,12 +16,39 @@ from .serializers import EventSerializer, EventWriteSerializer
 
 class EventViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    pagination_class = EventCursorPagination
 
     def get_queryset(self):
-        return (
+        qs = (
             Event.objects.filter(user=self.request.user)
             .prefetch_related('entries__signal')
         )
+        if self.action == 'list':
+            qs = self._apply_list_filters(qs)
+        return qs
+
+    def _apply_list_filters(self, qs):
+        params = self.request.query_params
+
+        before = params.get('before')
+        if before:
+            parsed = parse_datetime(before)
+            if parsed is None:
+                raise DRFValidationError({'before': 'Invalide ISO daatetime.'})
+            qs = qs.filter(occurred_at__lte=parsed)
+
+        signal_ids = [s for s in params.get('signals', '').split(',') if s]
+        if signal_ids:
+            logic = params.get('signal_logic', 'or').lower()
+            if logic == 'and':
+                for signal_id in signal_ids:
+                    qs = qs.filter(entries__signal_id=signal_id)
+            else:
+                qs = qs.filter(entries__signal_id__in=signal_ids)
+            qs = qs.distinct()
+
+        return qs
+
 
     def get_serializer_class(self):
         if self.action in ('create', 'update', 'partial_update'):
