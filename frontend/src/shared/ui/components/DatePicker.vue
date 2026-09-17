@@ -111,9 +111,11 @@ const yearLabel = computed(() => String(placeholder.value.year))
 </script>
 
 <template>
-  <IconButton variant="secondary" @click="openDrawer">
-    <CalendarDays />
-  </IconButton>
+  <slot name="trigger" :open="openDrawer">
+    <IconButton variant="secondary" @click="openDrawer">
+      <CalendarDays />
+    </IconButton>
+  </slot>
 
   <Drawer v-model:open="drawerOpen" title="Select date">
     <div ref="containerRef" class="dp-container">
