@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'apps.signals',
     'apps.events',
     'apps.boards',
+    'apps.analytics',
 ]
 
 MIDDLEWARE = [
@@ -64,12 +65,14 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
+    'http://192.168.1.222:5173',
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # required — lets the browser send/receive cookies
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
+    'http://192.168.1.222:5173',
 ]
 
 ROOT_URLCONF = 'config.urls'
