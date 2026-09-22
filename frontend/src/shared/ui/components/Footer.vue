@@ -16,6 +16,8 @@
   background-color: var(--color-surface);
   padding: var(--padding-app);
   padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-footer);
+  border-radius: var(--radius-md) var(--radius-) 0 0;
 }
 
 :deep(button) {

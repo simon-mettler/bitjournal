@@ -114,6 +114,7 @@ function toggleSign() {
   background-color: var(--input-color-background);
   border: var(--input-border);
   height: var(--input-height);
+  box-shadow: var(--shadow-fields);
 
   &:focus {
     box-shadow: var(--input-shadow-focus);

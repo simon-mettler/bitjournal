@@ -1,7 +1,7 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    variant?: 'primary' | 'secondary' | 'tertiary' | 'warn'
+    variant?: 'primary' | 'secondary' | 'tertiary' | 'warn' | 'float'
     disabled?: boolean
     type?: 'button' | 'submit' | 'reset'
   }>(),
@@ -35,6 +35,7 @@ withDefaults(
   font-weight: var(--font-weight-normal);
   line-height: 1;
   cursor: pointer;
+  box-shadow: var(--shadow-fields);
 
   &:focus {
     box-shadow: var(--input-shadow-focus);
@@ -68,6 +69,13 @@ withDefaults(
 .button.warn {
   background-color: var(--color-danger);
   color: var(--color-surface);
+}
+
+.button.float {
+  color: var(--input-color-text);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-interact);
 }
 
 .button-icon {

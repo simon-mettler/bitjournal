@@ -57,6 +57,7 @@ input {
   background-color: var(--input-color-background);
   border: var(--input-border);
   box-sizing: border-box;
+  box-shadow: var(--shadow-fields);
 
   &:focus {
     box-shadow: var(--input-shadow-focus);

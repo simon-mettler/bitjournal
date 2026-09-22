@@ -3,7 +3,7 @@ withDefaults(
   defineProps<{
     type?: 'button' | 'submit' | 'reset'
     disabled?: boolean
-    variant?: 'primary' | 'secondary' | 'tertiary'
+    variant?: 'primary' | 'secondary' | 'tertiary' | 'float'
     size?: 'lg' | 'sm'
   }>(),
   {
@@ -62,11 +62,18 @@ withDefaults(
 }
 
 .button.tertiary {
-  background-color: transparent;
   color: var(--input-color-text);
+  background-color: transparent;
+}
+
+.button.float {
+  color: var(--input-color-text);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-interact);
 }
 
 :deep(svg) {
-  color: var(--color-text);
+  color: var(--input-color-label);
 }
 </style>

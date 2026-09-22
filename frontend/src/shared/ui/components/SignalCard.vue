@@ -40,8 +40,8 @@ const emit = defineEmits<{
   height: 75px;
   padding: 10px 7px 14px 14px;
   border-radius: var(--input-radius);
-  background-color: var(--input-color-background);
-  box-shadow: var(--shadow-sm, var(--shadow-md));
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
   cursor: pointer;
 }
 

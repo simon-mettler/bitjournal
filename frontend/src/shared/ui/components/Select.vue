@@ -88,7 +88,7 @@ const id = useId()
   max-height: var(--reka-select-content-available-height);
   border-radius: var(--input-radius);
   border: var(--input-border);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card);
   color: var(--input-color-text);
   background-color: var(--color-surface);
 }
@@ -114,6 +114,7 @@ button {
 }
 
 .select-trigger {
+  box-shadow: var(--shadow-fields);
   display: inline-flex;
   box-sizing: border-box;
   align-items: center;

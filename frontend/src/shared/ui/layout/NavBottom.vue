@@ -31,6 +31,8 @@ const emit = defineEmits<{
   border-top: var(--input-border);
   padding: 10px;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-footer);
+  border-radius: var(--radius-md) var(--radius-lg) 0 0;
 }
 
 .bottom-nav-item {

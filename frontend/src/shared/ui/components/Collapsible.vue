@@ -28,9 +28,9 @@ const open = ref(false)
 
 <style scoped>
 .collapsible {
-  border: 1px solid #87BBC5;
   border-radius: var(--radius-md);
   background: var(--color-surface);
+  box-shadow: var(--shadow-interact);
   overflow: hidden;
 }
 
