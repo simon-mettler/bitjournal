@@ -3,12 +3,14 @@ import { computed, onMounted, ref, type Ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useLogEventsUiStore } from '@/modules/events/store/logEventsUiStore'
-import { MoreVertical, Settings } from '@lucide/vue'
+import { MoreVertical, Settings, ChartColumn } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Tabs from '@/shared/ui/components/Tabs.vue'
 import SignalCard from '@/shared/ui/components/SignalCard.vue'
 import Header from '@/shared/ui/components/Header.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
+import DropdownMenu from '@/shared/ui/components/DropdownMenu.vue'
+import type { DropdownMenuOption } from '@/shared/ui/components/DropdownMenu.vue'
 import LogEntryDrawer from '@/modules/events/components/LogEntryDrawer.vue'
 import EventDraftBar from '@/modules/events/components/EventDraftBar.vue'
 import { getBoards } from '@/modules/boards/api'
@@ -150,9 +152,15 @@ function onSignalEntrySaved(entry: Omit<DraftEntry, 'id'> & { id?: string }) {
   }
 }
 
-// TODO: implement or hide for later
-function onSignalOptions(signal: Signal) {
-  console.log('signal options', signal)
+function signalOptions(signal: Signal): DropdownMenuOption[] {
+  return [
+    {
+      label: 'View stats',
+      value: 'view-stats',
+      icon: ChartColumn,
+      onSelect: () => router.push({ name: 'signal-stats', params: { id: signal.id } }),
+    },
+  ]
 }
 
 function onNoteClick() {
@@ -254,10 +262,13 @@ onMounted(async () => {
       </template>
 
       <template #actions>
-        <IconButton @click.stop="onSignalOptions(signal)" :aria-label="`Options for ${signal.name}`" variant="tertiary"
-          size="sm">
-          <MoreVertical />
-        </IconButton>
+        <DropdownMenu :options="signalOptions(signal)">
+          <template #trigger>
+            <IconButton @click.stop :aria-label="`Options for ${signal.name}`" variant="tertiary" size="sm">
+              <MoreVertical />
+            </IconButton>
+          </template>
+        </DropdownMenu>
       </template>
     </SignalCard>
 

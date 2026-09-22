@@ -8,6 +8,8 @@ import { getBoards, reorderBoards } from '@/modules/boards/api'
 import type { Board } from '@/modules/boards/types'
 import { useToast } from '@/shared/lib/useToast'
 import Header from '@/shared/ui/components/Header.vue'
+import Button from '@/shared/ui/components/Button.vue'
+import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
 
 const router = useRouter()
 const toaster = useToast()
@@ -50,9 +52,18 @@ onMounted(loadBoards)
   <Header heading="Manage boards">
   </Header>
 
+  <AppShellFooter>
+    <div class="add-board-anchor">
+      <AddBoardDialog @created="onBoardCreated">
+        <template #trigger>
+          <Button variant="float" class="add-board-button">Add board</Button>
+        </template>
+      </AddBoardDialog>
+    </div>
+  </AppShellFooter>
+
   <div class="manage-boards-content">
 
-    <AddBoardDialog @created="onBoardCreated" />
 
     <ul ref="listEl" class="board-list">
       <li v-for="board in boards" :key="board.id" class="drag-handle board-row" @click="openBoard(board)">
@@ -80,9 +91,26 @@ onMounted(loadBoards)
 <style scoped>
 .manage-boards-content {
   padding: var(--padding-app);
+  padding-bottom: calc(var(--spacing-md) * 2 + 48px);
   display: flex;
   flex-direction: column;
   gap: 32px;
+}
+
+/* Zero-height anchor at the top edge of the footer row, so the button
+   overlays the bottom of the scrolling content instead of taking a row. */
+.add-board-anchor {
+  position: relative;
+  height: 0;
+}
+
+.add-board-button {
+  position: absolute;
+  bottom: var(--spacing-md);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
 }
 
 .board-list {
@@ -102,6 +130,7 @@ onMounted(loadBoards)
   border-radius: var(--input-radius);
   background-color: white;
   cursor: pointer;
+  box-shadow: var(--shadow-card);
 }
 
 .drag-handle {

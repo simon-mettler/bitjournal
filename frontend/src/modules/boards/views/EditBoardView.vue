@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { GripVertical, Trash2 } from '@lucide/vue'
+import { GripVertical, Trash2, X } from '@lucide/vue'
 import { useSortable } from '@vueuse/integrations/useSortable'
 import type { UseSortableOptions } from '@vueuse/integrations/useSortable'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
@@ -94,20 +94,14 @@ onMounted(load)
 
   <AppShellHeader>
     <Header heading="Edit board">
-    </Header>
-  </AppShellHeader>
-
-  <div class="edit-board-content">
-    <div v-if="!loading" class="card">
-      <InputText v-model="name" label="Board name" placeholder="" @blur="validateField('name')"
-        :error="validationErrors['name']" />
-
-      <div class="board-actions">
+      <template #actions>
         <AlertDialog title="Delete board" confirm-text="Delete"
           :description="`Are you sure you want to delete &quot;${name}&quot;? This can't be undone.`"
           @confirm="confirmDeleteBoard">
           <template #trigger>
-            <Button variant="secondary" class="danger-btn">Delete board</Button>
+            <IconButton class="danger" variant="float" aria-label="Delete board">
+              <Trash2 />
+            </IconButton>
           </template>
           <template #cancel>
             <Button variant="secondary">Cancel</Button>
@@ -116,13 +110,14 @@ onMounted(load)
             <Button variant="primary">Delete</Button>
           </template>
         </AlertDialog>
+      </template>
+    </Header>
+  </AppShellHeader>
 
-        <SignalPickerDialog :exclude-ids="signals.map(s => s.id)" @add="onSignalsAdded">
-          <template #trigger>
-            <Button variant="tertiary">Add signal</Button>
-          </template>
-        </SignalPickerDialog>
-      </div>
+  <div class="edit-board-content">
+    <div v-if="!loading" class="card">
+      <InputText v-model="name" label="Board name" placeholder="" @blur="validateField('name')"
+        :error="validationErrors['name']" />
     </div>
 
     <div ref="gridEl" class="signal-grid">
@@ -133,9 +128,9 @@ onMounted(load)
           </span>
         </template>
         <template #actions>
-          <IconButton class="danger" variant="tertiary" size="sm" @click="removeSignal(signal.id)"
+          <IconButton variant="tertiary" size="sm" @click="removeSignal(signal.id)"
             :aria-label="`Remove ${signal.name} from board`">
-            <Trash2 />
+            <X />
           </IconButton>
         </template>
       </SignalCard>
@@ -144,6 +139,14 @@ onMounted(load)
   </div>
 
   <AppShellFooter>
+    <div class="add-signal-anchor">
+      <SignalPickerDialog :exclude-ids="signals.map(s => s.id)" @add="onSignalsAdded">
+        <template #trigger>
+          <Button variant="float" class="add-signal-button">Add signal</Button>
+        </template>
+      </SignalPickerDialog>
+    </div>
+
     <Footer>
       <Button variant="secondary" @click="router.back()">
         Cancel
@@ -159,29 +162,33 @@ onMounted(load)
 <style scoped>
 .edit-board-content {
   padding: 0 var(--padding-app);
+  padding-bottom: calc(var(--spacing-md) * 2 + 48px);
+}
+
+.add-signal-anchor {
+  position: relative;
+  height: 0;
+}
+
+.add-signal-button {
+  position: absolute;
+  bottom: var(--spacing-md);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
 }
 
 .card {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
   border-radius: var(--input-radius);
-  background-color: var(--input-color-background);
-  margin-bottom: 16px;
-}
-
-.board-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.board-actions button {
-  flex: 1;
+  margin-top: 8px;
 }
 
 .signal-grid {
+  margin-top: 24px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;

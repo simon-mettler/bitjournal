@@ -106,6 +106,7 @@ onMounted(loadSignals)
   border-radius: var(--input-radius);
   background-color: white;
   cursor: pointer;
+  box-shadow: var(--shadow-card);
 }
 
 .signal-icon {

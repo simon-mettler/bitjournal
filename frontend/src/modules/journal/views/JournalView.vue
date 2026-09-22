@@ -257,7 +257,7 @@ onMounted(load)
 
 <style scoped>
 .filters-panel {
-  margin: 0 var(--padding-app) 16px;
+  margin: 12px var(--padding-app) 16px;
 }
 
 .filters-clear {

@@ -67,7 +67,7 @@ const options: DropdownMenuOption[] = [
   padding: 16px;
   border-radius: var(--input-radius);
   background-color: var(--input-color-background);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card);
 }
 
 .journal-card-top {
