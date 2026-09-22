@@ -1,0 +1,64 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import Chart from '@/shared/ui/components/Chart.vue'
+import { formatStatValue } from '@/modules/analytics/format'
+import type { EChartsOption } from 'echarts'
+import type { Signal } from '@/modules/signals/types'
+import type { SignalStatsDayOfWeekPoint } from '@/modules/analytics/types'
+
+const PRIMARY = '#0F7A6C'
+const TREND = '#9AA1A9'
+const GRID_LINE = '#ECEEF1'
+const TOOLTIP_BG = '#1F2937'
+
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+const props = defineProps<{
+  signal: Signal
+  dayOfWeek: SignalStatsDayOfWeekPoint[]
+}>()
+
+const values = computed(() => {
+  const byDow = new Map(props.dayOfWeek.map((p) => [p.dow, p.value]))
+  return DAY_LABELS.map((_, dow) => byDow.get(dow) ?? null)
+})
+
+const option = computed<EChartsOption>(() => ({
+  tooltip: {
+    trigger: 'axis',
+    valueFormatter: (value) =>
+      value == null || value === '-' ? '-' : formatStatValue(props.signal, Number(value)),
+    backgroundColor: TOOLTIP_BG,
+    borderWidth: 0,
+    borderRadius: 8,
+    padding: [6, 10],
+    textStyle: { color: '#ffffff', fontSize: 12 },
+  },
+  grid: { left: 48, right: 16, top: 16, bottom: 28 },
+  xAxis: {
+    type: 'category',
+    data: DAY_LABELS,
+    axisLine: { lineStyle: { color: GRID_LINE } },
+    axisLabel: { color: TREND },
+    axisTick: { show: false },
+  },
+  yAxis: {
+    type: 'value',
+    splitLine: { lineStyle: { color: GRID_LINE } },
+    axisLabel: { color: TREND },
+  },
+  series: [
+    {
+      name: props.signal.name,
+      type: 'bar',
+      data: values.value,
+      barMaxWidth: 24,
+      itemStyle: { color: PRIMARY, borderRadius: [8, 8, 0, 0] },
+    },
+  ],
+}))
+</script>
+
+<template>
+  <Chart :option="option" />
+</template>
