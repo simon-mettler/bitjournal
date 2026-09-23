@@ -140,7 +140,8 @@ onMounted(() => {
           </Toggle>
         </div>
       </div>
-      <TimeseriesChart :signal="signal" :timeseries="stats.timeseries" :chart-type="chartType" />
+      <TimeseriesChart :signal="signal" :timeseries="stats.timeseries" :timeframe="stats.period.timeframe"
+        :chart-type="chartType" />
     </div>
 
     <div v-if="signal && stats" class="chart-section">

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import Chart from '@/shared/ui/components/Chart.vue'
 import { formatStatValue } from '@/modules/analytics/format'
+import { tooltipBesidePointer } from '@/modules/analytics/tooltipPosition'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
 import type { SignalStatsDayOfWeekPoint } from '@/modules/analytics/types'
@@ -26,6 +27,7 @@ const values = computed(() => {
 const option = computed<EChartsOption>(() => ({
   tooltip: {
     trigger: 'axis',
+    position: tooltipBesidePointer,
     valueFormatter: (value) =>
       value == null || value === '-' ? '-' : formatStatValue(props.signal, Number(value)),
     backgroundColor: TOOLTIP_BG,
@@ -34,7 +36,7 @@ const option = computed<EChartsOption>(() => ({
     padding: [6, 10],
     textStyle: { color: '#ffffff', fontSize: 12 },
   },
-  grid: { left: 48, right: 16, top: 16, bottom: 28 },
+  grid: { left: 0, right: 16, top: 16, bottom: 0, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
   xAxis: {
     type: 'category',
     data: DAY_LABELS,

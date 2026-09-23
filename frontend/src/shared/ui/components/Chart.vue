@@ -2,11 +2,11 @@
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart, LineChart, HeatmapChart } from 'echarts/charts'
-import { GridComponent, TooltipComponent, VisualMapComponent } from 'echarts/components'
+import { GridComponent, TooltipComponent, VisualMapComponent, LegendComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import type { EChartsOption } from 'echarts'
 
-use([CanvasRenderer, BarChart, LineChart, HeatmapChart, GridComponent, TooltipComponent, VisualMapComponent])
+use([CanvasRenderer, BarChart, LineChart, HeatmapChart, GridComponent, TooltipComponent, VisualMapComponent, LegendComponent])
 
 defineProps<{
   option: EChartsOption

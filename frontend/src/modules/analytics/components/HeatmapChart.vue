@@ -54,6 +54,7 @@ function tooltipText(dow: number, hour: number): string {
 const option = computed<EChartsOption>(() => ({
   tooltip: {
     position: 'top',
+    confine: true,
     formatter: (params: any) => {
       const [hour, dow] = params.value as [number, number, number]
       return tooltipText(dow, hour)
