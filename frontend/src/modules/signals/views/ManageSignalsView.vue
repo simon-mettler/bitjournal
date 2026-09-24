@@ -5,6 +5,7 @@ import InputText from '@/shared/ui/components/InputText.vue'
 import Header from '@/shared/ui/components/Header.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
+import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
 import { resolveIcon } from '@/shared/lib/iconRegistry'
 import { ChevronRight } from '@lucide/vue'
 import { getSignals } from '@/modules/signals/api'
@@ -54,9 +55,13 @@ onMounted(loadSignals)
     </Header>
   </AppShellHeader>
 
-  <div class="manage-signals-content">
-    <Button @click="addSignal">Create signal</Button>
+  <AppShellFooter>
+    <div class="add-signal-anchor">
+      <Button variant="float" class="add-signal-button" @click="addSignal">Create signal</Button>
+    </div>
+  </AppShellFooter>
 
+  <div class="manage-signals-content">
     <InputText v-model="search" placeholder="Search signals..." />
 
     <ul class="signal-list">
@@ -86,7 +91,22 @@ onMounted(loadSignals)
   display: flex;
   flex-direction: column;
   padding: var(--padding-app);
+  padding-bottom: calc(var(--spacing-md) * 2 + 48px);
   gap: 32px;
+}
+
+.add-signal-anchor {
+  position: relative;
+  height: 0;
+}
+
+.add-signal-button {
+  position: absolute;
+  bottom: var(--spacing-md);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
 }
 
 .signal-list {

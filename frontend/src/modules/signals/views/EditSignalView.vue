@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Trash2 } from '@lucide/vue'
 import Button from '@/shared/ui/components/Button.vue'
+import IconButton from '@/shared/ui/components/IconButton.vue'
 import Footer from '@/shared/ui/components/Footer.vue'
 import Header from '@/shared/ui/components/Header.vue'
 import AlertDialog from '@/shared/ui/components/AlertDialog.vue'
@@ -108,6 +110,23 @@ onMounted(load)
 
   <AppShellHeader>
     <Header heading="Edit signal">
+      <template #actions>
+        <AlertDialog title="Delete signal" confirm-text="Delete"
+          :description="`Are you sure you want to delete signal &quot;${signalName}&quot;? This can't be undone.`"
+          @confirm="confirmDeleteSignal">
+          <template #trigger>
+            <IconButton class="danger" variant="float" aria-label="Delete signal">
+              <Trash2 />
+            </IconButton>
+          </template>
+          <template #cancel>
+            <Button variant="secondary">Cancel</Button>
+          </template>
+          <template #action>
+            <Button variant="primary">Delete</Button>
+          </template>
+        </AlertDialog>
+      </template>
     </Header>
   </AppShellHeader>
 
@@ -116,19 +135,6 @@ onMounted(load)
       v-model:unit="signalUnit" v-model:summary-method="selectedSummaryMethod" v-model:min-value="minValue"
       v-model:max-value="maxValue" v-model:min-label="minLabel" v-model:max-label="maxLabel" :type="signal.type"
       :errors="errors" lock-type />
-    <AlertDialog title="Delete signal" confirm-text="Delete"
-      :description="`Are you sure you want to delete signal &quot;${signalName}&quot;? This can't be undone.`"
-      @confirm="confirmDeleteSignal">
-      <template #trigger>
-        <Button variant="secondary" class="danger-btn">Delete signal</Button>
-      </template>
-      <template #cancel>
-        <Button variant="secondary">Cancel</Button>
-      </template>
-      <template #action>
-        <Button variant="primary">Delete</Button>
-      </template>
-    </AlertDialog>
   </div>
 
   <AppShellFooter>
@@ -147,5 +153,9 @@ onMounted(load)
 <style scoped>
 .edit-signal-content {
   padding: 0 var(--padding-app);
+}
+
+.danger>svg {
+  color: var(--color-danger);
 }
 </style>

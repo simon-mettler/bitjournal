@@ -64,6 +64,7 @@ withDefaults(
 .button.tertiary {
   color: var(--input-color-text);
   background-color: transparent;
+  box-shadow: none;
 }
 
 .button.float {

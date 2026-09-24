@@ -16,7 +16,7 @@ const id = useId()
 
 <template>
   <div class="field">
-    <Label class="label" :for="id">
+    <Label v-if="label" class="label" :for="id">
       {{ label }}
     </Label>
     <input :id="id" class="input" :type="type" :placeholder="placeholder" v-model="model" v-bind="$attrs">
