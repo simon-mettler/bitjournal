@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import Chart from '@/shared/ui/components/Chart.vue'
 import { formatStatValue } from '@/modules/analytics/format'
-import { HEATMAP_COLORS, heatmapLevel } from '@/modules/analytics/heatmapScale'
+import { HEATMAP_EMPTY_COLOR, HEATMAP_SCALE_COLORS } from '@/modules/analytics/heatmapScale'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
 import type { SignalStatsHeatmapPoint } from '@/modules/analytics/types'
@@ -24,14 +24,24 @@ const props = defineProps<{
 
 const byBin = computed(() => new Map(props.heatmap.map((p) => [`${p.dow}-${p.hour}`, p])))
 
-const maxValue = computed(() => Math.max(0, ...props.heatmap.map((p) => p.value)))
+// Scale spans only the bins with entries (not 0 to max)
+const scale = computed(() => {
+  const values = props.heatmap.map((p) => p.value)
+  if (values.length === 0) return { min: 0, max: 1 }
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  if (min < max) return { min, max }
+  return { min: max - (Math.abs(max) || 1), max }
+})
+
+const emptyBinValue = computed(() => scale.value.min - 1)
 
 const gridData = computed(() => {
   const data: [number, number, number][] = []
   for (let dow = 0; dow < 7; dow++) {
     for (let hour = 0; hour < 24; hour++) {
       const bin = byBin.value.get(`${dow}-${hour}`)
-      data.push([hour, dow, bin ? heatmapLevel(bin.value, maxValue.value) : 0])
+      data.push([hour, dow, bin ? bin.value : emptyBinValue.value])
     }
   }
   return data
@@ -65,7 +75,7 @@ const option = computed<EChartsOption>(() => ({
     padding: [6, 10],
     textStyle: { color: '#ffffff', fontSize: 12 },
   },
-  grid: { left: 40, right: 4, top: 4, bottom: 26 },
+  grid: { left: 40, right: 4, top: 4, bottom: 80 },
   xAxis: {
     type: 'category',
     data: HOURS,
@@ -105,10 +115,23 @@ const option = computed<EChartsOption>(() => ({
     },
   },
   visualMap: {
-    type: 'piecewise',
-    show: false,
+    type: 'continuous',
     dimension: 2,
-    pieces: HEATMAP_COLORS.map((color, level) => ({ value: level, color })),
+    unboundedRange: false,
+    calculable: true,
+    orient: 'horizontal',
+    left: 'center',
+    bottom: 0,
+    itemWidth: 12,
+    itemHeight: 160,
+    text: ['More', 'Less'],
+    textGap: 12,
+    textStyle: { color: HOUR_LABEL, fontSize: 12 },
+    formatter: (value: unknown) => formatStatValue(props.signal, Number(value)),
+    min: scale.value.min,
+    max: scale.value.max,
+    inRange: { color: [...HEATMAP_SCALE_COLORS] },
+    outOfRange: { color: HEATMAP_EMPTY_COLOR },
   },
   series: [
     {
@@ -133,5 +156,5 @@ const option = computed<EChartsOption>(() => ({
 </script>
 
 <template>
-  <Chart :option="option" :height="190" />
+  <Chart :option="option" :height="244" />
 </template>

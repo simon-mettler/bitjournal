@@ -12,7 +12,6 @@ import Select from '@/shared/ui/components/Select.vue'
 import TimeseriesChart from '@/modules/analytics/components/TimeseriesChart.vue'
 import DayOfWeekChart from '@/modules/analytics/components/DayOfWeekChart.vue'
 import HeatmapChart from '@/modules/analytics/components/HeatmapChart.vue'
-import HeatmapLegend from '@/modules/analytics/components/HeatmapLegend.vue'
 import { getSignal } from '@/modules/signals/api'
 import { getSignalStats } from '@/modules/analytics/api'
 import { formatStatValue, formatPeriodRange, shiftPeriod } from '@/modules/analytics/format'
@@ -154,7 +153,6 @@ onMounted(() => {
     <div v-if="signal && stats" class="chart-section">
       <div class="chart-section-header">
         <span class="chart-section-title">By day &amp; hour</span>
-        <HeatmapLegend />
       </div>
       <HeatmapChart :signal="signal" :heatmap="stats.heatmap" />
     </div>
