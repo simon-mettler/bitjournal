@@ -7,7 +7,7 @@ import { today, getLocalTimeZone, type CalendarDate } from '@internationalized/d
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Header from '@/shared/ui/components/Header.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
-import Toggle from '@/shared/ui/components/Toggle.vue'
+import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import Select from '@/shared/ui/components/Select.vue'
 import TimeseriesChart from '@/modules/analytics/components/TimeseriesChart.vue'
 import DayOfWeekChart from '@/modules/analytics/components/DayOfWeekChart.vue'
@@ -132,12 +132,7 @@ onMounted(() => {
     <div v-if="signal && stats" class="chart-section">
       <div class="chart-section-header">
         <span class="chart-section-title">Over time</span>
-        <div class="chart-type-toggle">
-          <Toggle v-for="option in chartTypeOptions" :key="option.value" :model-value="chartType === option.value"
-            @update:model-value="pressed => pressed && (chartType = option.value)">
-            {{ option.label }}
-          </Toggle>
-        </div>
+        <ToggleGroup v-model="chartType" :options="chartTypeOptions" />
       </div>
       <TimeseriesChart :signal="signal" :timeseries="stats.timeseries" :timeframe="stats.period.timeframe"
         :chart-type="chartType" />
@@ -251,18 +246,5 @@ onMounted(() => {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
-}
-
-.chart-type-toggle {
-  display: flex;
-  background-color: var(--color-surface-muted);
-  border-radius: var(--radius-xl);
-  padding: 2px;
-}
-
-.chart-type-toggle :deep(.toggle[data-state='on']) {
-  background-color: var(--color-text);
-  color: var(--color-surface);
-  box-shadow: none;
 }
 </style>

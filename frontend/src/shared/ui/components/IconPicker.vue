@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import Dialog from '@/shared/ui/components/Dialog.vue'
+import IconButton from '@/shared/ui/components/IconButton.vue'
 
 import { icons, type IconName } from '@/shared/lib/iconRegistry'
 
@@ -31,10 +32,10 @@ function selectIcon(name: IconName) {
 <template>
   <Dialog v-model:open="open" title="Choose icon">
     <template #trigger>
-      <button type="button" class="icon-trigger">
+      <IconButton variant="secondary" class="icon-trigger" aria-label="Choose icon">
         <component :is="currentIcon" v-if="currentIcon" :size="24" />
         <span v-else class="icon-trigger-placeholder">Icon</span>
-      </button>
+      </IconButton>
     </template>
 
     <div class="icon-picker">
@@ -54,22 +55,8 @@ function selectIcon(name: IconName) {
 
 <style scoped>
 .icon-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  border-radius: var(--input-radius);
-  border: var(--input-border);
-  background-color: var(--color-surface);
-  color: var(--input-color-text);
-  cursor: pointer;
+  flex-shrink: 0;
   margin-top: 22px;
-}
-
-.icon-trigger:hover {
-  background: #f9fafb;
 }
 
 .icon-trigger-placeholder {

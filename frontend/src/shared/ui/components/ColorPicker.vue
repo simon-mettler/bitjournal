@@ -7,8 +7,6 @@ import {
   ColorAreaArea,
   ColorAreaRoot,
   ColorAreaThumb,
-  ColorFieldInput,
-  ColorFieldRoot,
   ColorSliderRoot,
   ColorSliderThumb,
   ColorSliderTrack,
@@ -19,6 +17,8 @@ import {
 } from 'reka-ui'
 import Dialog from '@/shared/ui/components/Dialog.vue'
 import Button from '@/shared/ui/components/Button.vue'
+import IconButton from '@/shared/ui/components/IconButton.vue'
+import InputText from '@/shared/ui/components/InputText.vue'
 
 const model = defineModel<string>({ default: '#4f46e5' })
 
@@ -35,23 +35,32 @@ function handleColorUpdate(newColor: Color) {
   colorObj.value = newColor
 }
 
-function handleHexUpdate(hex: string) {
-  colorObj.value = normalizeColor(hex)
+const hexDraft = ref(hexColor.value)
+watch(hexColor, (hex) => {
+  hexDraft.value = hex
+})
+
+function commitHex() {
+  const raw = hexDraft.value.trim()
+  const hex = raw.startsWith('#') ? raw : `#${raw}`
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) {
+    colorObj.value = normalizeColor(hex)
+  }
+  hexDraft.value = hexColor.value
 }
 
 const hueId = useId()
 const alphaId = useId()
-const hexId = useId()
 </script>
 
 <template>
   <Dialog title="Color">
 
     <template #trigger>
-      <button type="button" class="swatch-trigger">
+      <IconButton variant="secondary" class="swatch-trigger" aria-label="Choose color">
         <ColorSwatch :color="hexColor" class="swatch-preview"
           :style="{ backgroundColor: 'var(--reka-color-swatch-color)' }" />
-      </button>
+      </IconButton>
     </template>
 
     <div class="picker">
@@ -85,12 +94,8 @@ const hexId = useId()
       </div>
 
       <!-- HEX value field -->
-      <div class="field-group">
-        <Label class="field-label" :id="hexId">HEX</Label>
-        <ColorFieldRoot :model-value="hexColor" :id="hexId" class="field-hex" @update:model-value="handleHexUpdate">
-          <ColorFieldInput class="field-input" placeholder="#000000" />
-        </ColorFieldRoot>
-      </div>
+      <InputText v-model="hexDraft" label="HEX" placeholder="#000000" spellcheck="false" autocomplete="off"
+        @blur="commitHex" @keydown.enter.prevent="commitHex" />
 
     </div>
 
@@ -105,21 +110,14 @@ const hexId = useId()
 
 <style scoped>
 .swatch-trigger {
-  background-color: transparent;
-  padding: 0;
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  border-radius: var(--input-radius);
-  border: var(--input-border);
-  cursor: pointer;
-  overflow: hidden;
+  flex-shrink: 0;
   margin-top: 22px;
 }
 
 .swatch-preview {
-  width: 100%;
-  height: 100%;
+  width: 24px;
+  height: 24px;
+  border-radius: calc(var(--input-radius) - 4px);
 }
 
 .picker {
@@ -209,29 +207,6 @@ const hexId = useId()
 
 .slider-thumb:hover {
   transform: scale(1.1);
-}
-
-.field-hex {
-  display: block;
-  width: 100%;
-}
-
-.field-input {
-  display: inline-flex;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0 10px;
-  font-size: var(--font-size-base);
-  border: var(--input-border);
-  border-radius: var(--input-radius);
-  color: var(--input-color-text);
-  background-color: var(--input-color-background);
-  height: var(--input-height);
-}
-
-.field-input:focus {
-  box-shadow: var(--input-shadow-focus);
-  border: var(--input-border-focus);
 }
 
 .button-done {

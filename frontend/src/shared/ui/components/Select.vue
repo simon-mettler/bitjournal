@@ -165,11 +165,15 @@ button {
 }
 
 .select-trigger[data-disabled] {
-  color: var(--input-color-placeholder);
-  background-color: var(--color-surface-muted);
-  cursor: not-allowed;
-  opacity: 0.6;
+  color: var(--input-color-text-disabled);
+  background-color: var(--input-color-background-disabled);
+  border: var(--input-border-disabled);
   box-shadow: none;
+  cursor: not-allowed;
+
+  .select-icon {
+    color: var(--input-color-text-disabled);
+  }
 }
 
 .select-trigger[data-placeholder] {

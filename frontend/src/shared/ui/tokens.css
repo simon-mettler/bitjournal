@@ -94,9 +94,12 @@
   --input-color-label: var(--color-text-light);
   --input-border: 2px solid transparent;
   --input-border-focus: 2px solid var(--color-focus);
-  --input-shadow-focus: 0 0 0 4px oklab(from var(--color-focus) l a b / 0.2);
+  --input-shadow-focus: 0 0 4px 4px oklab(from var(--color-focus) l a b / 0.2);
   --input-radius: var(--radius-sm);
   --input-height: 44px;
+  --input-color-background-disabled: var(--color-surface);
+  --input-color-text-disabled: var(--color-surface-medium);
+  --input-border-disabled: 1px dashed var(--color-surface-medium);
 
 
   /* Dialog */

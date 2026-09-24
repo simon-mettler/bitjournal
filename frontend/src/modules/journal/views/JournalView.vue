@@ -8,7 +8,7 @@ import Header from '@/shared/ui/components/Header.vue'
 import AlertDialog from '@/shared/ui/components/AlertDialog.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import Collapsible from '@/shared/ui/components/Collapsible.vue'
-import Toggle from '@/shared/ui/components/Toggle.vue'
+import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import DatePicker from '@/shared/ui/components/DatePicker.vue'
 import SignalPickerDialog from '@/modules/boards/components/SignalPickerDialog.vue'
 import SignalChip from '@/shared/ui/components/SignalChip.vue'
@@ -193,12 +193,7 @@ onMounted(load)
         <span>TRACKERS</span>
         <span v-if="draftSignals.length" class="trackers-count">{{ draftSignals.length }}</span>
       </div>
-      <div class="logic-toggle">
-        <Toggle v-for="option in logicOptions" :key="option.value" :model-value="draftLogic === option.value"
-          @update:model-value="pressed => pressed && (draftLogic = option.value)">
-          {{ option.label }}
-        </Toggle>
-      </div>
+      <ToggleGroup v-model="draftLogic" :options="logicOptions" />
     </div>
 
     <div class="tracker-chips">
@@ -352,14 +347,6 @@ onMounted(load)
   background: oklab(from var(--color-primary) l a b / 0.15);
   color: var(--color-primary);
   font-size: var(--font-size-sm);
-}
-
-.logic-toggle {
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: var(--radius-xl);
-  background: var(--color-surface-muted);
 }
 
 .tracker-chips {

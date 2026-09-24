@@ -28,6 +28,7 @@ withDefaults(
   border: 2px solid transparent;
   border-radius: var(--input-radius);
   cursor: pointer;
+  box-shadow: var(--shadow-fields);
 
   &:focus {
     box-shadow: var(--input-shadow-focus);
@@ -58,7 +59,6 @@ withDefaults(
 .button.secondary {
   background-color: var(--color-surface);
   color: var(--input-color-text);
-  border: var(--input-border);
 }
 
 .button.tertiary {
