@@ -23,9 +23,9 @@ import InputText from '@/shared/ui/components/InputText.vue'
 const model = defineModel<string>({ default: '#4f46e5' })
 
 const colorObj = computed<Color>({
-  get: () => normalizeColor(model.value),
+  get: () => ({ ...normalizeColor(model.value), alpha: 1 }),
   set: (val) => {
-    model.value = colorToString(val, 'hex')
+    model.value = colorToString({ ...val, alpha: 1 }, 'hex')
   },
 })
 
@@ -50,7 +50,6 @@ function commitHex() {
 }
 
 const hueId = useId()
-const alphaId = useId()
 </script>
 
 <template>
@@ -79,16 +78,6 @@ const alphaId = useId()
         <ColorSliderRoot :model-value="colorObj" :id="hueId" channel="hue" color-space="hsl" class="slider-root"
           @update:color="handleColorUpdate">
           <ColorSliderTrack class="slider-track hue-gradient" />
-          <ColorSliderThumb class="slider-thumb" />
-        </ColorSliderRoot>
-      </div>
-
-      <!-- Alpha slider -->
-      <div class="field-group">
-        <Label class="field-label" :for="alphaId">Alpha</Label>
-        <ColorSliderRoot :model-value="colorObj" :id="alphaId" channel="alpha" color-space="hsl" class="slider-root"
-          @update:color="handleColorUpdate">
-          <ColorSliderTrack class="slider-track checkerboard-bg" />
           <ColorSliderThumb class="slider-thumb" />
         </ColorSliderRoot>
       </div>
@@ -179,17 +168,6 @@ const alphaId = useId()
   background: linear-gradient(to right,
       #ff0000 0%, #ffff00 17%, #00ff00 33%,
       #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
-}
-
-.checkerboard-bg {
-  background-image:
-    linear-gradient(45deg, #808080 25%, transparent 25%),
-    linear-gradient(-45deg, #808080 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #808080 75%),
-    linear-gradient(-45deg, transparent 75%, #808080 75%);
-  background-size: 8px 8px;
-  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
-  background-color: #404040;
 }
 
 .slider-thumb {

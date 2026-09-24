@@ -8,7 +8,13 @@ Does not depend on any other app.
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from uuid import uuid7
+
+hex_color_validator = RegexValidator(
+    regex=r'^#[0-9a-fA-F]{6}$',
+    message='Color must be a hex value in the format #rrggbb.',
+)
 
 class SignalType(models.TextChoices):
     TALLY = 'tally', 'Tally'
@@ -33,7 +39,7 @@ class SignalCategory(models.Model):
     )
     name = models.CharField(max_length=100)
     icon = models.CharField(max_length=50, blank=True)
-    color = models.CharField(max_length=7, blank=True)
+    color = models.CharField(max_length=7, blank=True, validators=[hex_color_validator])
 
     class Meta:
         constraints = [
@@ -63,7 +69,7 @@ class Signal(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=20, choices=SignalType.choices)
     icon= models.CharField(max_length=50, blank=True)
-    color = models.CharField(max_length=7, blank=True)
+    color = models.CharField(max_length=7, blank=True, validators=[hex_color_validator])
     summary_method = models.CharField(
         max_length=10,
         choices=SummaryMethod.choices,
