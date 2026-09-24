@@ -83,6 +83,7 @@
 
   /* Header */
   --header-blur: 16px;
+  --header-color-heading: var(--color-primary);
   --header-color-background: color-mix(in srgb, var(--color-app-bg) 40%, transparent);
 
   /* Inputs and fields */

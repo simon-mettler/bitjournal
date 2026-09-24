@@ -51,7 +51,7 @@ defineProps<{
 }
 
 .header h1 {
-  color: var(--color-primary);
+  color: var(--header-color-heading);
   margin: 0;
 }
 

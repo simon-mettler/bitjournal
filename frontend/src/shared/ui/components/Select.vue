@@ -34,6 +34,7 @@ const props = defineProps<{
   disabled?: boolean
   label?: string
   error?: string
+  variant?: 'default' | 'float'
 }>()
 
 const model = defineModel<string>()
@@ -47,7 +48,7 @@ const id = useId()
     </Label>
 
     <SelectRoot v-model="model" :disabled="props.disabled">
-      <SelectTrigger :id="id" class="select-trigger">
+      <SelectTrigger :id="id" class="select-trigger" :class="props.variant">
         <SelectValue class="select-value" :placeholder="props.placeholder ?? 'Select...'" />
         <SelectIcon class="select-icon">
           <ChevronDown />
@@ -55,7 +56,7 @@ const id = useId()
       </SelectTrigger>
 
       <SelectPortal>
-        <SelectContent class="select-content" position="popper">
+        <SelectContent class="select-content" :class="props.variant" position="popper">
           <SelectScrollUpButton class="select-scroll-button">
             <ChevronsUp />
           </SelectScrollUpButton>
@@ -91,6 +92,17 @@ const id = useId()
   box-shadow: var(--shadow-card);
   color: var(--input-color-text);
   background-color: var(--color-surface);
+}
+
+.select-content.float {
+  margin-top: 4px;
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-interact);
+}
+
+.select-content.float .select-item {
+  border-radius: calc(var(--radius-lg) - 5px);
 }
 </style>
 
@@ -132,6 +144,24 @@ button {
     box-shadow: var(--input-shadow-focus);
     border: var(--input-border-focus);
   }
+}
+
+.select-trigger.float {
+  border: 2px solid transparent;
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-interact);
+  gap: 6px;
+  padding: 0 14px;
+
+  &:focus {
+    box-shadow: var(--input-shadow-focus);
+    border: var(--input-border-focus);
+  }
+}
+
+.select-trigger.float[data-state="open"] {
+  border: 2px solid transparent;
 }
 
 .select-trigger[data-disabled] {

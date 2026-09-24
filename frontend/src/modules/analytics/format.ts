@@ -12,13 +12,13 @@ function formatSecondsDuration(totalSeconds: number): string {
   return `${s}s`
 }
 
-// Format label for durations (like 45m or 2h).
+// Format label for durations (like 45m or 1:30h).
 export function formatDurationAxisLabel(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600)
   const m = Math.floor((totalSeconds % 3600) / 60)
   const s = Math.floor(totalSeconds % 60)
 
-  if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`
+  if (h > 0) return m > 0 ? `${h}:${String(m).padStart(2, '0')}h` : `${h}h`
   if (m > 0) return s > 0 ? `${m}m ${s}s` : `${m}m`
   return `${s}s`
 }

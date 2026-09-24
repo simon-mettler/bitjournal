@@ -8,14 +8,10 @@ import {
 } from '@/modules/analytics/format'
 import { binTimeseriesByWeek, WEEKLY_BIN_TIMEFRAMES } from '@/modules/analytics/timeseriesBins'
 import { tooltipBesidePointer } from '@/modules/analytics/tooltipPosition'
+import { chartColors, signalColor } from '@/modules/analytics/chartColors'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
 import type { SignalStatsTimeseriesPoint, Timeframe } from '@/modules/analytics/types'
-
-const PRIMARY = '#0F7A6C'
-const TREND = '#9AA1A9'
-const GRID_LINE = '#ECEEF1'
-const TOOLTIP_BG = '#1F2937'
 
 const props = defineProps<{
   signal: Signal
@@ -35,7 +31,7 @@ const isWeekly = computed(() => WEEKLY_BIN_TIMEFRAMES.has(props.timeframe))
 
 const points = computed(() => {
   if (!isWeekly.value) {
-    return props.timeseries.map((p) => ({ label: p.date, axisLabel: p.date, value: p.value }))
+    return props.timeseries.map((p) => ({ label: p.date, axisLabel: formatShortDate(p.date), value: p.value }))
   }
   return binTimeseriesByWeek(props.timeseries, props.signal.summary_method).map((bin) => ({
     label: `${formatShortDate(bin.start)} - ${formatShortDate(bin.end)}`,
@@ -71,11 +67,11 @@ const option = computed<EChartsOption>(() => ({
     position: tooltipBesidePointer,
     valueFormatter: (value) =>
       value == null || value === '-' ? '-' : formatStatValue(props.signal, Number(value)),
-    backgroundColor: TOOLTIP_BG,
+    backgroundColor: chartColors.tooltipBackground,
     borderWidth: 0,
     borderRadius: 8,
     padding: [6, 10],
-    textStyle: { color: '#ffffff', fontSize: 12 },
+    textStyle: { color: chartColors.tooltipText, fontSize: 12 },
   },
   legend: {
     data: [
@@ -87,21 +83,21 @@ const option = computed<EChartsOption>(() => ({
     ],
     bottom: 0,
     left: 'center',
-    textStyle: { color: TREND },
+    textStyle: { color: chartColors.axisLabel },
   },
   grid: { left: 0, right: 16, top: 16, bottom: 32, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
   xAxis: {
     type: 'category',
     data: points.value.map((p) => p.label),
-    axisLine: { lineStyle: { color: GRID_LINE } },
-    axisLabel: { color: TREND, formatter: (_: string, index: number) => points.value[index].axisLabel },
+    axisLine: { lineStyle: { color: chartColors.gridLine } },
+    axisLabel: { color: chartColors.axisLabel, formatter: (_: string, index: number) => points.value[index].axisLabel },
     axisTick: { show: false },
   },
   yAxis: {
     type: 'value',
-    splitLine: { lineStyle: { color: GRID_LINE } },
+    splitLine: { lineStyle: { color: chartColors.gridLine } },
     axisLabel: {
-      color: TREND,
+      color: chartColors.axisLabel,
       formatter: durationScale.value ? (value: number) => formatDurationAxisLabel(value) : undefined,
     },
     max: durationScale.value?.max,
@@ -113,9 +109,9 @@ const option = computed<EChartsOption>(() => ({
       type: props.chartType,
       data: points.value.map((p) => p.value),
       barMaxWidth: 24,
-      itemStyle: props.chartType === 'bar' ? { color: PRIMARY, borderRadius: [8, 8, 0, 0] } : { color: PRIMARY },
-      lineStyle: props.chartType === 'line' ? { width: 2, color: PRIMARY } : undefined,
-      areaStyle: props.chartType === 'line' ? { color: PRIMARY, opacity: 0.1 } : undefined,
+      itemStyle: props.chartType === 'bar' ? { color: signalColor(props.signal), borderRadius: [8, 8, 0, 0] } : { color: signalColor(props.signal) },
+      lineStyle: props.chartType === 'line' ? { width: 2, color: signalColor(props.signal) } : undefined,
+      areaStyle: props.chartType === 'line' ? { color: signalColor(props.signal), opacity: 0.1 } : undefined,
       symbol: props.chartType === 'line' ? 'circle' : 'none',
       symbolSize: 8,
       showSymbol: false,
@@ -125,7 +121,7 @@ const option = computed<EChartsOption>(() => ({
       type: 'line',
       data: rollingAverageValues.value,
       symbol: 'none',
-      lineStyle: { width: 2, color: TREND, type: 'dashed' },
+      lineStyle: { width: 2, color: chartColors.primary, type: 'dashed' },
     },
   ],
 }))

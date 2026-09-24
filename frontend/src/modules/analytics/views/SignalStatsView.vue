@@ -91,7 +91,7 @@ onMounted(() => {
 
 <template>
   <AppShellHeader>
-    <Header :heading="signal?.name ?? 'Signal stats'">
+    <Header :heading="signal?.name ?? 'Signal stats'" :style="{ '--header-color-heading': signal?.color }">
       <template #actions>
         <div class="back-button-wrap">
           <IconButton variant="float" aria-label="Back" @click="router.back()">
@@ -104,7 +104,7 @@ onMounted(() => {
 
   <div class="signal-stats-content">
     <div class="period-controls">
-      <Select v-model="timeframe" :options="timeframeOptions" class="timeframe-select" />
+      <Select v-model="timeframe" :options="timeframeOptions" variant="float" class="timeframe-select" />
       <div class="period-nav">
         <IconButton variant="tertiary" size="sm" aria-label="Previous period" @click="goToPreviousPeriod">
           <ChevronLeft />
@@ -182,12 +182,6 @@ onMounted(() => {
 .timeframe-select {
   width: auto;
   flex-shrink: 0;
-}
-
-.timeframe-select :deep(.select-trigger) {
-  border: none;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-interact);
 }
 
 .period-nav {

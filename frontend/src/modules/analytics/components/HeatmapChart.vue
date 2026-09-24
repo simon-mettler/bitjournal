@@ -2,16 +2,11 @@
 import { computed } from 'vue'
 import Chart from '@/shared/ui/components/Chart.vue'
 import { formatStatValue } from '@/modules/analytics/format'
-import { HEATMAP_EMPTY_COLOR, HEATMAP_SCALE_COLORS } from '@/modules/analytics/heatmapScale'
+import { chartColors, signalColor } from '@/modules/analytics/chartColors'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
 import type { SignalStatsHeatmapPoint } from '@/modules/analytics/types'
 
-// TODO: get color tokens
-const SURFACE = '#ffffff'
-const DAY_LABEL = '#6B7280'
-const HOUR_LABEL = '#9AA1A9'
-const TOOLTIP_BG = '#1F2937'
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h))
@@ -69,11 +64,11 @@ const option = computed<EChartsOption>(() => ({
       const [hour, dow] = params.value as [number, number, number]
       return tooltipText(dow, hour)
     },
-    backgroundColor: TOOLTIP_BG,
+    backgroundColor: chartColors.tooltipBackground,
     borderWidth: 0,
     borderRadius: 8,
     padding: [6, 10],
-    textStyle: { color: '#ffffff', fontSize: 12 },
+    textStyle: { color: chartColors.tooltipText, fontSize: 12 },
   },
   grid: { left: 40, right: 4, top: 4, bottom: 80 },
   xAxis: {
@@ -82,7 +77,7 @@ const option = computed<EChartsOption>(() => ({
     axisLine: { show: false },
     axisTick: { show: false },
     axisLabel: {
-      color: HOUR_LABEL,
+      color: chartColors.axisLabel,
       interval: 3,
       fontFamily: MONO,
       fontSize: 11,
@@ -91,7 +86,7 @@ const option = computed<EChartsOption>(() => ({
     splitArea: {
       show: true,
       areaStyle: {
-        color: [SURFACE, SURFACE],
+        color: [chartColors.surface, chartColors.surface],
       },
     },
   },
@@ -103,14 +98,14 @@ const option = computed<EChartsOption>(() => ({
     axisTick: { show: false },
     axisLabel: {
       margin: 10,
-      color: DAY_LABEL,
+      color: chartColors.categoryLabel,
       fontWeight: 'bold',
       fontSize: 12,
     },
     splitArea: {
       show: true,
       areaStyle: {
-        color: [SURFACE, SURFACE],
+        color: [chartColors.surface, chartColors.surface],
       },
     },
   },
@@ -126,12 +121,13 @@ const option = computed<EChartsOption>(() => ({
     itemHeight: 160,
     text: ['More', 'Less'],
     textGap: 12,
-    textStyle: { color: HOUR_LABEL, fontSize: 12 },
+    textStyle: { color: chartColors.axisLabel, fontSize: 12 },
     formatter: (value: unknown) => formatStatValue(props.signal, Number(value)),
     min: scale.value.min,
     max: scale.value.max,
-    inRange: { color: [...HEATMAP_SCALE_COLORS] },
-    outOfRange: { color: HEATMAP_EMPTY_COLOR },
+    range: [scale.value.min, scale.value.max],
+    inRange: { color: signalColor(props.signal), colorAlpha: [0.2, 1] },
+    outOfRange: { color: chartColors.heatmapEmpty },
   },
   series: [
     {
@@ -139,7 +135,7 @@ const option = computed<EChartsOption>(() => ({
       type: 'heatmap',
       data: gridData.value,
       itemStyle: {
-        borderColor: SURFACE,
+        borderColor: chartColors.surface,
         borderWidth: 3,
         borderRadius: 6,
       },
@@ -147,7 +143,7 @@ const option = computed<EChartsOption>(() => ({
         itemStyle: {
           borderWidth: 0,
           color: 'inherit',
-          shadowColor: 'rgba(15, 142, 128, 0.5)',
+          shadowColor: signalColor(props.signal),
         },
       },
     },
