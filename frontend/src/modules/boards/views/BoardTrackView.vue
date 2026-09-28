@@ -3,7 +3,7 @@ import { computed, onMounted, ref, type Ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useLogEventsUiStore } from '@/modules/events/store/logEventsUiStore'
-import { MoreVertical, Settings, ChartColumn } from '@lucide/vue'
+import { MoreVertical, Settings, ChartColumn, Pencil } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Tabs from '@/shared/ui/components/Tabs.vue'
 import SignalCard from '@/shared/ui/components/SignalCard.vue'
@@ -159,6 +159,12 @@ function signalOptions(signal: Signal): DropdownMenuOption[] {
       value: 'view-stats',
       icon: ChartColumn,
       onSelect: () => router.push({ name: 'signal-stats', params: { id: signal.id } }),
+    },
+    {
+      label: 'Edit signal',
+      value: 'edit-signal',
+      icon: Pencil,
+      onSelect: () => router.push({ name: 'signal-edit', params: { id: signal.id } }),
     },
   ]
 }
