@@ -1,5 +1,5 @@
 """
-Helpers for signal stats. Reads from 'events' and 'signals'.
+Helpers for signal stats and analytics widgets.
 """
 
 from dataclasses import dataclass
@@ -11,6 +11,8 @@ from django.db.models.functions import Extract, TruncDate
 
 from apps.events.models import SignalEntry
 from apps.signals.models import Signal, SignalType, SummaryMethod
+
+from .models import AnalyticsWidget, WidgetAggregation, WidgetTimeframe
 
 TIMEFRAMES = ('week', 'month', 'quarter', 'year')
 
@@ -54,6 +56,10 @@ def resolve_period(timeframe: str, period_start: date, tz: ZoneInfo) -> Period:
     else:
         raise ValueError(f'Unknown timeframe: {timeframe}')
 
+    return _make_period(timeframe, start_local, end_local, tz)
+
+
+def _make_period(timeframe: str, start_local: date, end_local: date, tz: ZoneInfo) -> Period:
     start_utc = datetime.combine(start_local, datetime.min.time(), tzinfo=tz).astimezone(UTC)
     end_utc = datetime.combine(end_local, datetime.min.time(), tzinfo=tz).astimezone(UTC)
 
@@ -65,6 +71,70 @@ def resolve_period(timeframe: str, period_start: date, tz: ZoneInfo) -> Period:
         start_utc=start_utc,
         end_utc=end_utc,
     )
+
+
+def resolve_widget_period(widget: AnalyticsWidget, tz: ZoneInfo) -> Period:
+    """
+    Resolve timeframe relative to local tz.
+    """
+    today = datetime.now(tz).date()
+    timeframe = widget.timeframe
+
+    if timeframe == WidgetTimeframe.TODAY:
+        return _make_period(timeframe, today, today + timedelta(days=1), tz)
+    if timeframe == WidgetTimeframe.YESTERDAY:
+        return _make_period(timeframe, today - timedelta(days=1), today, tz)
+    if timeframe == WidgetTimeframe.LAST_DAYS:
+        start_local = today - timedelta(days=widget.days - 1)
+        return _make_period(timeframe, start_local, today + timedelta(days=1), tz)
+    if timeframe == WidgetTimeframe.THIS_WEEK:
+        return resolve_period('week', today, tz)
+    if timeframe == WidgetTimeframe.LAST_WEEK:
+        return resolve_period('week', today - timedelta(days=7), tz)
+    if timeframe == WidgetTimeframe.THIS_MONTH:
+        return resolve_period('month', today, tz)
+    if timeframe == WidgetTimeframe.LAST_MONTH:
+        return resolve_period('month', today.replace(day=1) - timedelta(days=1), tz)
+    if timeframe == WidgetTimeframe.THIS_QUARTER:
+        return resolve_period('quarter', today, tz)
+    if timeframe == WidgetTimeframe.QUARTER:
+        return resolve_period('quarter', widget.period_start, tz)
+    if timeframe == WidgetTimeframe.THIS_YEAR:
+        return resolve_period('year', today, tz)
+    if timeframe == WidgetTimeframe.YEAR:
+        return resolve_period('year', widget.period_start, tz)
+    raise ValueError(f'Unknown widget timeframe: {timeframe}')
+
+
+def get_widget_value(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
+    """
+    Value of a 'display value' widget: total or average (per entry)
+    """
+    period = resolve_widget_period(widget, tz)
+    field = signal_value_field(widget.signal)
+    is_duration = field == 'duration'
+
+    aggregates = entries_in_period(widget.signal, user, period).aggregate(
+        total=Sum(field),
+        average=Avg(field),
+        count=Count('id'),
+    )
+    count = aggregates['count'] or 0
+
+    if widget.aggregation == WidgetAggregation.AVERAGE:
+        value = _to_number(aggregates['average'], is_duration) if count else None
+    else:
+        value = _to_number(aggregates['total'], is_duration)
+
+    return {
+        'widget_id': widget.id,
+        'value': value,
+        'count': count,
+        'period': {
+            'start': period.start_local.isoformat(),
+            'end': period.end_local.isoformat(),
+        },
+    }
 
 
 def signal_value_field(signal: Signal) -> str:

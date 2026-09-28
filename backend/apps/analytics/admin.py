@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import AnalyticsBoard
+from .models import AnalyticsWidget
+
+admin.site.register(AnalyticsBoard)
+admin.site.register(AnalyticsWidget)
