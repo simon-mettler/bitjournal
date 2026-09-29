@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import {
   DialogClose,
   DialogContent,
@@ -17,7 +16,7 @@ defineProps<{
   description?: string
 }>()
 
-const open = ref<boolean>(false)
+const open = defineModel<boolean>('open', { default: false })
 
 </script>
 

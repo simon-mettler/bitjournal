@@ -92,6 +92,7 @@ const id = useId()
   box-shadow: var(--shadow-card);
   color: var(--input-color-text);
   background-color: var(--color-surface);
+  z-index: 33;
 }
 
 .select-content.float {
