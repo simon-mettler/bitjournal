@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, type Ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useLogEventsUiStore } from '@/modules/events/store/logEventsUiStore'
-import { MoreVertical, Settings, ChartColumn, Pencil } from '@lucide/vue'
+import { MoreVertical, ChartColumn, Pencil, GripVertical, X, Check } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
-import Tabs from '@/shared/ui/components/Tabs.vue'
+import AddTile from '@/shared/ui/components/AddTile.vue'
+import EditableTabs from '@/shared/ui/components/EditableTabs.vue'
+import NameDialog from '@/shared/ui/components/NameDialog.vue'
+import AlertDialog from '@/shared/ui/components/AlertDialog.vue'
+import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
 import SignalCard from '@/shared/ui/components/SignalCard.vue'
 import Header from '@/shared/ui/components/Header.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
@@ -13,9 +17,11 @@ import DropdownMenu from '@/shared/ui/components/DropdownMenu.vue'
 import type { DropdownMenuOption } from '@/shared/ui/components/DropdownMenu.vue'
 import LogEntryDrawer from '@/modules/events/components/LogEntryDrawer.vue'
 import EventDraftBar from '@/modules/events/components/EventDraftBar.vue'
-import { getBoards } from '@/modules/boards/api'
+import { createBoard, deleteBoard, getBoards, reorderBoards, updateBoard } from '@/modules/boards/api'
 import { getSignals } from '@/modules/signals/api'
 import { useToast } from '@/shared/lib/useToast'
+import { useBoardTabsEditing } from '@/shared/lib/useBoardTabsEditing'
+import { useSortableList } from '@/shared/lib/useSortableList'
 import { createEvent, getEvent, updateEvent } from '@/modules/events/api'
 import { resolveIcon } from '@/shared/lib/iconRegistry'
 import type { Board } from '@/modules/boards/types'
@@ -66,12 +72,12 @@ const draftTime = computed<TimeValue>({
   },
 })
 
-const { activeTab } = storeToRefs(logEventsUiStore)
+const { activeTab, editing: boardEditing } = storeToRefs(logEventsUiStore)
 const ALL_TAB = 'all'
-const tabs = computed(() => [
-  { value: ALL_TAB, label: 'All' },
-  ...boards.value.map((b) => ({ value: b.id, label: b.name })),
-])
+const pinnedTabs = [{ value: ALL_TAB, label: 'All' }]
+const tabs = computed(() => boards.value.map((b) => ({ value: b.id, label: b.name })))
+const activeBoard = computed(() => boards.value.find((b) => b.id === activeTab.value))
+const canEditSignals = computed(() => boardEditing.value && !!activeBoard.value)
 
 const activeSignals = computed<Signal[]>(() => {
   if (activeTab.value === ALL_TAB) {
@@ -107,6 +113,7 @@ function setDraftTimestamp() {
 }
 
 function onAddSignalEntry(signal: Signal) {
+  if (boardEditing.value) return
   setDraftTimestamp()
   draftBarVisible.value = true
   if (signal.type === 'tally') {
@@ -187,13 +194,92 @@ function onCancelDraft() {
   }
 }
 
-function goToManage() {
-  if (activeTab.value === ALL_TAB) {
-    router.push({ name: 'manage-boards' })
-  } else {
-    router.push({ name: 'board-edit', params: { id: activeTab.value } })
-  }
+// EDIT MODE
+
+const signalsOf = (board: Board) => board.board_signals.map((bs) => bs.signal)
+const signalIds = (board: Board) => signalsOf(board).map((s) => s.id)
+
+const {
+  enqueue,
+  nameDialogOpen,
+  nameDialogMode,
+  nameDialogBusy,
+  renameTarget,
+  askAddBoard,
+  askRenameBoard,
+  submitName,
+  onTabsReorder,
+  boardToDelete,
+  deleteBoardOpen,
+  askDeleteBoard,
+  confirmDeleteBoard,
+} = useBoardTabsEditing({
+  boards,
+  select: (id) => (activeTab.value = id ?? ALL_TAB),
+  create: async (name) => (await createBoard({ name })).data,
+  rename: (board, name) => updateBoard(board.id, { name, signal_ids: signalIds(board) }),
+  remove: (board) => deleteBoard(board.id),
+  reorder: (ids) => reorderBoards({ board_ids: ids }),
+  reload: load,
+})
+
+const gridEl = ref<HTMLElement | null>(null)
+
+function setBoardSignals(board: Board, list: Signal[]) {
+  board.board_signals = list.map((signal, order) => ({ signal, order }))
 }
+
+const boardSignals = computed<Signal[]>({
+  get: () => (activeBoard.value ? signalsOf(activeBoard.value) : []),
+  set: (list) => activeBoard.value && setBoardSignals(activeBoard.value, list),
+})
+
+function persistSignals(board: Board) {
+  enqueue(() => updateBoard(board.id, { name: board.name, signal_ids: signalIds(board) })).catch(() => {
+    toaster.toast({ description: 'Could not save board.', variant: 'danger' })
+    load()
+  })
+}
+
+useSortableList(gridEl, boardSignals, {
+  handle: '.signal-card-handle',
+  enabled: canEditSignals,
+  onSorted: () => activeBoard.value && persistSignals(activeBoard.value),
+})
+
+function onSignalsAdded(added: Signal[]) {
+  const board = activeBoard.value
+  if (!board) return
+  setBoardSignals(board, [...boardSignals.value, ...added])
+  persistSignals(board)
+}
+
+function onRemoveSignalFromBoard(signal: Signal) {
+  const board = activeBoard.value
+  if (!board) return
+  const index = boardSignals.value.findIndex((s) => s.id === signal.id)
+  setBoardSignals(board, boardSignals.value.filter((s) => s.id !== signal.id))
+  persistSignals(board)
+  toaster.toast({
+    description: `Removed "${signal.name}" from ${board.name}.`,
+    actionLabel: 'Undo',
+    onAction: () => {
+      const restored = signalsOf(board)
+      restored.splice(index, 0, signal)
+      setBoardSignals(board, restored)
+      persistSignals(board)
+    },
+  })
+}
+
+const deleteBoardDescription = computed(
+  () =>
+    `Are you sure you want to delete "${boardToDelete.value?.name ?? ''}" board? This can't be undone.`,
+)
+
+onBeforeRouteLeave(() => {
+  boardEditing.value = false
+})
 
 async function onSaveDraft() {
   const payload = {
@@ -249,39 +335,76 @@ onMounted(async () => {
 <template>
 
   <AppShellHeader>
-    <Header :heading="isEditing ? 'Edit entry' : 'Log events'">
+    <Header :heading="isEditing ? 'Edit entry' : boardEditing ? 'Edit boards' : 'Log events'">
       <template #actions>
-        <IconButton :disabled="draftBarVisible" variant="tertiary" @click="goToManage">
-          <Settings />
+        <IconButton v-if="boardEditing" variant="primary" aria-label="Done editing" @click="boardEditing = false">
+          <Check />
+        </IconButton>
+        <IconButton v-else-if="!isEditing" variant="tertiary" aria-label="Edit boards" :disabled="draftBarVisible"
+          @click="boardEditing = true">
+          <Pencil />
         </IconButton>
       </template>
       <template #content>
-        <Tabs v-if="tabs.length > 1" v-model="activeTab" :items="tabs" class="track-tabs" />
+        <EditableTabs v-if="boardEditing || boards.length > 0" v-model="activeTab" :items="tabs" :pinned="pinnedTabs"
+          :editing="boardEditing" add-label="Add board" class="track-tabs" @add="askAddBoard" @rename="askRenameBoard"
+          @delete="askDeleteBoard" @reorder="onTabsReorder" />
       </template>
     </Header>
   </AppShellHeader>
 
-  <div v-if="!loading" class="signal-grid" :class="{ 'has-draft-bar': draftBarVisible }">
-    <SignalCard v-for="signal in activeSignals" :key="signal.id" :signal="signal" @select="onAddSignalEntry(signal)">
-      <template #icon>
-        <component :is="resolveIcon(signal.icon)" :style="{ color: signal.color }" />
-      </template>
+  <p v-if="boardEditing && !activeBoard" class="edit-hint">
+    Select a board to rearrange or add signals.
+  </p>
 
-      <template #actions>
-        <DropdownMenu :options="signalOptions(signal)">
-          <template #trigger>
-            <IconButton @click.stop :aria-label="`Options for ${signal.name}`" variant="tertiary" size="sm">
-              <MoreVertical />
-            </IconButton>
-          </template>
-        </DropdownMenu>
-      </template>
-    </SignalCard>
+  <div ref="gridEl" class="signal-grid" :class="{ 'has-draft-bar': draftBarVisible }">
+    <template v-if="!loading">
+      <SignalCard v-for="signal in activeSignals" :key="signal.id" :signal="signal"
+        :class="{ 'is-editing': boardEditing }" @select="onAddSignalEntry(signal)">
+        <template #icon>
+          <component :is="resolveIcon(signal.icon)" :style="{ color: signal.color }" />
+        </template>
 
-    <p v-if="activeSignals.length === 0" class="empty-state">
-      No signals in this board yet.
-    </p>
+        <template v-if="canEditSignals" #handle>
+          <span aria-hidden="true">
+            <GripVertical :size="20" />
+          </span>
+        </template>
+
+        <template v-if="!boardEditing || canEditSignals" #actions>
+          <IconButton v-if="canEditSignals" variant="tertiary" size="sm"
+            :aria-label="`Remove ${signal.name} from board`" @click.stop="onRemoveSignalFromBoard(signal)">
+            <X />
+          </IconButton>
+          <DropdownMenu v-else :options="signalOptions(signal)">
+            <template #trigger>
+              <IconButton @click.stop :aria-label="`Options for ${signal.name}`" variant="tertiary" size="sm">
+                <MoreVertical />
+              </IconButton>
+            </template>
+          </DropdownMenu>
+        </template>
+      </SignalCard>
+
+      <SignalPickerDialog v-if="canEditSignals" :exclude-ids="boardSignals.map((s) => s.id)" @add="onSignalsAdded">
+        <template #trigger>
+          <AddTile>Add signal</AddTile>
+        </template>
+      </SignalPickerDialog>
+
+      <p v-if="activeSignals.length === 0 && !canEditSignals" class="empty-state">
+        {{ activeBoard ? 'No signals in this board yet. Tap Edit to add some.' : 'No signals yet.' }}
+      </p>
+    </template>
   </div>
+
+  <NameDialog v-model:open="nameDialogOpen" :busy="nameDialogBusy" label="Board name"
+    :title="nameDialogMode === 'add' ? 'Add board' : 'Rename board'"
+    :confirm-text="nameDialogMode === 'add' ? 'Create' : 'Save'" :initial-name="renameTarget?.name"
+    @submit="submitName" />
+
+  <AlertDialog v-model:open="deleteBoardOpen" title="Delete board" confirm-text="Delete"
+    :description="deleteBoardDescription" @confirm="confirmDeleteBoard" />
 
   <LogEntryDrawer v-if="selectedSignal" v-model:open="entryDrawerOpen" :numpad="true" :signal="selectedSignal"
     :editing="!!editingSignalEntry" :initial-value="editingSignalEntry?.value"
@@ -298,13 +421,6 @@ onMounted(async () => {
   margin: 10px 0 0 -16px;
 }
 
-.settings-btn {
-  all: unset;
-  display: inline-flex;
-  cursor: pointer;
-  color: var(--input-color-label);
-}
-
 .signal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -314,6 +430,17 @@ onMounted(async () => {
 
 .signal-grid.has-draft-bar {
   padding-bottom: 220px;
+}
+
+.edit-hint {
+  margin: 0 0 12px;
+  padding: 0 var(--padding-app);
+  font-size: var(--font-size-sm);
+  color: var(--input-color-label);
+}
+
+.signal-card.is-editing {
+  cursor: default;
 }
 
 .empty-state {
