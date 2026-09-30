@@ -1,0 +1,377 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from 'vue'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { Check, GripVertical, MoreVertical, Pencil, X } from '@lucide/vue'
+import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
+import Header from '@/shared/ui/components/Header.vue'
+import Button from '@/shared/ui/components/Button.vue'
+import IconButton from '@/shared/ui/components/IconButton.vue'
+import AddTile from '@/shared/ui/components/AddTile.vue'
+import EditableTabs from '@/shared/ui/components/EditableTabs.vue'
+import NameDialog from '@/shared/ui/components/NameDialog.vue'
+import AlertDialog from '@/shared/ui/components/AlertDialog.vue'
+import DropdownMenu from '@/shared/ui/components/DropdownMenu.vue'
+import type { DropdownMenuOption } from '@/shared/ui/components/DropdownMenu.vue'
+import {
+  createAnalyticsBoard,
+  deleteAnalyticsBoard,
+  deleteAnalyticsWidget,
+  getAnalyticsBoardValues,
+  getAnalyticsBoards,
+  reorderAnalyticsBoards,
+  updateAnalyticsBoard,
+} from '@/modules/analytics/api'
+import { formatStatValue, formatWidgetTimeframe } from '@/modules/analytics/format'
+import { useDashboardUiStore } from '@/modules/analytics/store/dashboardUiStore'
+import type {
+  AnalyticsBoard,
+  AnalyticsWidget,
+  AnalyticsWidgetValue,
+} from '@/modules/analytics/types'
+import { useToast } from '@/shared/lib/useToast'
+import { useBoardTabsEditing } from '@/shared/lib/useBoardTabsEditing'
+import { resolveIcon } from '@/shared/lib/iconRegistry'
+import { useSortableList } from '@/shared/lib/useSortableList'
+
+const router = useRouter()
+const toaster = useToast()
+
+const { activeBoardId, editing } = storeToRefs(useDashboardUiStore())
+
+const loading = ref(true)
+const boards = ref<AnalyticsBoard[]>([])
+const values = ref<Record<string, AnalyticsWidgetValue>>({})
+
+const tabs = computed(() => boards.value.map((b) => ({ value: b.id, label: b.name })))
+const activeBoard = computed(() => boards.value.find((b) => b.id === activeBoardId.value))
+
+const activeTab = computed({
+  get: () => activeBoardId.value ?? '',
+  set: (id: string) => (activeBoardId.value = id),
+})
+
+const widgets = computed<AnalyticsWidget[]>({
+  get: () => activeBoard.value?.widgets ?? [],
+  set: (value) => {
+    if (activeBoard.value) activeBoard.value.widgets = value
+  },
+})
+
+async function loadBoards() {
+  loading.value = true
+  try {
+    const { data } = await getAnalyticsBoards()
+    boards.value = data
+    if (!boards.value.some((b) => b.id === activeBoardId.value)) {
+      activeBoardId.value = boards.value[0]?.id ?? null
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadValues(boardId: string) {
+  try {
+    const { data } = await getAnalyticsBoardValues(boardId)
+    if (boardId !== activeBoardId.value) return
+    values.value = Object.fromEntries(data.map((v) => [v.widget_id, v]))
+  } catch {
+    toaster.toast({ description: 'Could not load dashboard values.', variant: 'danger' })
+  }
+}
+
+watch(activeBoardId, (id) => {
+  values.value = {}
+  if (id) loadValues(id)
+})
+
+function displayValue(widget: AnalyticsWidget): string {
+  const value = values.value[widget.id]
+  if (!value) return '…'
+  if (value.value === null) return '–'
+  return formatStatValue(widget.signal, value.value)
+}
+
+// TABS (BOARDS)
+
+const {
+  enqueue,
+  nameDialogOpen,
+  nameDialogMode,
+  nameDialogBusy,
+  renameTarget,
+  askAddBoard,
+  askRenameBoard,
+  submitName,
+  onTabsReorder,
+  boardToDelete,
+  deleteBoardOpen,
+  askDeleteBoard,
+  confirmDeleteBoard,
+} = useBoardTabsEditing({
+  boards,
+  select: (id) => (activeBoardId.value = id),
+  create: async (name) => (await createAnalyticsBoard({ name })).data,
+  rename: (board, name) =>
+    updateAnalyticsBoard(board.id, { name, widget_ids: board.widgets.map((w) => w.id) }),
+  remove: (board) => deleteAnalyticsBoard(board.id),
+  reorder: (ids) => reorderAnalyticsBoards({ board_ids: ids }),
+  reload: loadBoards,
+})
+
+const deleteBoardDescription = computed(() => {
+  const board = boardToDelete.value
+  if (!board) return ''
+  const count = board.widgets.length
+  const widgetsNote = count > 0 ? ` and its ${count} widget${count === 1 ? '' : 's'}` : ''
+  return `Are you sure you want to delete "${board.name}"${widgetsNote}? This can't be undone.`
+})
+
+// WIDGETS
+
+const gridEl = ref<HTMLElement | null>(null)
+
+function persistWidgetOrder() {
+  const board = activeBoard.value
+  if (!board) return
+  enqueue(() =>
+    updateAnalyticsBoard(board.id, { name: board.name, widget_ids: board.widgets.map((w) => w.id) }),
+  ).catch(() => {
+    toaster.toast({ description: 'Could not save new order.', variant: 'danger' })
+    loadBoards()
+  })
+}
+
+useSortableList(gridEl, widgets, {
+  handle: '.widget-handle',
+  draggable: '.widget-card',
+  ghostClass: 'widget-ghost',
+  enabled: editing,
+  onSorted: persistWidgetOrder,
+})
+
+const widgetToDelete = ref<AnalyticsWidget | null>(null)
+const deleteWidgetOpen = ref(false)
+
+function askDeleteWidget(widget: AnalyticsWidget) {
+  widgetToDelete.value = widget
+  deleteWidgetOpen.value = true
+}
+
+async function confirmDeleteWidget() {
+  const widget = widgetToDelete.value
+  const board = activeBoard.value
+  if (!widget || !board) return
+  try {
+    await enqueue(() => deleteAnalyticsWidget(widget.id))
+    board.widgets = board.widgets.filter((w) => w.id !== widget.id)
+    toaster.toast({ description: `Deleted "${widget.title}".`, variant: 'success' })
+  } catch {
+    toaster.toast({ description: 'Could not delete widget.', variant: 'danger' })
+  }
+}
+
+function openWidget(widget: AnalyticsWidget) {
+  router.push({ name: 'analytics-widget-edit', params: { id: widget.id } })
+}
+
+function openAddWidget() {
+  if (!activeBoard.value) return
+  router.push({ name: 'analytics-widget-add', params: { boardId: activeBoard.value.id } })
+}
+
+function widgetOptions(widget: AnalyticsWidget): DropdownMenuOption[] {
+  return [
+    { label: 'Edit widget', value: 'edit-widget', icon: Pencil, onSelect: () => openWidget(widget) },
+  ]
+}
+
+// EDIT MODE
+
+// keep edit mode on for widget analytics widget routes, off otherwise
+onBeforeRouteLeave((to) => {
+  if (typeof to.name !== 'string' || !to.name.startsWith('analytics-widget')) {
+    editing.value = false
+  }
+})
+
+onMounted(async () => {
+  const previousId = activeBoardId.value
+  await loadBoards()
+  if (boards.value.length === 0) editing.value = false
+  if (activeBoardId.value && activeBoardId.value === previousId) loadValues(activeBoardId.value)
+})
+</script>
+
+<template>
+
+  <AppShellHeader>
+    <Header :heading="editing ? 'Edit dashboard' : 'Dashboard'">
+      <template #actions>
+        <IconButton v-if="editing" variant="primary" aria-label="Done editing" @click="editing = false">
+          <Check />
+        </IconButton>
+        <IconButton v-else-if="boards.length > 0" variant="tertiary" aria-label="Edit dashboard"
+          @click="editing = true">
+          <Pencil />
+        </IconButton>
+      </template>
+      <template #content>
+        <EditableTabs v-if="boards.length > 0 && (editing || boards.length > 1)" v-model="activeTab" :items="tabs"
+          :editing="editing" add-label="Add board" class="dashboard-tabs" @add="askAddBoard" @rename="askRenameBoard"
+          @delete="askDeleteBoard" @reorder="onTabsReorder" />
+      </template>
+    </Header>
+  </AppShellHeader>
+
+  <div ref="gridEl" class="widget-grid" :class="{ editing }">
+    <template v-if="!loading">
+      <div v-for="widget in widgets" :key="widget.id" class="widget-card" :class="{ editing }"
+        @click="editing && openWidget(widget)">
+        <div class="widget-top">
+          <span v-if="editing" class="widget-handle" aria-hidden="true" @click.stop>
+            <GripVertical :size="18" />
+          </span>
+          <component :is="resolveIcon(widget.signal.icon)" class="widget-icon" :size="18"
+            :style="{ color: widget.signal.color }" />
+          <span class="widget-title">{{ widget.title }}</span>
+          <IconButton v-if="editing" variant="tertiary" size="sm" :aria-label="`Delete ${widget.title}`"
+            @click.stop="askDeleteWidget(widget)">
+            <X />
+          </IconButton>
+          <DropdownMenu v-else :options="widgetOptions(widget)">
+            <template #trigger>
+              <IconButton :aria-label="`Options for ${widget.title}`" variant="tertiary" size="sm">
+                <MoreVertical />
+              </IconButton>
+            </template>
+          </DropdownMenu>
+        </div>
+        <span class="widget-value" :style="{ color: widget.signal.color }">{{ displayValue(widget) }}</span>
+        <span class="widget-meta">
+          {{ widget.aggregation === 'average' ? 'Average' : 'Total' }} · {{ formatWidgetTimeframe(widget) }}
+        </span>
+      </div>
+
+      <AddTile v-if="editing && activeBoard" class="add-widget-tile" @click="openAddWidget">Add widget</AddTile>
+
+      <div v-if="boards.length === 0" class="empty-state">
+        <p>No dashboards yet.</p>
+        <Button variant="primary" @click="askAddBoard">Create board</Button>
+      </div>
+      <div v-else-if="widgets.length === 0 && !editing" class="empty-state">
+        <p>No widgets in this board yet.</p>
+        <Button variant="primary" @click="openAddWidget">Add widget</Button>
+      </div>
+    </template>
+  </div>
+
+  <NameDialog v-model:open="nameDialogOpen" :busy="nameDialogBusy" label="Board name"
+    :title="nameDialogMode === 'add' ? 'Add board' : 'Rename board'"
+    :confirm-text="nameDialogMode === 'add' ? 'Create' : 'Save'" :initial-name="renameTarget?.name"
+    @submit="submitName" />
+
+  <AlertDialog v-model:open="deleteBoardOpen" title="Delete board" confirm-text="Delete"
+    :description="deleteBoardDescription" @confirm="confirmDeleteBoard" />
+
+  <AlertDialog v-model:open="deleteWidgetOpen" title="Delete widget" confirm-text="Delete"
+    :description="`Are you sure you want to delete &quot;${widgetToDelete?.title ?? ''}&quot;? This can't be undone.`"
+    @confirm="confirmDeleteWidget" />
+</template>
+
+<style scoped>
+.dashboard-tabs {
+  width: 100vw;
+  margin: 10px 0 0 -16px;
+}
+
+.widget-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 var(--padding-app);
+}
+
+.widget-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 7px 14px 14px;
+  border-radius: var(--input-radius);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.widget-card.editing {
+  cursor: pointer;
+}
+
+.widget-ghost {
+  opacity: 0.4;
+}
+
+.widget-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.widget-handle {
+  display: inline-flex;
+  padding: 8px 4px 8px 0;
+  margin: -8px 0;
+  color: var(--input-color-label);
+  cursor: grab;
+  touch-action: none;
+}
+
+.widget-handle:active {
+  cursor: grabbing;
+}
+
+.widget-icon {
+  flex-shrink: 0;
+}
+
+.widget-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.widget-value {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+}
+
+.widget-meta {
+  font-size: var(--font-size-sm);
+  color: var(--input-color-label);
+}
+
+.add-widget-tile {
+  min-height: 112px;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  color: var(--input-color-label);
+}
+
+.empty-state p {
+  margin: 0;
+}
+</style>

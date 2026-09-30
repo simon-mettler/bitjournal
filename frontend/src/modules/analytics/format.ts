@@ -1,6 +1,6 @@
 import type { CalendarDate } from '@internationalized/date'
 import type { Signal } from '@/modules/signals/types'
-import type { SignalStatsPeriod, Timeframe } from './types'
+import type { AnalyticsWidget, SignalStatsPeriod, Timeframe, WidgetTimeframe } from './types'
 
 function formatSecondsDuration(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600)
@@ -89,4 +89,63 @@ export function formatPeriodRange(period: SignalStatsPeriod): string {
       return `${startFmt.format(start)} - ${endFmt.format(endInclusive)}`
     }
   }
+}
+
+export const WIDGET_TIMEFRAME_LABELS: Record<WidgetTimeframe, string> = {
+  today: 'Today',
+  yesterday: 'Yesterday',
+  this_week: 'This week',
+  last_week: 'Last week',
+  this_month: 'This month',
+  last_month: 'Last month',
+  this_quarter: 'This quarter',
+  quarter: 'Earlier quarter',
+  this_year: 'This year',
+  year: 'Earlier year',
+  last_days: 'Last X days',
+}
+
+function toIsoDate(year: number, month: number): string {
+  return `${year}-${String(month).padStart(2, '0')}-01`
+}
+
+// Calculate previous quarters
+export function earlierQuarterOptions(count = 12): { value: string; label: string }[] {
+  const today = new Date()
+  let year = today.getFullYear()
+  let quarter = Math.floor(today.getMonth() / 3) + 1
+  const options = []
+  for (let i = 0; i < count; i++) {
+    quarter -= 1
+    if (quarter === 0) {
+      quarter = 4
+      year -= 1
+    }
+    options.push({ value: toIsoDate(year, (quarter - 1) * 3 + 1), label: `Q${quarter} ${year}` })
+  }
+  return options
+}
+
+// Calculate previous years
+export function earlierYearOptions(count = 10): { value: string; label: string }[] {
+  const currentYear = new Date().getFullYear()
+  return Array.from({ length: count }, (_, i) => {
+    const year = currentYear - 1 - i
+    return { value: toIsoDate(year, 1), label: String(year) }
+  })
+}
+
+export function formatWidgetTimeframe(
+  widget: Pick<AnalyticsWidget, 'timeframe' | 'period_start' | 'days'>,
+): string {
+  if (widget.timeframe === 'last_days') {
+    return widget.days === 1 ? 'Last day' : `Last ${widget.days} days`
+  }
+  if (widget.period_start && (widget.timeframe === 'quarter' || widget.timeframe === 'year')) {
+    const start = parseIsoDate(widget.period_start)
+    return widget.timeframe === 'year'
+      ? String(start.getFullYear())
+      : `Q${Math.floor(start.getMonth() / 3) + 1} ${start.getFullYear()}`
+  }
+  return WIDGET_TIMEFRAME_LABELS[widget.timeframe]
 }
