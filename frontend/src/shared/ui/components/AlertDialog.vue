@@ -27,7 +27,7 @@ const open = defineModel<boolean>('open', { default: false })
 
 <template>
   <AlertDialogRoot v-model:open="open">
-    <AlertDialogTrigger as-child>
+    <AlertDialogTrigger v-if="$slots.trigger" as-child>
       <slot name="trigger" />
     </AlertDialogTrigger>
     <AlertDialogPortal>

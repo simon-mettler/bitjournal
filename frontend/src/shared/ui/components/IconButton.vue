@@ -74,6 +74,10 @@ withDefaults(
   box-shadow: var(--shadow-interact);
 }
 
+.button.primary :deep(svg) {
+  color: var(--color-surface);
+}
+
 :deep(svg) {
   color: var(--input-color-label);
 }
