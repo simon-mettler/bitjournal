@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Chart from '@/shared/ui/components/Chart.vue'
-import {
-  formatStatValue,
-  formatDurationAxisLabel,
-  durationAxisScale,
-} from '@/modules/analytics/format'
 import { binTimeseriesByWeek, WEEKLY_BIN_TIMEFRAMES } from '@/modules/analytics/timeseriesBins'
-import { tooltipBesidePointer } from '@/modules/analytics/tooltipPosition'
 import { chartColors, signalColor } from '@/modules/analytics/chartColors'
+import { categoryAxis, valueTooltip, valueYAxis } from '@/modules/analytics/chartOptions'
+import { parseIsoDate } from '@/modules/analytics/format'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
 import type { SignalStatsTimeseriesPoint, Timeframe } from '@/modules/analytics/types'
@@ -29,8 +25,7 @@ const props = withDefaults(defineProps<{
 const shortDateFormat = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' })
 
 function formatShortDate(value: string): string {
-  const [year, month, day] = value.split('-').map(Number)
-  return shortDateFormat.format(new Date(year, month - 1, day))
+  return shortDateFormat.format(parseIsoDate(value))
 }
 
 const isWeekly = computed(() => props.weekly ?? (props.timeframe !== undefined && WEEKLY_BIN_TIMEFRAMES.has(props.timeframe)))
@@ -61,24 +56,8 @@ const rollingAverageValues = computed(() =>
   rollingAverage(points.value.map((p) => p.value), rollingAverageWindow.value),
 )
 
-const durationScale = computed(() => {
-  if (props.signal.type !== 'duration') return null
-  const max = Math.max(0, ...points.value.map((p) => p.value ?? 0))
-  return durationAxisScale(max)
-})
-
 const option = computed<EChartsOption>(() => ({
-  tooltip: {
-    trigger: 'axis',
-    position: tooltipBesidePointer,
-    valueFormatter: (value) =>
-      value == null || value === '-' ? '-' : formatStatValue(props.signal, Number(value)),
-    backgroundColor: chartColors.tooltipBackground,
-    borderWidth: 0,
-    borderRadius: 8,
-    padding: [6, 10],
-    textStyle: { color: chartColors.tooltipText, fontSize: 12 },
-  },
+  tooltip: valueTooltip(props.signal),
   legend: {
     data: [
       {
@@ -92,23 +71,8 @@ const option = computed<EChartsOption>(() => ({
     textStyle: { color: chartColors.axisLabel },
   },
   grid: { left: 0, right: 16, top: 16, bottom: 32, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
-  xAxis: {
-    type: 'category',
-    data: points.value.map((p) => p.label),
-    axisLine: { lineStyle: { color: chartColors.gridLine } },
-    axisLabel: { color: chartColors.axisLabel, formatter: (_: string, index: number) => points.value[index].axisLabel },
-    axisTick: { show: false },
-  },
-  yAxis: {
-    type: 'value',
-    splitLine: { lineStyle: { color: chartColors.gridLine } },
-    axisLabel: {
-      color: chartColors.axisLabel,
-      formatter: durationScale.value ? (value: number) => formatDurationAxisLabel(value) : undefined,
-    },
-    max: durationScale.value?.max,
-    interval: durationScale.value?.interval,
-  },
+  xAxis: categoryAxis(points.value.map((p) => p.label), (index) => points.value[index].axisLabel),
+  yAxis: valueYAxis(props.signal, points.value.map((p) => p.value)),
   series: [
     {
       name: props.signal.name,

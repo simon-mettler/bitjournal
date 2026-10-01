@@ -6,9 +6,7 @@ import { useLogEventsUiStore } from '@/modules/events/store/logEventsUiStore'
 import { MoreVertical, ChartColumn, Pencil, GripVertical, X, Check } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import AddTile from '@/shared/ui/components/AddTile.vue'
-import EditableTabs from '@/shared/ui/components/EditableTabs.vue'
-import NameDialog from '@/shared/ui/components/NameDialog.vue'
-import AlertDialog from '@/shared/ui/components/AlertDialog.vue'
+import BoardTabs from '@/shared/ui/components/BoardTabs.vue'
 import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
 import SignalCard from '@/shared/ui/components/SignalCard.vue'
 import Header from '@/shared/ui/components/Header.vue'
@@ -20,7 +18,7 @@ import EventDraftBar from '@/modules/events/components/EventDraftBar.vue'
 import { createBoard, deleteBoard, getBoards, reorderBoards, updateBoard } from '@/modules/boards/api'
 import { getSignals } from '@/modules/signals/api'
 import { useToast } from '@/shared/lib/useToast'
-import { useBoardTabsEditing } from '@/shared/lib/useBoardTabsEditing'
+import { enqueueBoardWrite } from '@/shared/lib/boardWriteQueue'
 import { useSortableList } from '@/shared/lib/useSortableList'
 import { createEvent, getEvent, updateEvent } from '@/modules/events/api'
 import { resolveIcon } from '@/shared/lib/iconRegistry'
@@ -75,7 +73,10 @@ const draftTime = computed<TimeValue>({
 const { activeTab, editing: boardEditing } = storeToRefs(logEventsUiStore)
 const ALL_TAB = 'all'
 const pinnedTabs = [{ value: ALL_TAB, label: 'All' }]
-const tabs = computed(() => boards.value.map((b) => ({ value: b.id, label: b.name })))
+const activeTabId = computed({
+  get: () => activeTab.value,
+  set: (id: string | null) => (activeTab.value = id ?? ALL_TAB),
+})
 const activeBoard = computed(() => boards.value.find((b) => b.id === activeTab.value))
 const canEditSignals = computed(() => boardEditing.value && !!activeBoard.value)
 
@@ -199,29 +200,13 @@ function onCancelDraft() {
 const signalsOf = (board: Board) => board.board_signals.map((bs) => bs.signal)
 const signalIds = (board: Board) => signalsOf(board).map((s) => s.id)
 
-const {
-  enqueue,
-  nameDialogOpen,
-  nameDialogMode,
-  nameDialogBusy,
-  renameTarget,
-  askAddBoard,
-  askRenameBoard,
-  submitName,
-  onTabsReorder,
-  boardToDelete,
-  deleteBoardOpen,
-  askDeleteBoard,
-  confirmDeleteBoard,
-} = useBoardTabsEditing({
-  boards,
-  select: (id) => (activeTab.value = id ?? ALL_TAB),
-  create: async (name) => (await createBoard({ name })).data,
-  rename: (board, name) => updateBoard(board.id, { name, signal_ids: signalIds(board) }),
-  remove: (board) => deleteBoard(board.id),
-  reorder: (ids) => reorderBoards({ board_ids: ids }),
+const boardApi = {
+  create: async (name: string) => (await createBoard({ name })).data,
+  rename: (board: Board, name: string) => updateBoard(board.id, { name, signal_ids: signalIds(board) }),
+  remove: (board: Board) => deleteBoard(board.id),
+  reorder: (ids: string[]) => reorderBoards({ board_ids: ids }),
   reload: load,
-})
+}
 
 const gridEl = ref<HTMLElement | null>(null)
 
@@ -235,7 +220,7 @@ const boardSignals = computed<Signal[]>({
 })
 
 function persistSignals(board: Board) {
-  enqueue(() => updateBoard(board.id, { name: board.name, signal_ids: signalIds(board) })).catch(() => {
+  enqueueBoardWrite(() => updateBoard(board.id, { name: board.name, signal_ids: signalIds(board) })).catch(() => {
     toaster.toast({ description: 'Could not save board.', variant: 'danger' })
     load()
   })
@@ -271,11 +256,6 @@ function onRemoveSignalFromBoard(signal: Signal) {
     },
   })
 }
-
-const deleteBoardDescription = computed(
-  () =>
-    `Are you sure you want to delete "${boardToDelete.value?.name ?? ''}" board? This can't be undone.`,
-)
 
 onBeforeRouteLeave(() => {
   boardEditing.value = false
@@ -346,9 +326,8 @@ onMounted(async () => {
         </IconButton>
       </template>
       <template #content>
-        <EditableTabs v-if="boardEditing || boards.length > 0" v-model="activeTab" :items="tabs" :pinned="pinnedTabs"
-          :editing="boardEditing" add-label="Add board" class="track-tabs" @add="askAddBoard" @rename="askRenameBoard"
-          @delete="askDeleteBoard" @reorder="onTabsReorder" />
+        <BoardTabs v-model:boards="boards" v-model:active="activeTabId" :editing="boardEditing"
+          :show-tabs="boardEditing || boards.length > 0" :pinned="pinnedTabs" v-bind="boardApi" />
       </template>
     </Header>
   </AppShellHeader>
@@ -398,14 +377,6 @@ onMounted(async () => {
     </template>
   </div>
 
-  <NameDialog v-model:open="nameDialogOpen" :busy="nameDialogBusy" label="Board name"
-    :title="nameDialogMode === 'add' ? 'Add board' : 'Rename board'"
-    :confirm-text="nameDialogMode === 'add' ? 'Create' : 'Save'" :initial-name="renameTarget?.name"
-    @submit="submitName" />
-
-  <AlertDialog v-model:open="deleteBoardOpen" title="Delete board" confirm-text="Delete"
-    :description="deleteBoardDescription" @confirm="confirmDeleteBoard" />
-
   <LogEntryDrawer v-if="selectedSignal" v-model:open="entryDrawerOpen" :numpad="true" :signal="selectedSignal"
     :editing="!!editingSignalEntry" :initial-value="editingSignalEntry?.value"
     :initial-duration="editingSignalEntry?.duration" @save="onSignalEntrySaved" />
@@ -416,11 +387,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.track-tabs {
-  width: 100vw;
-  margin: 10px 0 0 -16px;
-}
-
 .signal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import Chart from '@/shared/ui/components/Chart.vue'
 import { formatStatValue } from '@/modules/analytics/format'
 import { chartColors, signalColor } from '@/modules/analytics/chartColors'
+import { DAY_LABELS, tooltipStyle } from '@/modules/analytics/chartOptions'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
 import type { SignalStatsHeatmapPoint } from '@/modules/analytics/types'
@@ -10,7 +11,6 @@ import type { SignalStatsHeatmapPoint } from '@/modules/analytics/types'
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
 
 const HOURS = Array.from({ length: 24 }, (_, h) => String(h))
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const props = defineProps<{
   signal: Signal
@@ -64,11 +64,7 @@ const option = computed<EChartsOption>(() => ({
       const [hour, dow] = params.value as [number, number, number]
       return tooltipText(dow, hour)
     },
-    backgroundColor: chartColors.tooltipBackground,
-    borderWidth: 0,
-    borderRadius: 8,
-    padding: [6, 10],
-    textStyle: { color: chartColors.tooltipText, fontSize: 12 },
+    ...tooltipStyle,
   },
   grid: { left: 40, right: 4, top: 4, bottom: 80 },
   xAxis: {

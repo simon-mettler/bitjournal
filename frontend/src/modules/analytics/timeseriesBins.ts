@@ -1,4 +1,5 @@
 import type { SummaryMethod } from '@/modules/signals/types'
+import { parseIsoDate } from './format'
 import type { SignalStatsTimeseriesPoint, Timeframe } from './types'
 
 // Group year timeframe into weeks (to dense charts on to read)
@@ -16,11 +17,6 @@ const WEEKLY_BIN_MIN_DAYS = 100
 export function periodUsesWeeklyBins(period: { start: string; end: string }): boolean {
   const days = (parseIsoDate(period.end).getTime() - parseIsoDate(period.start).getTime()) / 86_400_000
   return days > WEEKLY_BIN_MIN_DAYS
-}
-
-function parseIsoDate(value: string): Date {
-  const [year, month, day] = value.split('-').map(Number)
-  return new Date(year, month - 1, day)
 }
 
 function toIsoDate(date: Date): string {

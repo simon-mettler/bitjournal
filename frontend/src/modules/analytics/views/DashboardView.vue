@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { Check, GripVertical, MoreVertical, Pencil, X } from '@lucide/vue'
@@ -8,8 +8,7 @@ import Header from '@/shared/ui/components/Header.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
 import AddTile from '@/shared/ui/components/AddTile.vue'
-import EditableTabs from '@/shared/ui/components/EditableTabs.vue'
-import NameDialog from '@/shared/ui/components/NameDialog.vue'
+import BoardTabs from '@/shared/ui/components/BoardTabs.vue'
 import AlertDialog from '@/shared/ui/components/AlertDialog.vue'
 import DropdownMenu from '@/shared/ui/components/DropdownMenu.vue'
 import type { DropdownMenuOption } from '@/shared/ui/components/DropdownMenu.vue'
@@ -32,7 +31,7 @@ import type {
   AnalyticsWidgetValue,
 } from '@/modules/analytics/types'
 import { useToast } from '@/shared/lib/useToast'
-import { useBoardTabsEditing } from '@/shared/lib/useBoardTabsEditing'
+import { enqueueBoardWrite } from '@/shared/lib/boardWriteQueue'
 import { resolveIcon } from '@/shared/lib/iconRegistry'
 import { useSortableList } from '@/shared/lib/useSortableList'
 
@@ -45,13 +44,7 @@ const loading = ref(true)
 const boards = ref<AnalyticsBoard[]>([])
 const values = ref<Record<string, AnalyticsWidgetValue>>({})
 
-const tabs = computed(() => boards.value.map((b) => ({ value: b.id, label: b.name })))
 const activeBoard = computed(() => boards.value.find((b) => b.id === activeBoardId.value))
-
-const activeTab = computed({
-  get: () => activeBoardId.value ?? '',
-  set: (id: string) => (activeBoardId.value = id),
-})
 
 const widgets = computed<AnalyticsWidget[]>({
   get: () => activeBoard.value?.widgets ?? [],
@@ -97,38 +90,22 @@ function displayValue(widget: AnalyticsWidget): string {
 
 // TABS (BOARDS)
 
-const {
-  enqueue,
-  nameDialogOpen,
-  nameDialogMode,
-  nameDialogBusy,
-  renameTarget,
-  askAddBoard,
-  askRenameBoard,
-  submitName,
-  onTabsReorder,
-  boardToDelete,
-  deleteBoardOpen,
-  askDeleteBoard,
-  confirmDeleteBoard,
-} = useBoardTabsEditing({
-  boards,
-  select: (id) => (activeBoardId.value = id),
-  create: async (name) => (await createAnalyticsBoard({ name })).data,
-  rename: (board, name) =>
-    updateAnalyticsBoard(board.id, { name, widget_ids: board.widgets.map((w) => w.id) }),
-  remove: (board) => deleteAnalyticsBoard(board.id),
-  reorder: (ids) => reorderAnalyticsBoards({ board_ids: ids }),
-  reload: loadBoards,
-})
+const boardTabs = useTemplateRef<{ askAddBoard: () => void }>('boardTabs')
 
-const deleteBoardDescription = computed(() => {
-  const board = boardToDelete.value
-  if (!board) return ''
+const boardApi = {
+  create: async (name: string) => (await createAnalyticsBoard({ name })).data,
+  rename: (board: AnalyticsBoard, name: string) =>
+    updateAnalyticsBoard(board.id, { name, widget_ids: board.widgets.map((w) => w.id) }),
+  remove: (board: AnalyticsBoard) => deleteAnalyticsBoard(board.id),
+  reorder: (ids: string[]) => reorderAnalyticsBoards({ board_ids: ids }),
+  reload: loadBoards,
+}
+
+function describeBoardDelete(board: AnalyticsBoard) {
   const count = board.widgets.length
   const widgetsNote = count > 0 ? ` and its ${count} widget${count === 1 ? '' : 's'}` : ''
   return `Are you sure you want to delete "${board.name}"${widgetsNote}? This can't be undone.`
-})
+}
 
 // WIDGETS
 
@@ -137,7 +114,7 @@ const gridEl = ref<HTMLElement | null>(null)
 function persistWidgetOrder() {
   const board = activeBoard.value
   if (!board) return
-  enqueue(() =>
+  enqueueBoardWrite(() =>
     updateAnalyticsBoard(board.id, { name: board.name, widget_ids: board.widgets.map((w) => w.id) }),
   ).catch(() => {
     toaster.toast({ description: 'Could not save new order.', variant: 'danger' })
@@ -166,7 +143,7 @@ async function confirmDeleteWidget() {
   const board = activeBoard.value
   if (!widget || !board) return
   try {
-    await enqueue(() => deleteAnalyticsWidget(widget.id))
+    await enqueueBoardWrite(() => deleteAnalyticsWidget(widget.id))
     board.widgets = board.widgets.filter((w) => w.id !== widget.id)
     toaster.toast({ description: `Deleted "${widget.title}".`, variant: 'success' })
   } catch {
@@ -220,9 +197,9 @@ onMounted(async () => {
         </IconButton>
       </template>
       <template #content>
-        <EditableTabs v-if="boards.length > 0 && (editing || boards.length > 1)" v-model="activeTab" :items="tabs"
-          :editing="editing" add-label="Add board" class="dashboard-tabs" @add="askAddBoard" @rename="askRenameBoard"
-          @delete="askDeleteBoard" @reorder="onTabsReorder" />
+        <BoardTabs ref="boardTabs" v-model:boards="boards" v-model:active="activeBoardId" :editing="editing"
+          :show-tabs="boards.length > 0 && (editing || boards.length > 1)" :delete-description="describeBoardDelete"
+          v-bind="boardApi" />
       </template>
     </Header>
   </AppShellHeader>
@@ -270,7 +247,7 @@ onMounted(async () => {
 
       <div v-if="boards.length === 0" class="empty-state">
         <p>No dashboards yet.</p>
-        <Button variant="primary" @click="askAddBoard">Create board</Button>
+        <Button variant="primary" @click="boardTabs?.askAddBoard()">Create board</Button>
       </div>
       <div v-else-if="widgets.length === 0 && !editing" class="empty-state">
         <p>No widgets in this board yet.</p>
@@ -279,25 +256,12 @@ onMounted(async () => {
     </template>
   </div>
 
-  <NameDialog v-model:open="nameDialogOpen" :busy="nameDialogBusy" label="Board name"
-    :title="nameDialogMode === 'add' ? 'Add board' : 'Rename board'"
-    :confirm-text="nameDialogMode === 'add' ? 'Create' : 'Save'" :initial-name="renameTarget?.name"
-    @submit="submitName" />
-
-  <AlertDialog v-model:open="deleteBoardOpen" title="Delete board" confirm-text="Delete"
-    :description="deleteBoardDescription" @confirm="confirmDeleteBoard" />
-
   <AlertDialog v-model:open="deleteWidgetOpen" title="Delete widget" confirm-text="Delete"
     :description="`Are you sure you want to delete &quot;${widgetToDelete?.title ?? ''}&quot;? This can't be undone.`"
     @confirm="confirmDeleteWidget" />
 </template>
 
 <style scoped>
-.dashboard-tabs {
-  width: 100vw;
-  margin: 10px 0 0 -16px;
-}
-
 .widget-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

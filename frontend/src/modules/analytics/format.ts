@@ -63,7 +63,7 @@ export function shiftPeriod(date: CalendarDate, timeframe: Timeframe, direction:
   return date.add({ [unit]: amount * direction })
 }
 
-function parseIsoDate(value: string): Date {
+export function parseIsoDate(value: string): Date {
   const [year, month, day] = value.split('-').map(Number)
   return new Date(year, month - 1, day)
 }
