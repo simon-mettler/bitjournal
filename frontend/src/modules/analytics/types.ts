@@ -40,7 +40,8 @@ export interface SignalStats {
   heatmap: SignalStatsHeatmapPoint[]
 }
 
-export type WidgetType = 'value'
+export type WidgetType = 'value' | 'timeseries'
+export type WidgetChartType = 'bar' | 'line'
 export type WidgetAggregation = 'total' | 'average'
 export type WidgetTimeframe =
   | 'today'
@@ -62,6 +63,8 @@ export interface AnalyticsWidget {
   title: string
   signal: Signal
   aggregation: WidgetAggregation
+  chart_type: WidgetChartType
+  show_average: boolean
   timeframe: WidgetTimeframe
   period_start: string | null
   days: number | null
@@ -83,4 +86,5 @@ export interface AnalyticsWidgetValue {
     start: string
     end: string
   }
+  timeseries: SignalStatsTimeseriesPoint[] | null
 }

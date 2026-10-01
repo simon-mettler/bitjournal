@@ -13,12 +13,18 @@ import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
 import type { SignalStatsTimeseriesPoint, Timeframe } from '@/modules/analytics/types'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   signal: Signal
   timeseries: SignalStatsTimeseriesPoint[]
-  timeframe: Timeframe
+  timeframe?: Timeframe
   chartType: 'bar' | 'line'
-}>()
+  showAverage?: boolean
+  weekly?: boolean
+  height?: number
+}>(), {
+  showAverage: true,
+  weekly: undefined,
+})
 
 const shortDateFormat = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' })
 
@@ -27,7 +33,7 @@ function formatShortDate(value: string): string {
   return shortDateFormat.format(new Date(year, month - 1, day))
 }
 
-const isWeekly = computed(() => WEEKLY_BIN_TIMEFRAMES.has(props.timeframe))
+const isWeekly = computed(() => props.weekly ?? (props.timeframe !== undefined && WEEKLY_BIN_TIMEFRAMES.has(props.timeframe)))
 
 const points = computed(() => {
   if (!isWeekly.value) {
@@ -79,7 +85,7 @@ const option = computed<EChartsOption>(() => ({
         name: props.signal.name,
         itemStyle: props.chartType === 'line' ? { opacity: 0 } : undefined, // hide legend dot
       },
-      { name: rollingAverageName.value, itemStyle: { opacity: 0 } },
+      ...(props.showAverage ? [{ name: rollingAverageName.value, itemStyle: { opacity: 0 } }] : []),
     ],
     bottom: 0,
     left: 'center',
@@ -116,17 +122,21 @@ const option = computed<EChartsOption>(() => ({
       symbolSize: 8,
       showSymbol: false,
     },
-    {
-      name: rollingAverageName.value,
-      type: 'line',
-      data: rollingAverageValues.value,
-      symbol: 'none',
-      lineStyle: { width: 2, color: chartColors.primary, type: 'dashed' },
-    },
+    ...(props.showAverage
+      ? [
+        {
+          name: rollingAverageName.value,
+          type: 'line' as const,
+          data: rollingAverageValues.value,
+          symbol: 'none',
+          lineStyle: { width: 2, color: chartColors.primary, type: 'dashed' as const },
+        },
+      ]
+      : []),
   ],
 }))
 </script>
 
 <template>
-  <Chart :option="option" />
+  <Chart :option="option" :height="height" />
 </template>

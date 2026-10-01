@@ -8,7 +8,7 @@ import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
 import WidgetForm from '@/modules/analytics/components/WidgetForm.vue'
 import { createAnalyticsWidget } from '@/modules/analytics/api'
-import type { WidgetAggregation, WidgetTimeframe } from '@/modules/analytics/types'
+import { defaultWidgetFormState, formStateToPayload } from '@/modules/analytics/widgetFormState'
 import { useToast } from '@/shared/lib/useToast'
 
 const route = useRoute()
@@ -17,29 +17,18 @@ const toaster = useToast()
 
 const boardId = route.params.boardId as string
 
-const title = ref('')
-const signalId = ref<string>()
-const aggregation = ref<WidgetAggregation>('total')
-const timeframe = ref<WidgetTimeframe>('this_week')
-const periodStart = ref<string>()
-const days = ref<number>(7)
+const form = ref(defaultWidgetFormState())
 const submitting = ref(false)
 const widgetFormRef = ref<InstanceType<typeof WidgetForm>>()
 
 async function submit() {
-  if (!widgetFormRef.value?.validateAll() || !signalId.value) return
+  if (!widgetFormRef.value?.validateAll() || !form.value.signalId) return
 
   submitting.value = true
   try {
     await createAnalyticsWidget({
       board_id: boardId,
-      type: 'value',
-      title: title.value.trim(),
-      signal_id: signalId.value,
-      aggregation: aggregation.value,
-      timeframe: timeframe.value,
-      period_start: periodStart.value ?? null,
-      days: days.value ?? null,
+      ...formStateToPayload(form.value, form.value.signalId),
     })
     toaster.toast({ description: 'Widget created.', variant: 'success' })
     router.back()
@@ -57,9 +46,7 @@ async function submit() {
   </AppShellHeader>
 
   <div class="add-widget-content">
-    <WidgetForm ref="widgetFormRef" v-model:title="title" v-model:signal-id="signalId"
-      v-model:aggregation="aggregation" v-model:timeframe="timeframe" v-model:period-start="periodStart"
-      v-model:days="days" />
+    <WidgetForm ref="widgetFormRef" v-model="form" />
   </div>
 
   <AppShellFooter>

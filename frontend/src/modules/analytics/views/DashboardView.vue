@@ -22,7 +22,9 @@ import {
   reorderAnalyticsBoards,
   updateAnalyticsBoard,
 } from '@/modules/analytics/api'
+import TimeseriesChart from '@/modules/analytics/components/TimeseriesChart.vue'
 import { formatStatValue, formatWidgetTimeframe } from '@/modules/analytics/format'
+import { periodUsesWeeklyBins } from '@/modules/analytics/timeseriesBins'
 import { useDashboardUiStore } from '@/modules/analytics/store/dashboardUiStore'
 import type {
   AnalyticsBoard,
@@ -227,7 +229,8 @@ onMounted(async () => {
 
   <div ref="gridEl" class="widget-grid" :class="{ editing }">
     <template v-if="!loading">
-      <div v-for="widget in widgets" :key="widget.id" class="widget-card" :class="{ editing }"
+      <div v-for="widget in widgets" :key="widget.id" class="widget-card"
+        :class="{ editing, wide: widget.type === 'timeseries' }"
         @click="editing && openWidget(widget)">
         <div class="widget-top">
           <span v-if="editing" class="widget-handle" aria-hidden="true" @click.stop>
@@ -248,10 +251,19 @@ onMounted(async () => {
             </template>
           </DropdownMenu>
         </div>
-        <span class="widget-value" :style="{ color: widget.signal.color }">{{ displayValue(widget) }}</span>
-        <span class="widget-meta">
-          {{ widget.aggregation === 'average' ? 'Average' : 'Total' }} · {{ formatWidgetTimeframe(widget) }}
-        </span>
+        <template v-if="widget.type === 'timeseries'">
+          <p v-if="!values[widget.id]?.timeseries" class="widget-chart-placeholder">…</p>
+          <TimeseriesChart v-else :signal="widget.signal" :timeseries="values[widget.id].timeseries!"
+            :chart-type="widget.chart_type" :show-average="widget.show_average"
+            :weekly="periodUsesWeeklyBins(values[widget.id].period)" :height="220" />
+          <span class="widget-meta">{{ formatWidgetTimeframe(widget) }}</span>
+        </template>
+        <template v-else>
+          <span class="widget-value" :style="{ color: widget.signal.color }">{{ displayValue(widget) }}</span>
+          <span class="widget-meta">
+            {{ widget.aggregation === 'average' ? 'Average' : 'Total' }} · {{ formatWidgetTimeframe(widget) }}
+          </span>
+        </template>
       </div>
 
       <AddTile v-if="editing && activeBoard" class="add-widget-tile" @click="openAddWidget">Add widget</AddTile>
@@ -302,6 +314,20 @@ onMounted(async () => {
   border-radius: var(--input-radius);
   background-color: var(--color-surface);
   box-shadow: var(--shadow-card);
+}
+
+.widget-card.wide {
+  grid-column: 1 / -1;
+  padding-right: 14px;
+}
+
+.widget-chart-placeholder {
+  height: 220px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--input-color-label);
 }
 
 .widget-card.editing {

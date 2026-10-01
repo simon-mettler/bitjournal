@@ -11,7 +11,11 @@ import {
   getAnalyticsWidget,
   updateAnalyticsWidget,
 } from '@/modules/analytics/api'
-import type { WidgetAggregation, WidgetTimeframe } from '@/modules/analytics/types'
+import {
+  defaultWidgetFormState,
+  formStateToPayload,
+  widgetToFormState,
+} from '@/modules/analytics/widgetFormState'
 import { useToast } from '@/shared/lib/useToast'
 
 const route = useRoute()
@@ -22,23 +26,13 @@ const widgetId = route.params.id as string
 
 const loaded = ref(false)
 const saving = ref(false)
-const title = ref('')
-const signalId = ref<string>()
-const aggregation = ref<WidgetAggregation>('total')
-const timeframe = ref<WidgetTimeframe>('this_week')
-const periodStart = ref<string>()
-const days = ref<number>()
+const form = ref(defaultWidgetFormState())
 const widgetFormRef = ref<InstanceType<typeof WidgetForm>>()
 
 async function load() {
   try {
     const { data } = await getAnalyticsWidget(widgetId)
-    title.value = data.title
-    signalId.value = data.signal.id
-    aggregation.value = data.aggregation
-    timeframe.value = data.timeframe
-    periodStart.value = data.period_start ?? undefined
-    days.value = data.days ?? 7
+    form.value = widgetToFormState(data)
     loaded.value = true
   } catch {
     toaster.toast({ description: 'Failed to load widget.', variant: 'danger' })
@@ -46,19 +40,11 @@ async function load() {
 }
 
 async function save() {
-  if (!widgetFormRef.value?.validateAll() || !signalId.value) return
+  if (!widgetFormRef.value?.validateAll() || !form.value.signalId) return
 
   saving.value = true
   try {
-    await updateAnalyticsWidget(widgetId, {
-      type: 'value',
-      title: title.value.trim(),
-      signal_id: signalId.value,
-      aggregation: aggregation.value,
-      timeframe: timeframe.value,
-      period_start: periodStart.value ?? null,
-      days: days.value ?? null,
-    })
+    await updateAnalyticsWidget(widgetId, formStateToPayload(form.value, form.value.signalId))
     toaster.toast({ description: 'Widget saved.', variant: 'success' })
     router.back()
   } catch {
@@ -77,9 +63,7 @@ onMounted(load)
   </AppShellHeader>
 
   <div class="edit-widget-content">
-    <WidgetForm v-if="loaded" ref="widgetFormRef" v-model:title="title" v-model:signal-id="signalId"
-      v-model:aggregation="aggregation" v-model:timeframe="timeframe" v-model:period-start="periodStart"
-      v-model:days="days" />
+    <WidgetForm v-if="loaded" ref="widgetFormRef" v-model="form" />
   </div>
 
   <AppShellFooter>
