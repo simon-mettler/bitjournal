@@ -17,6 +17,8 @@ COOKIE_KWARGS = dict(
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
+    throttle_scope = 'auth'
+
     def finalize_response(self, request, response, *args, **kwargs):
         if response.status_code == 200 and 'refresh' in response.data:
             refresh = response.data.pop('refresh')  # don't expose it in JSON
@@ -37,6 +39,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_scope = 'auth'
 
 
 class LogoutView(APIView):
