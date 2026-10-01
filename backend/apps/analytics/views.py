@@ -114,30 +114,28 @@ class AnalyticsBoardViewSet(viewsets.ModelViewSet):
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    @transaction.atomic
     def _save_board(self, request, *args, **kwargs):
         board = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        board.name = data['name']
-        try:
-            with transaction.atomic():
-                board.save(update_fields=['name'])
-        except IntegrityError:
-            return Response(
-                {'name': 'A board with this name already exists.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         widget_ids = [str(wid) for wid in data['widget_ids']]
         widgets = {str(w.id): w for w in board.widgets.all()}
         unknown = set(widget_ids) - set(widgets.keys())
         if unknown:
-            transaction.set_rollback(True)
             return Response(
                 {'widget_ids': f'Unknown widget ids for this board: {sorted(unknown)}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        board.name = data['name']
+        try:
+            with transaction.atomic():  # savepoint, so the IntegrityError doesn't break the request transaction
+                board.save(update_fields=['name'])
+        except IntegrityError:
+            return Response(
+                {'name': 'A board with this name already exists.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -179,12 +177,11 @@ class AnalyticsBoardViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        with transaction.atomic():
-            for index, board_id in enumerate(board_ids):
-                board = boards[board_id]
-                if board.order != index:
-                    board.order = index
-                    board.save(update_fields=['order'])
+        for index, board_id in enumerate(board_ids):
+            board = boards[board_id]
+            if board.order != index:
+                board.order = index
+                board.save(update_fields=['order'])
 
         ordered_boards = [boards[bid] for bid in board_ids]
         return Response(AnalyticsBoardSerializer(ordered_boards, many=True).data)

@@ -51,22 +51,11 @@ class SignalBoardViewSet(viewsets.ModelViewSet):
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    @transaction.atomic
     def _save_board(self, request, *args, **kwargs):
         board = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
-        board.name = data['name']
-        try:
-            with transaction.atomic():
-                board.save(update_fields=['name'])
-        except IntegrityError:
-            return Response(
-                {'name': 'A board with this name already exists.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         new_ids = [str(sid) for sid in data['signal_ids']]
 
@@ -79,6 +68,16 @@ class SignalBoardViewSet(viewsets.ModelViewSet):
         if unknown:
             return Response(
                 {'signal_ids': f'Unknown or inaccessible signal ids: {sorted(unknown)}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        board.name = data['name']
+        try:
+            with transaction.atomic():
+                board.save(update_fields=['name'])
+        except IntegrityError:
+            return Response(
+                {'name': 'A board with this name already exists.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -109,12 +108,11 @@ class SignalBoardViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        with transaction.atomic():
-            for index, board_id in enumerate(board_ids):
-                board = boards[board_id]
-                if board.order != index:
-                    board.order = index
-                    board.save(update_fields=['order'])
+        for index, board_id in enumerate(board_ids):
+            board = boards[board_id]
+            if board.order != index:
+                board.order = index
+                board.save(update_fields=['order'])
 
         ordered_boards = [boards[bid] for bid in board_ids]
         return Response(SignalBoardSerializer(ordered_boards, many=True).data)

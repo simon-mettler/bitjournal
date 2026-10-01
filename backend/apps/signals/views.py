@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import serializers, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Signal, SignalCategory
@@ -29,7 +29,7 @@ class SignalViewSet(viewsets.ModelViewSet):
         is_archived = self.request.query_params.get('is_archived')
 
         if category is not None:
-            qs = qs.filter(category_id=category)
+            qs = qs.filter(category_id=serializers.UUIDField().run_validation(category))
         if signal_type is not None:
             qs = qs.filter(type=signal_type)
         if is_archived is not None:

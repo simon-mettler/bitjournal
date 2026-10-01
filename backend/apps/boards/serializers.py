@@ -32,14 +32,14 @@ def validate_no_duplicates(value, field_name):
 
 class SignalBoardUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
-    signal_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=True)
+    signal_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=True, max_length=200)
 
     def validate_signal_ids(self, value):
         return validate_no_duplicates(value, 'signal ids')
 
 
 class BoardReorderSerializer(serializers.Serializer):
-    board_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=True)
+    board_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=True, max_length=100)
 
     def validate_board_ids(self, value):
         return validate_no_duplicates(value, 'board ids')

@@ -68,7 +68,7 @@ class AnalyticsWidgetWriteSerializer(serializers.Serializer):
     show_average = serializers.BooleanField(default=True)
     timeframe = serializers.ChoiceField(choices=WidgetTimeframe.choices)
     period_start = serializers.DateField(required=False, allow_null=True, default=None)
-    days = serializers.IntegerField(required=False, allow_null=True, default=None, min_value=1)
+    days = serializers.IntegerField(required=False, allow_null=True, default=None, min_value=1, max_value=1095)
 
     def validate(self, attrs):
         timeframe = attrs['timeframe']
@@ -100,7 +100,7 @@ class AnalyticsWidgetCreateSerializer(AnalyticsWidgetWriteSerializer):
 
 class AnalyticsBoardUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
-    widget_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=True)
+    widget_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=True, max_length=100)
 
     def validate_widget_ids(self, value):
         if len(value) != len(set(value)):
@@ -109,7 +109,7 @@ class AnalyticsBoardUpdateSerializer(serializers.Serializer):
 
 
 class AnalyticsBoardReorderSerializer(serializers.Serializer):
-    board_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=True)
+    board_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=True, max_length=100)
 
     def validate_board_ids(self, value):
         if len(value) != len(set(value)):

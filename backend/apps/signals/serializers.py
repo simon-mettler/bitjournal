@@ -51,14 +51,16 @@ class SignalSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at']
 
-    
+
     def get_fields(self):
         fields = super().get_fields()
+        if request := self.context.get('request'):
+            fields['category'].queryset = SignalCategory.objects.filter(user=request.user)
         if self.instance is not None:
             fields['type'].read_only = True
         return fields
 
-    
+
     def validate(self, attrs):
         signal_type = attrs.get('type', getattr(self.instance, 'type', None))
         range_config = attrs.get('range_config')

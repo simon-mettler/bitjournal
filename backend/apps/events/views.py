@@ -1,10 +1,9 @@
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from rest_framework.exceptions import ValidationError as DRFValidationError
-from rest_framework import status, viewsets
+from rest_framework import serializers, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -37,7 +36,11 @@ class EventViewSet(viewsets.ModelViewSet):
                 raise DRFValidationError({'before': 'Invalide ISO daatetime.'})
             qs = qs.filter(occurred_at__lte=parsed)
 
-        signal_ids = [s for s in params.get('signals', '').split(',') if s]
+        signals_field = serializers.ListField(child=serializers.UUIDField(), max_length=20)
+        try:
+            signal_ids = signals_field.run_validation([s for s in params.get('signals', '').split(',') if s])
+        except DRFValidationError as exc:
+            raise DRFValidationError({'signals': exc.detail})
         if signal_ids:
             logic = params.get('signal_logic', 'or').lower()
             if logic == 'and':
@@ -114,7 +117,6 @@ class EventViewSet(viewsets.ModelViewSet):
 
     # CREATE
 
-    @transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -204,7 +206,6 @@ class EventViewSet(viewsets.ModelViewSet):
         if entries_to_create:
             SignalEntry.objects.bulk_create(entries_to_create)
 
-    @transaction.atomic
     def update(self, request, *args, **kwargs):
         event = self.get_object()
         serializer = self.get_serializer(data=request.data)

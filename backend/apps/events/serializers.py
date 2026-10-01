@@ -37,8 +37,8 @@ class SignalEntryInputSerializer(serializers.Serializer):
 
 class EventWriteSerializer(serializers.Serializer):
     occurred_at = serializers.DateTimeField()
-    note = serializers.CharField(required=False, allow_blank=True, default='')
-    entries = SignalEntryInputSerializer(many=True)
+    note = serializers.CharField(required=False, allow_blank=True, default='', max_length=2000)
+    entries = SignalEntryInputSerializer(many=True, max_length=50)
 
     def validate_entries(self, value):
         if not value:
