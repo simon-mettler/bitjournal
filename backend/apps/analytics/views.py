@@ -22,14 +22,7 @@ from .serializers import (
     SignalStatsQuerySerializer,
     TimezoneQuerySerializer,
 )
-from .services import (
-    get_signal_day_of_week,
-    get_signal_heatmap,
-    get_signal_timeseries,
-    get_signal_totals,
-    get_widget_values,
-    resolve_period,
-)
+from .services import get_signal_stats, get_widget_values, resolve_period
 
 
 class SignalStatsView(APIView):
@@ -46,10 +39,7 @@ class SignalStatsView(APIView):
             period_start=params['period_start'],
             tz=ZoneInfo(params['tz']),
         )
-        totals = get_signal_totals(signal, request.user, period)
-        timeseries = get_signal_timeseries(signal, request.user, period)
-        day_of_week = get_signal_day_of_week(signal, request.user, period)
-        heatmap = get_signal_heatmap(signal, request.user, period)
+        stats = get_signal_stats(signal, request.user, period)
 
         return Response({
             'signal': {
@@ -61,17 +51,13 @@ class SignalStatsView(APIView):
                 'end': period.end_local.isoformat(),
                 'timeframe': period.timeframe,
             },
-            'total': totals['total'],
-            'average': totals['average'],
-            'count': totals['count'],
-            'timeseries': timeseries,
-            'day_of_week': day_of_week,
-            'heatmap': heatmap,
+            **stats,
         })
 
 
 class AnalyticsBoardViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']  # no PATCH: full replace via PUT
 
     def get_queryset(self):
         return (
@@ -83,7 +69,7 @@ class AnalyticsBoardViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return AnalyticsBoardCreateSerializer
-        if self.action in ('update', 'partial_update'):
+        if self.action == 'update':
             return AnalyticsBoardUpdateSerializer
         if self.action == 'reorder':
             return AnalyticsBoardReorderSerializer
@@ -107,12 +93,6 @@ class AnalyticsBoardViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         return self._save_board(request, *args, **kwargs)
-
-    def partial_update(self, request, *args, **kwargs):
-        return Response(
-            {'detail': 'PATCH is not supported.'},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
 
     def _save_board(self, request, *args, **kwargs):
         board = self.get_object()
@@ -186,6 +166,7 @@ class AnalyticsBoardViewSet(viewsets.ModelViewSet):
 
 class AnalyticsWidgetViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']  # no PATCH: full replace via PUT
 
     def get_queryset(self):
         return (
@@ -197,43 +178,18 @@ class AnalyticsWidgetViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return AnalyticsWidgetCreateSerializer
-        if self.action in ('update', 'partial_update'):
+        if self.action == 'update':
             return AnalyticsWidgetWriteSerializer
         return AnalyticsWidgetSerializer
-
-    def _get_signal(self, signal_id):
-        return get_object_or_404(Signal, pk=signal_id, user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        board = get_object_or_404(AnalyticsBoard, pk=data.pop('board_id'), user=request.user)
-        signal = self._get_signal(data.pop('signal_id'))
-
-        widget = AnalyticsWidget.objects.create(
-            board=board,
-            signal=signal,
-            order=board.widgets.count(),
-            **data,
-        )
+        board = serializer.validated_data['board']
+        widget = serializer.save(order=board.widgets.count())
         return Response(AnalyticsWidgetSerializer(widget).data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
-        widget = self.get_object()
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(self.get_object(), data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        widget.signal = self._get_signal(data.pop('signal_id'))
-        for field, value in data.items():
-            setattr(widget, field, value)
-        widget.save()
-        return Response(AnalyticsWidgetSerializer(widget).data)
-
-    def partial_update(self, request, *args, **kwargs):
-        return Response(
-            {'detail': 'PATCH is not supported.'},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
+        return Response(AnalyticsWidgetSerializer(serializer.save()).data)

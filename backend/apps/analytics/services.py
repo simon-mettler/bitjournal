@@ -2,12 +2,13 @@
 Helpers for signal stats and analytics widgets.
 """
 
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from django.db.models import Avg, Count, Sum
-from django.db.models.functions import Extract, TruncDate
+from django.db.models import Count, Sum
+from django.db.models.functions import ExtractHour, TruncDate
 
 from apps.events.models import SignalEntry
 from apps.signals.models import Signal, SignalType, SummaryMethod
@@ -111,46 +112,33 @@ def get_widget_values(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
     Data for one widget, shaped by its type. 'timeseries' is only filled for over time widgets.
     """
     period = resolve_widget_period(widget, tz)
-    if widget.type == WidgetType.TIMESERIES:
-        return {
-            'widget_id': widget.id,
-            'value': None,
-            'count': entries_in_period(widget.signal, user, period).count(),
-            'period': _period_dict(period),
-            'timeseries': get_signal_timeseries(widget.signal, user, period),
-        }
-    return get_widget_value(widget, user, period)
+    rows = _bin_rows(widget.signal, user, period)
+    totals = _totals(rows)
+    is_timeseries = widget.type == WidgetType.TIMESERIES
 
-
-def _period_dict(period: Period) -> dict:
-    return {'start': period.start_local.isoformat(), 'end': period.end_local.isoformat()}
-
-
-def get_widget_value(widget: AnalyticsWidget, user, period: Period) -> dict:
-    """
-    Value of a 'display value' widget: total or average (per entry)
-    """
-    field = signal_value_field(widget.signal)
-    is_duration = field == 'duration'
-
-    aggregates = entries_in_period(widget.signal, user, period).aggregate(
-        total=Sum(field),
-        average=Avg(field),
-        count=Count('id'),
-    )
-    count = aggregates['count'] or 0
-
-    if widget.aggregation == WidgetAggregation.AVERAGE:
-        value = _to_number(aggregates['average'], is_duration) if count else None
+    if is_timeseries:
+        value = None
+    elif widget.aggregation == WidgetAggregation.AVERAGE:
+        value = totals['average'] if totals['count'] else None
     else:
-        value = _to_number(aggregates['total'], is_duration)
+        value = totals['total']
 
     return {
         'widget_id': widget.id,
         'value': value,
-        'count': count,
-        'period': _period_dict(period),
-        'timeseries': None,
+        'count': totals['count'],
+        'period': {'start': period.start_local.isoformat(), 'end': period.end_local.isoformat()},
+        'timeseries': _timeseries(rows, widget.signal, period) if is_timeseries else None,
+    }
+
+
+def get_signal_stats(signal: Signal, user, period: Period) -> dict:
+    rows = _bin_rows(signal, user, period)
+    return {
+        **_totals(rows),
+        'timeseries': _timeseries(rows, signal, period),
+        'day_of_week': _day_of_week(rows, signal),
+        'heatmap': _heatmap(rows, signal),
     }
 
 
@@ -158,17 +146,53 @@ def signal_value_field(signal: Signal) -> str:
     return 'duration' if signal.type == SignalType.DURATION else 'value'
 
 
-def _to_number(value, is_duration: bool) -> float:
+def _to_number(value) -> float:
     if value is None:
         return 0.0
-    return value.total_seconds() if is_duration else float(value)
+    return value.total_seconds() if isinstance(value, timedelta) else float(value)
 
 
-def _summary_aggregate(signal: Signal, field: str):
-    """Aggregate for one bucket (day), following the signals summary_method."""
-    if signal.summary_method == SummaryMethod.AVERAGE:
-        return Avg(field)
-    return Sum(field)
+def _bin_rows(signal: Signal, user, period: Period) -> list[tuple[date, int, float, int]]:
+    """
+    One query for all stats: (local date, local hour, sum, entry count) for every
+    day/hour bin with entries in the period. Totals, timeseries, day of week and
+    heatmap are all derived from these (at most 24 rows per day).
+    """
+    rows = (
+        SignalEntry.objects.filter(
+            signal=signal,
+            event__user=user,
+            event__occurred_at__gte=period.start_utc,
+            event__occurred_at__lt=period.end_utc,
+        )
+        .annotate(
+            day=TruncDate('event__occurred_at', tzinfo=period.tz),
+            hour=ExtractHour('event__occurred_at', tzinfo=period.tz),
+        )
+        .values('day', 'hour')
+        .annotate(total=Sum(signal_value_field(signal)), count=Count('id'))
+    )
+    return [(r['day'], r['hour'], _to_number(r['total']), r['count']) for r in rows]
+
+
+def _totals(rows) -> dict:
+    total = sum(r[2] for r in rows)
+    count = sum(r[3] for r in rows)
+    return {'total': total, 'average': total / count if count else 0.0, 'count': count}
+
+
+def _grouped(rows, signal: Signal, key) -> dict:
+    """
+    Bins the rows by key(day, hour) and applies the signals summary_method: the sum, or the
+    average over all entries in the bin. Bins without entries are not in the result.
+    """
+    bins = defaultdict(lambda: [0.0, 0])
+    for day, hour, total, count in rows:
+        b = bins[key(day, hour)]
+        b[0] += total
+        b[1] += count
+    average = signal.summary_method == SummaryMethod.AVERAGE
+    return {k: (t / c if average else t, c) for k, (t, c) in bins.items()}
 
 
 def _empty_bucket_value(signal: Signal) -> float | None:
@@ -178,111 +202,34 @@ def _empty_bucket_value(signal: Signal) -> float | None:
     return None if signal.summary_method == SummaryMethod.AVERAGE else 0.0
 
 
-def entries_in_period(signal: Signal, user, period: Period):
-    return SignalEntry.objects.filter(
-        signal=signal,
-        event__user=user,
-        event__occurred_at__gte=period.start_utc,
-        event__occurred_at__lt=period.end_utc,
-    )
-
-
-def get_signal_totals(signal: Signal, user, period: Period) -> dict:
-    field = signal_value_field(signal)
-    is_duration = field == 'duration'
-
-    aggregates = entries_in_period(signal, user, period).aggregate(
-        total=Sum(field),
-        average=Avg(field),
-        count=Count('id'),
-    )
-
-    return {
-        'total': _to_number(aggregates['total'], is_duration),
-        'average': _to_number(aggregates['average'], is_duration),
-        'count': aggregates['count'] or 0,
-    }
-
-
-def get_signal_timeseries(signal: Signal, user, period: Period) -> list[dict]:
+def _timeseries(rows, signal: Signal, period: Period) -> list[dict]:
     """
     One row per local calendar day in the period. The daily value follows the
     signal's summary_method (sum or average). Days without entries are 0 for sum signals
     and None for average signals.
     """
-    field = signal_value_field(signal)
-    is_duration = field == 'duration'
+    by_day = _grouped(rows, signal, lambda day, hour: day)
     empty = _empty_bucket_value(signal)
-
-    rows = (
-        entries_in_period(signal, user, period)
-        .annotate(day=TruncDate('event__occurred_at', tzinfo=period.tz))
-        .values('day')
-        .annotate(value=_summary_aggregate(signal, field))
-    )
-    values_by_day = {row['day']: _to_number(row['value'], is_duration) for row in rows}
-
-    timeseries = []
-    current = period.start_local
-    while current < period.end_local:
-        timeseries.append({
-            'date': current.isoformat(),
-            'value': values_by_day.get(current, empty),
-        })
-        current += timedelta(days=1)
-
-    return timeseries
-
-
-def get_signal_day_of_week(signal: Signal, user, period: Period) -> list[dict]:
-    """
-    Value per day of week (0=Monday, 6=Sunday), following the signals
-    summary_method: sum, or average over all entries on that weekday.
-    """
-    field = signal_value_field(signal)
-    is_duration = field == 'duration'
-    empty = _empty_bucket_value(signal)
-
-    rows = (
-        entries_in_period(signal, user, period)
-        .annotate(pg_dow=Extract('event__occurred_at', 'dow', tzinfo=period.tz))
-        .values('pg_dow')
-        .annotate(value=_summary_aggregate(signal, field))
-    )
-    values_by_iso_dow = {
-        int(row['pg_dow'] + 6) % 7: _to_number(row['value'], is_duration)
-        for row in rows
-    }
-
     return [
-        {'dow': dow, 'value': values_by_iso_dow.get(dow, empty)}
-        for dow in range(7)
+        {'date': day.isoformat(), 'value': by_day[day][0] if day in by_day else empty}
+        for day in (period.start_local + timedelta(days=i) for i in range((period.end_local - period.start_local).days))
     ]
 
 
-def get_signal_heatmap(signal: Signal, user, period: Period) -> list[dict]:
+def _day_of_week(rows, signal: Signal) -> list[dict]:
+    """
+    Value per day of week (0=Monday, 6=Sunday), following the signals summary_method.
+    """
+    by_dow = _grouped(rows, signal, lambda day, hour: day.weekday())
+    empty = _empty_bucket_value(signal)
+    return [{'dow': dow, 'value': by_dow[dow][0] if dow in by_dow else empty} for dow in range(7)]
+
+
+def _heatmap(rows, signal: Signal) -> list[dict]:
     """
     Heatmap with day of week/hour bins: sum or average of the entries values in the bin.
     """
-    field = signal_value_field(signal)
-    is_duration = field == 'duration'
-
-    rows = (
-        entries_in_period(signal, user, period)
-        .annotate(
-            pg_dow=Extract('event__occurred_at', 'dow', tzinfo=period.tz),
-            hour=Extract('event__occurred_at', 'hour', tzinfo=period.tz),
-        )
-        .values('pg_dow', 'hour')
-        .annotate(count=Count('id'), value=_summary_aggregate(signal, field))
-    )
-
     return [
-        {
-            'dow': int(row['pg_dow'] + 6) % 7,
-            'hour': int(row['hour']),
-            'count': row['count'],
-            'value': _to_number(row['value'], is_duration),
-        }
-        for row in rows
+        {'dow': dow, 'hour': hour, 'count': count, 'value': value}
+        for (dow, hour), (value, count) in _grouped(rows, signal, lambda day, hour: (day.weekday(), hour)).items()
     ]

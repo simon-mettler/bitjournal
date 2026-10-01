@@ -15,6 +15,7 @@ from .serializers import EventSerializer, EventWriteSerializer
 
 class EventViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']  # no PATCH: full replace via PUT
     pagination_class = EventCursorPagination
 
     def get_queryset(self):
@@ -54,7 +55,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
 
     def get_serializer_class(self):
-        if self.action in ('create', 'update', 'partial_update'):
+        if self.action in ('create', 'update'):
             return EventWriteSerializer
         return EventSerializer
 
@@ -235,8 +236,3 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return Response(self._serialize_event(event))
 
-    def partial_update(self, request, *args, **kwargs):
-        return Response(
-            {'detail': 'PATCH is not supported.'},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )

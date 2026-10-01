@@ -16,6 +16,7 @@ from apps.signals.models import Signal
 
 class SignalBoardViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']  # no PATCH: full replace via PUT
 
     def get_queryset(self):
         return (
@@ -27,7 +28,7 @@ class SignalBoardViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return SignalBoardCreateSerializer
-        if self.action in ('update', 'partial_update'):
+        if self.action == 'update':
             return SignalBoardUpdateSerializer
         if self.action == 'reorder':
             return BoardReorderSerializer
@@ -44,12 +45,6 @@ class SignalBoardViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         return self._save_board(request, *args, **kwargs)
-
-    def partial_update(self, request, *args, **kwargs):
-        return Response(
-            {'detail': 'PATCH is not supported.'},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
 
     def _save_board(self, request, *args, **kwargs):
         board = self.get_object()

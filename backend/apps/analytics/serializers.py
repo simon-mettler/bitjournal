@@ -2,6 +2,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from rest_framework import serializers
 
+from apps.signals.models import Signal
 from apps.signals.serializers import SignalSerializer
 
 from .models import (
@@ -59,34 +60,43 @@ class AnalyticsBoardCreateSerializer(serializers.ModelSerializer):
         fields = ['name']
 
 
-class AnalyticsWidgetWriteSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=WidgetType.choices, default=WidgetType.VALUE)
-    title = serializers.CharField(max_length=100)
-    signal_id = serializers.UUIDField()
-    aggregation = serializers.ChoiceField(choices=WidgetAggregation.choices, default=WidgetAggregation.TOTAL)
-    chart_type = serializers.ChoiceField(choices=WidgetChartType.choices, default=WidgetChartType.BAR)
-    show_average = serializers.BooleanField(default=True)
-    timeframe = serializers.ChoiceField(choices=WidgetTimeframe.choices)
-    period_start = serializers.DateField(required=False, allow_null=True, default=None)
-    days = serializers.IntegerField(required=False, allow_null=True, default=None, min_value=1, max_value=1095)
+class AnalyticsWidgetWriteSerializer(serializers.ModelSerializer):
+    signal_id = serializers.PrimaryKeyRelatedField(source='signal', queryset=Signal.objects.none())
+
+    class Meta:
+        model = AnalyticsWidget
+        fields = [
+            'type', 'title', 'aggregation', 'chart_type', 'show_average', 'timeframe',
+            'period_start', 'days', 'signal_id',
+        ]
+        extra_kwargs = {'days': {'min_value': 1, 'max_value': 1095}}
+
+    def get_fields(self):
+        fields = super().get_fields()
+        user = self.context['request'].user
+        fields['signal_id'].queryset = Signal.objects.filter(user=user)
+        if 'board_id' in fields:
+            fields['board_id'].queryset = AnalyticsBoard.objects.filter(user=user)
+        return fields
 
     def validate(self, attrs):
         timeframe = attrs['timeframe']
-        if attrs['type'] == WidgetType.TIMESERIES and timeframe in TIMESERIES_EXCLUDED_TIMEFRAMES:
+        is_timeseries = attrs.get('type', getattr(self.instance, 'type', None)) == WidgetType.TIMESERIES
+        if is_timeseries and timeframe in TIMESERIES_EXCLUDED_TIMEFRAMES:
             raise serializers.ValidationError(
                 {'timeframe': 'Over time widgets need a timeframe of more than one day.'}
             )
         if timeframe in (WidgetTimeframe.QUARTER, WidgetTimeframe.YEAR):
-            if attrs['period_start'] is None:
+            if attrs.get('period_start') is None:
                 raise serializers.ValidationError({'period_start': 'Required for this timeframe.'})
         else:
             attrs['period_start'] = None
         if timeframe == WidgetTimeframe.LAST_DAYS:
-            if attrs['days'] is None:
+            if attrs.get('days') is None:
                 raise serializers.ValidationError({'days': 'Required for this timeframe.'})
         else:
             attrs['days'] = None
-        if attrs['type'] == WidgetType.TIMESERIES:
+        if is_timeseries:
             attrs['aggregation'] = WidgetAggregation.TOTAL
         else:
             attrs['chart_type'] = WidgetChartType.BAR
@@ -95,7 +105,10 @@ class AnalyticsWidgetWriteSerializer(serializers.Serializer):
 
 
 class AnalyticsWidgetCreateSerializer(AnalyticsWidgetWriteSerializer):
-    board_id = serializers.UUIDField()
+    board_id = serializers.PrimaryKeyRelatedField(source='board', queryset=AnalyticsBoard.objects.none())
+
+    class Meta(AnalyticsWidgetWriteSerializer.Meta):
+        fields = [*AnalyticsWidgetWriteSerializer.Meta.fields, 'board_id']
 
 
 class AnalyticsBoardUpdateSerializer(serializers.Serializer):
