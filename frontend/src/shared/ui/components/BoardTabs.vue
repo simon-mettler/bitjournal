@@ -8,7 +8,8 @@ import { enqueueBoardWrite } from '@/shared/lib/boardWriteQueue'
 import { useToast } from '@/shared/lib/useToast'
 
 // Board tabs with the add / rename / reorder / delete flow of the board pages. The page supplies the API calls.
-const props = defineProps<{
+const props = withDefaults(defineProps<{
+  noun?: 'board' | 'dashboard'
   editing: boolean
   showTabs: boolean
   pinned?: TabItem[]
@@ -18,11 +19,13 @@ const props = defineProps<{
   reorder: (ids: string[]) => Promise<unknown>
   reload: () => Promise<unknown>
   deleteDescription?: (board: B) => string
-}>()
+}>(), { noun: 'board' })
 
 const boards = defineModel<B[]>('boards', { required: true })
 const active = defineModel<string | null>('active', { required: true })
 const toaster = useToast()
+
+const nounCap = computed(() => props.noun.charAt(0).toUpperCase() + props.noun.slice(1))
 
 const items = computed(() => boards.value.map((b) => ({ value: b.id, label: b.name })))
 
@@ -58,7 +61,7 @@ async function submitName(name: string) {
     }
     nameDialogOpen.value = false
   } catch {
-    toaster.toast({ description: `Could not ${nameDialogMode.value === 'add' ? 'create' : 'rename'} board.`, variant: 'danger' })
+    toaster.toast({ description: `Could not ${nameDialogMode.value === 'add' ? 'create' : 'rename'} ${props.noun}.`, variant: 'danger' })
   } finally {
     nameDialogBusy.value = false
   }
@@ -78,7 +81,7 @@ const deleteOpen = ref(false)
 const deleteText = computed(() => {
   const board = boardToDelete.value
   if (!board) return ''
-  return props.deleteDescription?.(board) ?? `Are you sure you want to delete "${board.name}" board? This can't be undone.`
+  return props.deleteDescription?.(board) ?? `Are you sure you want to delete the ${props.noun} "${board.name}"? This can't be undone.`
 })
 
 function askDeleteBoard(id: string) {
@@ -96,7 +99,7 @@ async function confirmDelete() {
     active.value = boards.value[Math.min(index, boards.value.length - 1)]?.id ?? null
     toaster.toast({ description: `Deleted "${board.name}".`, variant: 'success' })
   } catch {
-    toaster.toast({ description: 'Could not delete board.', variant: 'danger' })
+    toaster.toast({ description: `Could not delete ${props.noun}.`, variant: 'danger' })
   }
 }
 
@@ -105,15 +108,15 @@ defineExpose({ askAddBoard })
 
 <template>
   <EditableTabs v-if="showTabs" :model-value="active ?? ''" :items="items" :pinned="pinned" :editing="editing"
-    add-label="Add board" class="board-tabs" @update:model-value="active = $event" @add="askAddBoard"
+    :add-label="`Add ${noun}`" class="board-tabs" @update:model-value="active = $event" @add="askAddBoard"
     @rename="askRenameBoard" @delete="askDeleteBoard" @reorder="onReorder" />
 
-  <NameDialog v-model:open="nameDialogOpen" :busy="nameDialogBusy" label="Board name"
-    :title="nameDialogMode === 'add' ? 'Add board' : 'Rename board'"
+  <NameDialog v-model:open="nameDialogOpen" :busy="nameDialogBusy" :label="`${nounCap} name`"
+    :title="`${nameDialogMode === 'add' ? 'Add' : 'Rename'} ${noun}`"
     :confirm-text="nameDialogMode === 'add' ? 'Create' : 'Save'" :initial-name="renameTarget?.name"
     @submit="submitName" />
 
-  <AlertDialog v-model:open="deleteOpen" title="Delete board" confirm-text="Delete" :description="deleteText"
+  <AlertDialog v-model:open="deleteOpen" :title="`Delete ${noun}`" confirm-text="Delete" :description="deleteText"
     @confirm="confirmDelete" />
 </template>
 

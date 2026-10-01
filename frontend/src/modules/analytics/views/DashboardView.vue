@@ -81,10 +81,12 @@ watch(activeBoardId, (id) => {
   if (id) loadValues(id)
 })
 
+const hasNoEntries = (widget: AnalyticsWidget) => values.value[widget.id]?.count === 0
+
 function displayValue(widget: AnalyticsWidget): string {
   const value = values.value[widget.id]
   if (!value) return '…'
-  if (value.value === null) return '–'
+  if (value.count === 0 || value.value === null) return '–'
   return formatStatValue(widget.signal, value.value)
 }
 
@@ -197,9 +199,9 @@ onMounted(async () => {
         </IconButton>
       </template>
       <template #content>
-        <BoardTabs ref="boardTabs" v-model:boards="boards" v-model:active="activeBoardId" :editing="editing"
-          :show-tabs="boards.length > 0 && (editing || boards.length > 1)" :delete-description="describeBoardDelete"
-          v-bind="boardApi" />
+        <BoardTabs ref="boardTabs" noun="dashboard" v-model:boards="boards" v-model:active="activeBoardId"
+          :editing="editing" :show-tabs="boards.length > 0 && (editing || boards.length > 1)"
+          :delete-description="describeBoardDelete" v-bind="boardApi" />
       </template>
     </Header>
   </AppShellHeader>
@@ -207,8 +209,7 @@ onMounted(async () => {
   <div ref="gridEl" class="widget-grid" :class="{ editing }">
     <template v-if="!loading">
       <div v-for="widget in widgets" :key="widget.id" class="widget-card"
-        :class="{ editing, wide: widget.type === 'timeseries' }"
-        @click="editing && openWidget(widget)">
+        :class="{ editing, wide: widget.type === 'timeseries' }" @click="editing && openWidget(widget)">
         <div class="widget-top">
           <span v-if="editing" class="widget-handle" aria-hidden="true" @click.stop>
             <GripVertical :size="18" />
@@ -229,7 +230,8 @@ onMounted(async () => {
           </DropdownMenu>
         </div>
         <template v-if="widget.type === 'timeseries'">
-          <p v-if="!values[widget.id]?.timeseries" class="widget-chart-placeholder">…</p>
+          <p v-if="hasNoEntries(widget)" class="widget-chart-placeholder">No entries in this period</p>
+          <p v-else-if="!values[widget.id]?.timeseries" class="widget-chart-placeholder">…</p>
           <TimeseriesChart v-else :signal="widget.signal" :timeseries="values[widget.id].timeseries!"
             :chart-type="widget.chart_type" :show-average="widget.show_average"
             :weekly="periodUsesWeeklyBins(values[widget.id].period)" :height="220" />
@@ -238,7 +240,8 @@ onMounted(async () => {
         <template v-else>
           <span class="widget-value" :style="{ color: widget.signal.color }">{{ displayValue(widget) }}</span>
           <span class="widget-meta">
-            {{ widget.aggregation === 'average' ? 'Average' : 'Total' }} · {{ formatWidgetTimeframe(widget) }}
+            {{ hasNoEntries(widget) ? 'No entries' : widget.aggregation === 'average' ? 'Average' : 'Total' }}
+            · {{ formatWidgetTimeframe(widget) }}
           </span>
         </template>
       </div>
@@ -247,10 +250,10 @@ onMounted(async () => {
 
       <div v-if="boards.length === 0" class="empty-state">
         <p>No dashboards yet.</p>
-        <Button variant="primary" @click="boardTabs?.askAddBoard()">Create board</Button>
+        <Button variant="primary" @click="boardTabs?.askAddBoard()">Create dashboard</Button>
       </div>
       <div v-else-if="widgets.length === 0 && !editing" class="empty-state">
-        <p>No widgets in this board yet.</p>
+        <p>No widgets in this dashboard yet.</p>
         <Button variant="primary" @click="openAddWidget">Add widget</Button>
       </div>
     </template>
