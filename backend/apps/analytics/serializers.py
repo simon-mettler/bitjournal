@@ -4,7 +4,15 @@ from rest_framework import serializers
 
 from apps.signals.serializers import SignalSerializer
 
-from .models import AnalyticsBoard, AnalyticsWidget, WidgetAggregation, WidgetTimeframe, WidgetType
+from .models import (
+    TIMESERIES_EXCLUDED_TIMEFRAMES,
+    AnalyticsBoard,
+    AnalyticsWidget,
+    WidgetAggregation,
+    WidgetChartType,
+    WidgetTimeframe,
+    WidgetType,
+)
 from .services import TIMEFRAMES
 
 
@@ -31,7 +39,10 @@ class AnalyticsWidgetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnalyticsWidget
-        fields = ['id', 'order', 'type', 'title', 'signal', 'aggregation', 'timeframe', 'period_start', 'days']
+        fields = [
+            'id', 'order', 'type', 'title', 'signal', 'aggregation', 'chart_type', 'show_average',
+            'timeframe', 'period_start', 'days',
+        ]
 
 
 class AnalyticsBoardSerializer(serializers.ModelSerializer):
@@ -52,13 +63,19 @@ class AnalyticsWidgetWriteSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=WidgetType.choices, default=WidgetType.VALUE)
     title = serializers.CharField(max_length=100)
     signal_id = serializers.UUIDField()
-    aggregation = serializers.ChoiceField(choices=WidgetAggregation.choices)
+    aggregation = serializers.ChoiceField(choices=WidgetAggregation.choices, default=WidgetAggregation.TOTAL)
+    chart_type = serializers.ChoiceField(choices=WidgetChartType.choices, default=WidgetChartType.BAR)
+    show_average = serializers.BooleanField(default=True)
     timeframe = serializers.ChoiceField(choices=WidgetTimeframe.choices)
     period_start = serializers.DateField(required=False, allow_null=True, default=None)
     days = serializers.IntegerField(required=False, allow_null=True, default=None, min_value=1)
 
     def validate(self, attrs):
         timeframe = attrs['timeframe']
+        if attrs['type'] == WidgetType.TIMESERIES and timeframe in TIMESERIES_EXCLUDED_TIMEFRAMES:
+            raise serializers.ValidationError(
+                {'timeframe': 'Over time widgets need a timeframe of more than one day.'}
+            )
         if timeframe in (WidgetTimeframe.QUARTER, WidgetTimeframe.YEAR):
             if attrs['period_start'] is None:
                 raise serializers.ValidationError({'period_start': 'Required for this timeframe.'})
@@ -69,6 +86,11 @@ class AnalyticsWidgetWriteSerializer(serializers.Serializer):
                 raise serializers.ValidationError({'days': 'Required for this timeframe.'})
         else:
             attrs['days'] = None
+        if attrs['type'] == WidgetType.TIMESERIES:
+            attrs['aggregation'] = WidgetAggregation.TOTAL
+        else:
+            attrs['chart_type'] = WidgetChartType.BAR
+            attrs['show_average'] = True
         return attrs
 
 

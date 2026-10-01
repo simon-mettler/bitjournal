@@ -12,7 +12,7 @@ from django.db.models.functions import Extract, TruncDate
 from apps.events.models import SignalEntry
 from apps.signals.models import Signal, SignalType, SummaryMethod
 
-from .models import AnalyticsWidget, WidgetAggregation, WidgetTimeframe
+from .models import AnalyticsWidget, WidgetAggregation, WidgetTimeframe, WidgetType
 
 TIMEFRAMES = ('week', 'month', 'quarter', 'year')
 
@@ -106,11 +106,30 @@ def resolve_widget_period(widget: AnalyticsWidget, tz: ZoneInfo) -> Period:
     raise ValueError(f'Unknown widget timeframe: {timeframe}')
 
 
-def get_widget_value(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
+def get_widget_values(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
+    """
+    Data for one widget, shaped by its type. 'timeseries' is only filled for over time widgets.
+    """
+    period = resolve_widget_period(widget, tz)
+    if widget.type == WidgetType.TIMESERIES:
+        return {
+            'widget_id': widget.id,
+            'value': None,
+            'count': entries_in_period(widget.signal, user, period).count(),
+            'period': _period_dict(period),
+            'timeseries': get_signal_timeseries(widget.signal, user, period),
+        }
+    return get_widget_value(widget, user, period)
+
+
+def _period_dict(period: Period) -> dict:
+    return {'start': period.start_local.isoformat(), 'end': period.end_local.isoformat()}
+
+
+def get_widget_value(widget: AnalyticsWidget, user, period: Period) -> dict:
     """
     Value of a 'display value' widget: total or average (per entry)
     """
-    period = resolve_widget_period(widget, tz)
     field = signal_value_field(widget.signal)
     is_duration = field == 'duration'
 
@@ -130,10 +149,8 @@ def get_widget_value(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
         'widget_id': widget.id,
         'value': value,
         'count': count,
-        'period': {
-            'start': period.start_local.isoformat(),
-            'end': period.end_local.isoformat(),
-        },
+        'period': _period_dict(period),
+        'timeseries': None,
     }
 
 

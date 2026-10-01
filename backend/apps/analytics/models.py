@@ -11,6 +11,7 @@ from uuid import uuid7
 
 class WidgetType(models.TextChoices):
     VALUE = 'value', 'Display value'
+    TIMESERIES = 'timeseries', 'Over time'
 
 
 class WidgetAggregation(models.TextChoices):
@@ -31,6 +32,12 @@ class WidgetTimeframe(models.TextChoices):
     YEAR = 'year', 'Year'
     LAST_DAYS = 'last_days', 'Last X days'
 
+
+class WidgetChartType(models.TextChoices):
+    BAR = 'bar', 'Bar'
+    LINE = 'line', 'Line'
+
+TIMESERIES_EXCLUDED_TIMEFRAMES = (WidgetTimeframe.TODAY, WidgetTimeframe.YESTERDAY)
 
 class AnalyticsBoard(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
@@ -67,6 +74,8 @@ class AnalyticsWidget(models.Model):
         choices=WidgetAggregation.choices,
         default=WidgetAggregation.TOTAL,
     )
+    chart_type = models.CharField(max_length=10, choices=WidgetChartType.choices, default=WidgetChartType.BAR)
+    show_average = models.BooleanField(default=True)
     timeframe = models.CharField(max_length=20, choices=WidgetTimeframe.choices)
     period_start = models.DateField(null=True, blank=True)
     days = models.PositiveIntegerField(null=True, blank=True)
@@ -82,3 +91,5 @@ class AnalyticsWidget(models.Model):
             raise ValidationError('Quarter and year timeframes require period_start.')
         if self.timeframe == WidgetTimeframe.LAST_DAYS and not self.days:
             raise ValidationError('Last X days timeframe requires days to be at least 1.')
+        if self.type == WidgetType.TIMESERIES and self.timeframe in TIMESERIES_EXCLUDED_TIMEFRAMES:
+            raise ValidationError('Over time widgets need a timeframe of more than one day.')

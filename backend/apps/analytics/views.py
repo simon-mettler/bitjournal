@@ -27,7 +27,7 @@ from .services import (
     get_signal_heatmap,
     get_signal_timeseries,
     get_signal_totals,
-    get_widget_value,
+    get_widget_values,
     resolve_period,
 )
 
@@ -160,7 +160,7 @@ class AnalyticsBoardViewSet(viewsets.ModelViewSet):
 
         board = self.get_object()
         return Response([
-            get_widget_value(widget, request.user, tz)
+            get_widget_values(widget, request.user, tz)
             for widget in board.widgets.all()
         ])
 
