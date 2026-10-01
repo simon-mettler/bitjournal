@@ -2,8 +2,7 @@ import { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { api } from './axios'
 import { useAuthStore } from '@/modules/authentication/store'
 
-let isRefreshing = false
-let queue: Array<(token: string) => void> = []
+let refreshing: Promise<string> | null = null
 let initialized = false;
 
 export function setupApiInterceptors() {
@@ -26,35 +25,19 @@ export function setupApiInterceptors() {
       const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
       const auth = useAuthStore()
 
-      const isAuthEndpoint = originalRequest.url?.includes('token/refresh')
-        || originalRequest.url?.includes('logout')
+      const isAuthEndpoint = /^(token|register|logout)\//.test(originalRequest.url ?? '')
 
       if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
-        if (isRefreshing) {
-          return new Promise((resolve) => {
-            queue.push((token: string) => {
-              originalRequest.headers.Authorization = `Bearer ${token}`
-              resolve(api(originalRequest))
-            })
-          })
-        }
-
         originalRequest._retry = true
-        isRefreshing = true
+        refreshing ??= auth.refreshAccessToken()
+          .catch((refreshError) => {
+            auth.logout()
+            throw refreshError
+          })
+          .finally(() => (refreshing = null))
 
-        try {
-          const newAccess = await auth.refreshAccessToken()
-          queue.forEach((cb) => cb(newAccess))
-          queue = []
-          originalRequest.headers.Authorization = `Bearer ${newAccess}`
-          return api(originalRequest)
-        } catch (refreshError) {
-          queue = []
-          auth.logout()
-          return Promise.reject(refreshError)
-        } finally {
-          isRefreshing = false
-        }
+        await refreshing
+        return api(originalRequest)
       }
 
       return Promise.reject(error)

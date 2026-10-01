@@ -59,14 +59,18 @@ async function loadSignal() {
   }
 }
 
+let statsRequest = 0
+
 async function loadStats() {
+  const request = ++statsRequest
   try {
     const { data } = await getSignalStats(signalId, {
       timeframe: timeframe.value,
       periodStart: anchorDate.value.toString(),
     })
-    stats.value = data
+    if (request === statsRequest) stats.value = data
   } catch (err) {
+    if (request !== statsRequest) return
     console.error(err)
     toaster.toast({ description: 'Failed to load signal stats', variant: 'danger' })
   }

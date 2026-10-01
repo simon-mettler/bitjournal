@@ -15,9 +15,6 @@ class SignalCategorySerializer(serializers.ModelSerializer):
 
 
 class SignalRangeConfigSerializer(serializers.ModelSerializer):
-    min_value = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
-    max_value = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
-
     class Meta:
         model = SignalRangeConfig
         fields = ['min_value', 'max_value', 'min_label', 'max_label']
@@ -77,7 +74,7 @@ class SignalSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    
+
     def create(self, validated_data):
         range_config_data = validated_data.pop('range_config', None)
         value_config_data = validated_data.pop('value_config', None)

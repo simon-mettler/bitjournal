@@ -141,6 +141,8 @@ REST_FRAMEWORK = {
 
     'DEFAULT_THROTTLE_CLASSES': ('rest_framework.throttling.ScopedRateThrottle',),
     'DEFAULT_THROTTLE_RATES': {'auth': '10/min'},
+
+    'COERCE_DECIMAL_TO_STRING': False,
 }
 
 SIMPLE_JWT = {

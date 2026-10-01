@@ -1,20 +1,11 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import Button from '@/shared/ui/components/Button.vue'
 import { sidebarGroups } from '@/shared/ui/layout/navConfig'
 import { useAuthStore } from '@/modules/authentication/store'
 
-const router = useRouter()
 const auth = useAuthStore()
 const emit = defineEmits<{ navigate: [] }>()
 
-async function logout() {
-  try {
-    await auth.logout()
-  } finally {
-    router.push('login')
-  }
-}
 </script>
 
 <template>
@@ -30,7 +21,7 @@ async function logout() {
         </li>
       </ul>
     </div>
-    <Button class="nav-content-logout" @click="logout()">Logout</Button>
+    <Button class="nav-content-logout" @click="auth.logout()">Logout</Button>
   </nav>
 </template>
 

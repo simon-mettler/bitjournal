@@ -1,5 +1,5 @@
 export interface SignalCategory {
-  id: number
+  id: string
   name: string
   icon: string
   color: string
@@ -10,15 +10,15 @@ export type SummaryMethod = 'total' | 'average'
 
 export interface Signal {
   id: string
-  category?: number
+  category?: string | null
   name: string
   type: SignalType
   icon?: string
   color?: string
   summary_method: SummaryMethod
   is_archived: boolean
-  range_config?: SignalRangeConfig
-  value_config?: SignalValueConfig
+  range_config?: SignalRangeConfig | null
+  value_config?: SignalValueConfig | null
   created_at: string
   updated_at: string
 }

@@ -319,8 +319,8 @@ async function loadEventForEdit(id: string) {
     id: Math.random().toString(36).slice(2),
     entryId: e.id,
     signal: e.signal,
-    value: e.value != null ? Number(e.value) : undefined,
-    duration: e.duration,
+    value: e.value ?? undefined,
+    duration: e.duration ?? undefined,
   }))
 }
 

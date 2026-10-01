@@ -14,6 +14,7 @@ export interface GetEventsParams {
   signalIds?: string[]
   signalLogic?: SignalLogic
   limit?: number
+  cursor?: string
 }
 
 export function getEvents(params: GetEventsParams = {}) {
@@ -22,12 +23,13 @@ export function getEvents(params: GetEventsParams = {}) {
   if (params.signalIds?.length) query.signals = params.signalIds.join(',')
   if (params.signalLogic) query.signal_logic = params.signalLogic
   if (params.limit) query.limit = String(params.limit)
+  if (params.cursor) query.cursor = params.cursor
 
   return api.get<PaginatedResponse<Event>>('events/', { params: query })
 }
 
-export function getEventsPage(cursorUrl: string) {
-  return api.get<PaginatedResponse<Event>>(cursorUrl)
+export function cursorOf(nextUrl: string | null) {
+  return nextUrl ? new URL(nextUrl).searchParams.get('cursor') : null
 }
 
 export function getEvent(id: string) {

@@ -12,7 +12,7 @@ import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import DatePicker from '@/shared/ui/components/DatePicker.vue'
 import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
 import SignalChip from '@/shared/ui/components/SignalChip.vue'
-import { getEvents, getEventsPage, deleteEvent } from '@/modules/events/api'
+import { getEvents, cursorOf, deleteEvent } from '@/modules/events/api'
 import type { SignalLogic } from '@/modules/events/api'
 import { groupEventsByDay } from '@/modules/journal/format'
 import { useToast } from '@/shared/lib/useToast'
@@ -29,7 +29,7 @@ const toaster = useToast()
 const events = ref<Event[]>([])
 const loading = ref(true)
 const loadingMore = ref(false)
-const nextPage = ref<string | null>(null)
+const nextCursor = ref<string | null>(null)
 const dayGroups = computed(() => groupEventsByDay(events.value))
 
 const draftBefore = ref<DateValue | undefined>(undefined) as Ref<DateValue | undefined>
@@ -109,24 +109,31 @@ const confirmDeleteOpen = ref(false)
 const eventPendingDelete = ref<Event | null>(null)
 const deleting = ref(false)
 
+let loadId = 0
+
 async function load() {
+  const id = ++loadId
   loading.value = true
   try {
     const { data } = await getEvents(currentFilterParams())
+    if (id !== loadId) return
     events.value = data.results
-    nextPage.value = data.next
+    nextCursor.value = cursorOf(data.next)
   } finally {
-    loading.value = false
+    if (id === loadId) loading.value = false
   }
 }
 
 async function loadMore() {
-  if (!nextPage.value || loadingMore.value) return
+  const cursor = nextCursor.value
+  if (!cursor || loadingMore.value) return
+  const id = loadId
   loadingMore.value = true
   try {
-    const { data } = await getEventsPage(nextPage.value)
+    const { data } = await getEvents({ ...currentFilterParams(), cursor })
+    if (id !== loadId) return
     events.value = [...events.value, ...data.results]
-    nextPage.value = data.next
+    nextCursor.value = cursorOf(data.next)
   } finally {
     loadingMore.value = false
   }
@@ -231,7 +238,7 @@ onMounted(load)
       {{ hasActiveFilters ? 'No entries match these filters.' : 'No entries yet.' }}
     </p>
 
-    <div v-if="nextPage" class="journal-load-more">
+    <div v-if="nextCursor" class="journal-load-more">
       <Button variant="secondary" :disabled="loadingMore" @click="loadMore">
         {{ loadingMore ? 'Loading…' : 'Load more' }}
       </Button>

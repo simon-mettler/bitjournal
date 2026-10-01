@@ -22,8 +22,8 @@ export interface UpdateEventPayload {
 export interface SignalEventEntry {
   id: string
   signal: Signal
-  value?: number
-  duration?: string
+  value: number | null
+  duration: string | null
 }
 
 export interface Event {

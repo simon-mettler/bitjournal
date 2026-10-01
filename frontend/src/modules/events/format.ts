@@ -13,7 +13,7 @@ export function formatDraftEntryLabel(entry: DraftEntry | SignalEventEntry): str
   if (entry.signal.type === 'tally') {
     return entry.signal.name
   }
-  if (entry.signal.type === 'duration' && entry.duration !== undefined) {
+  if (entry.signal.type === 'duration' && entry.duration != null) {
     return `${entry.signal.name}: ${formatDuration(entry.duration)}`
   }
   const unit = entry.signal.value_config?.unit ?? ''
