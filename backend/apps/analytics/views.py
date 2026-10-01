@@ -77,7 +77,7 @@ class AnalyticsBoardViewSet(viewsets.ModelViewSet):
         return (
             AnalyticsBoard.objects
             .filter(user=self.request.user)
-            .prefetch_related('widgets__signal')
+            .prefetch_related('widgets__signal__range_config', 'widgets__signal__value_config')
         )
 
     def get_serializer_class(self):
@@ -177,13 +177,10 @@ class AnalyticsBoardViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        for index, board_id in enumerate(board_ids):
-            board = boards[board_id]
-            if board.order != index:
-                board.order = index
-                board.save(update_fields=['order'])
-
         ordered_boards = [boards[bid] for bid in board_ids]
+        for index, board in enumerate(ordered_boards):
+            board.order = index
+        AnalyticsBoard.objects.bulk_update(ordered_boards, ['order'])
         return Response(AnalyticsBoardSerializer(ordered_boards, many=True).data)
 
 
@@ -194,7 +191,7 @@ class AnalyticsWidgetViewSet(viewsets.ModelViewSet):
         return (
             AnalyticsWidget.objects
             .filter(board__user=self.request.user)
-            .select_related('signal')
+            .select_related('signal__range_config', 'signal__value_config')
         )
 
     def get_serializer_class(self):

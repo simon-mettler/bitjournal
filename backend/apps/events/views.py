@@ -20,7 +20,7 @@ class EventViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = (
             Event.objects.filter(user=self.request.user)
-            .prefetch_related('entries__signal')
+            .prefetch_related('entries__signal__range_config', 'entries__signal__value_config')
         )
         if self.action == 'list':
             qs = self._apply_list_filters(qs)

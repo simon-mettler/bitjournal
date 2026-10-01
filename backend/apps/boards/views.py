@@ -21,7 +21,7 @@ class SignalBoardViewSet(viewsets.ModelViewSet):
         return (
             SignalBoard.objects
             .filter(user=self.request.user)
-            .prefetch_related('board_signals__signal')
+            .prefetch_related('board_signals__signal__range_config', 'board_signals__signal__value_config')
         )
 
     def get_serializer_class(self):
@@ -108,11 +108,8 @@ class SignalBoardViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        for index, board_id in enumerate(board_ids):
-            board = boards[board_id]
-            if board.order != index:
-                board.order = index
-                board.save(update_fields=['order'])
-
         ordered_boards = [boards[bid] for bid in board_ids]
+        for index, board in enumerate(ordered_boards):
+            board.order = index
+        SignalBoard.objects.bulk_update(ordered_boards, ['order'])
         return Response(SignalBoardSerializer(ordered_boards, many=True).data)
