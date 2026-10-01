@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Button from '@/shared/ui/components/Button.vue'
 import SignalForm from '@/modules/signals/components/SignalForm.vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
@@ -11,6 +11,7 @@ import Header from '@/shared/ui/components/Header.vue'
 import Footer from '@/shared/ui/components/Footer.vue'
 const emit = defineEmits<{ created: [signal: Signal] }>()
 const router = useRouter()
+const route = useRoute()
 
 const signalName = ref('')
 const color = ref('#324245')
@@ -70,7 +71,12 @@ async function submitSignal() {
     const { data } = await createSignal(payload)
     emit('created', data)
     resetForm()
-    router.back()
+    const boardId = route.query.boardId
+    if (typeof boardId === 'string') {
+      router.replace({ name: 'track', query: { boardId, addSignalId: data.id } })
+    } else {
+      router.back()
+    }
   } catch (err) {
     console.error(err)
   } finally {

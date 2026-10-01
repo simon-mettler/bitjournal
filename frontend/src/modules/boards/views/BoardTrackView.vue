@@ -257,6 +257,28 @@ function onRemoveSignalFromBoard(signal: Signal) {
   })
 }
 
+function onCreateSignalForBoard() {
+  if (!activeBoard.value) return
+  router.push({ name: 'signal-add', query: { boardId: activeBoard.value.id } })
+}
+
+// Add newly created signal to board.
+function addCreatedSignalFromRoute() {
+  const { boardId, addSignalId } = route.query
+  if (typeof boardId !== 'string' || typeof addSignalId !== 'string') return
+  router.replace({ name: route.name!, params: route.params })
+
+  const board = boards.value.find((b) => b.id === boardId)
+  const signal = signals.value.find((s) => s.id === addSignalId)
+  if (!board || !signal) return
+
+  activeTab.value = board.id
+  boardEditing.value = true
+  if (signalsOf(board).some((s) => s.id === signal.id)) return
+  setBoardSignals(board, [...signalsOf(board), signal])
+  persistSignals(board)
+}
+
 onBeforeRouteLeave(() => {
   boardEditing.value = false
 })
@@ -306,6 +328,7 @@ async function loadEventForEdit(id: string) {
 
 onMounted(async () => {
   await load()
+  addCreatedSignalFromRoute()
   if (editingEventId.value) {
     await loadEventForEdit(editingEventId.value)
   }
@@ -365,7 +388,8 @@ onMounted(async () => {
         </template>
       </SignalCard>
 
-      <SignalPickerDialog v-if="canEditSignals" :exclude-ids="boardSignals.map((s) => s.id)" @add="onSignalsAdded">
+      <SignalPickerDialog v-if="canEditSignals" :exclude-ids="boardSignals.map((s) => s.id)" allow-create
+        @add="onSignalsAdded" @create="onCreateSignalForBoard">
         <template #trigger>
           <AddTile>Add signal</AddTile>
         </template>

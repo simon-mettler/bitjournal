@@ -12,10 +12,11 @@ const props = withDefaults(
     excludeIds?: string[]
     multiple?: boolean
     title?: string
+    allowCreate?: boolean
   }>(),
   { excludeIds: () => [], multiple: true },
 )
-const emit = defineEmits<{ add: [signals: Signal[]] }>()
+const emit = defineEmits<{ add: [signals: Signal[]]; create: [] }>()
 
 const open = ref(false)
 const search = ref('')
@@ -41,6 +42,11 @@ function confirmAdd(chosen: Signal[]) {
   emit('add', chosen)
   selectedIds.value = new Set()
   open.value = false
+}
+
+function onCreate() {
+  open.value = false
+  emit('create')
 }
 
 function onRowClick(signal: Signal) {
@@ -72,10 +78,11 @@ onMounted(loadSignals)
     </ul>
 
     <template #footer>
-      <DialogClose as-child>
-        <Button variant="secondary">Cancel</Button>
+      <Button v-if="allowCreate" class="footer-button" variant="secondary" @click="onCreate">Create new signal</Button>
+      <DialogClose v-else as-child>
+        <Button class="footer-button" variant="secondary">Cancel</Button>
       </DialogClose>
-      <Button v-if="multiple" variant="primary" :disabled="selectedIds.size === 0"
+      <Button v-if="multiple" class="footer-button" variant="primary" :disabled="selectedIds.size === 0"
         @click="confirmAdd(allSignals.filter(s => selectedIds.has(s.id)))">
         Add {{ selectedIds.size || '' }}
       </Button>
@@ -84,6 +91,10 @@ onMounted(loadSignals)
 </template>
 
 <style scoped>
+.footer-button {
+  flex: 1;
+}
+
 .picker-list {
   list-style: none;
   margin: 0;
