@@ -35,10 +35,17 @@ class CookieTokenRefreshView(TokenRefreshView):
         return super().post(request, *args, **kwargs)
 
 
+class RegistrationEnabled(permissions.BasePermission):
+    message = 'Registration is disabled.'
+
+    def has_permission(self, request, view):
+        return settings.REGISTRATION_ENABLED
+
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny, RegistrationEnabled]
     throttle_scope = 'auth'
 
 
