@@ -10,7 +10,6 @@ import Header from '@/shared/ui/components/Header.vue'
 const auth = useAuthStore()
 const router = useRouter()
 
-const username = ref('')
 const email = ref('')
 const password = ref('')
 const error = ref('')
@@ -21,7 +20,6 @@ async function handleSubmit() {
   loading.value = true
   try {
     await auth.register({
-      username: username.value,
       email: email.value,
       password: password.value,
     })
@@ -41,7 +39,6 @@ async function handleSubmit() {
 <template>
   <Header heading="Register"></Header>
   <form @submit.prevent="handleSubmit">
-    <InputText v-model="username" label="Username" required />
     <InputText v-model="email" type="email" label="Email" required />
     <InputText v-model="password" type="password" label="Password" required />
     <Button type="submit" :disabled="loading">Register</Button>

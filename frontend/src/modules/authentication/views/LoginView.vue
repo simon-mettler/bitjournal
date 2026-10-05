@@ -10,7 +10,7 @@ import Header from '@/shared/ui/components/Header.vue'
 const auth = useAuthStore()
 const router = useRouter()
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
@@ -19,7 +19,7 @@ async function handleSubmit() {
   error.value = ''
   loading.value = true
   try {
-    await auth.login({ username: username.value, password: password.value })
+    await auth.login({ email: email.value, password: password.value })
     router.push({ name: 'track' })
   } catch (err) {
     if (isAxiosError(err)) {
@@ -36,7 +36,7 @@ async function handleSubmit() {
 <template>
   <Header heading="Login"></Header>
   <form @submit.prevent="handleSubmit">
-    <InputText v-model="username" label="Username" required />
+    <InputText v-model="email" type="email" label="Email" required />
     <InputText v-model="password" type="password" label="Password" required />
     <Button type="submit" :disabled="loading">Login</Button>
     <p v-if="error">{{ error }}</p>

@@ -12,17 +12,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
@@ -46,6 +41,10 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() == 'true'
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '')
 
 EMAIL_ENABLED = bool(EMAIL_HOST and DEFAULT_FROM_EMAIL)
+
+# Public instance config: GET /api/config/
+INSTANCE_NOTICE = os.getenv('INSTANCE_NOTICE', '')
+INSTANCE_CONFIG_EXTRA = {}
 
 
 # Application definition

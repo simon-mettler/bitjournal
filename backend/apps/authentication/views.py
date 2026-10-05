@@ -49,6 +49,18 @@ class RegisterView(generics.CreateAPIView):
     throttle_scope = 'auth'
 
 
+class InstanceConfigView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response({
+            'registration_enabled': settings.REGISTRATION_ENABLED,
+            'email_enabled': settings.EMAIL_ENABLED,
+            'notice': settings.INSTANCE_NOTICE,
+            'extra': settings.INSTANCE_CONFIG_EXTRA,
+        })
+
+
 class LogoutView(APIView):
     permission_classes = [permissions.AllowAny]
 

@@ -12,15 +12,12 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async register(payload: { username: string; email: string; password: string }) {
+    async register(payload: { email: string; password: string }) {
       await api.post('register/', payload)
-      await this.login({
-        username: payload.username,
-        password: payload.password,
-      })
+      await this.login(payload)
     },
 
-    async login(payload: { username: string; password: string }) {
+    async login(payload: { email: string; password: string }) {
       const { data } = await api.post<{ access: string }>('token/', payload)
       this.accessToken = data.access
     },

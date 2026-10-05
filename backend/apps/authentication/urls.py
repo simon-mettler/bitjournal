@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import RegisterView, LogoutView, CookieTokenObtainPairView, CookieTokenRefreshView
+from .views import RegisterView, LogoutView, InstanceConfigView, CookieTokenObtainPairView, CookieTokenRefreshView
 
 router = DefaultRouter()
 
@@ -9,5 +9,6 @@ urlpatterns = [
     path('token/refresh/', CookieTokenRefreshView.as_view()),
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('config/', InstanceConfigView.as_view(), name='instance-config'),
     path('', include(router.urls)),
 ]
