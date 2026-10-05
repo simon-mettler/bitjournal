@@ -25,7 +25,7 @@ async function handleSubmit() {
       email: email.value,
       password: password.value,
     })
-    router.push('/')
+    router.push({ name: 'track' })
   } catch (err) {
     if (isAxiosError(err)) {
       error.value = err.response?.data ? JSON.stringify(err.response.data) : 'Registration failed'

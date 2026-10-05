@@ -20,7 +20,7 @@ async function handleSubmit() {
   loading.value = true
   try {
     await auth.login({ username: username.value, password: password.value })
-    router.push('/')
+    router.push({ name: 'track' })
   } catch (err) {
     if (isAxiosError(err)) {
       error.value = err.response?.data?.detail || 'Login failed'
