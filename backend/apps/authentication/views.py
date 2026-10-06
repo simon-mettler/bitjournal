@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.db import connection, OperationalError
 from apps.users.serializers import UserSerializer
 
 User = get_user_model()
@@ -59,6 +60,18 @@ class InstanceConfigView(APIView):
             'notice': settings.INSTANCE_NOTICE,
             'extra': settings.INSTANCE_CONFIG_EXTRA,
         })
+
+
+class HealthView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def get(self, request):
+        try:
+            connection.ensure_connection()
+        except OperationalError:
+            return Response({'status': 'error', 'database': 'unavailable'}, status=503)
+        return Response({'status': 'ok'})
 
 
 class LogoutView(APIView):
