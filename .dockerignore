@@ -1,0 +1,26 @@
+.git
+.gitignore
+.dockerignore
+.claude
+CLAUDE.md
+Dockerfile
+docker-compose*.yml
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# Frontend
+frontend/node_modules
+frontend/dist
+frontend/dev-dist
+frontend/coverage
+
+# Backend
+backend/.venv
+backend/staticfiles
+backend/docker-compose*.yml
+backend/pyrightconfig.json
+**/__pycache__
+**/*.pyc
