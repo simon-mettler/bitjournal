@@ -176,6 +176,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+# index.html is the SPA fallback (see config/urls.py). Defaults to ../frontend/dist.
+FRONTEND_DIST = Path(os.getenv('FRONTEND_DIST', BASE_DIR.parent / 'frontend' / 'dist'))
+if FRONTEND_DIST.is_dir():
+    WHITENOISE_ROOT = FRONTEND_DIST
+
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STORAGES = {
