@@ -2,12 +2,14 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store'
+import { useInstanceStore } from '@/modules/instance/store'
 import { isAxiosError } from 'axios'
 import InputText from '@/shared/ui/components/InputText.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import Header from '@/shared/ui/components/Header.vue'
 
 const auth = useAuthStore()
+const instance = useInstanceStore()
 const router = useRouter()
 
 const email = ref('')
@@ -42,7 +44,7 @@ async function handleSubmit() {
     <p v-if="error">{{ error }}</p>
   </form>
 
-  <p class="login-hint">
+  <p v-if="instance.registrationEnabled" class="login-hint">
     No account yet?
     <RouterLink :to="{ name: 'register' }">Register here</RouterLink>
   </p>

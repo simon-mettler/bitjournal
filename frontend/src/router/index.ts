@@ -6,6 +6,7 @@ import journalRoutes from '@/modules/journal/routes'
 import analyticsRoutes from '@/modules/analytics/routes'
 
 import { useAuthStore } from '@/modules/authentication/store'
+import { useInstanceStore } from '@/modules/instance/store'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,9 +23,15 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
+  const instance = useInstanceStore()
 
-  if (!auth.initialized) {
-    await auth.tryRefresh()
+  await Promise.all([
+    instance.loaded ? undefined : instance.load(),
+    auth.initialized ? undefined : auth.tryRefresh(),
+  ])
+
+  if (to.name === 'register' && !instance.registrationEnabled) {
+    return next({ name: 'login' })
   }
 
   if (to.matched.some(record => record.meta.public)) {
