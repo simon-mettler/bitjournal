@@ -10,8 +10,12 @@
     "test:unit": "vitest",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "lint": "eslint . --fix --cache",
-    "format": "prettier --write --experimental-cli src/"
+    "lint": "eslint . --cache",
+    "lint:fix": "eslint . --fix --cache",
+    "fix": "run-s lint:fix format",
+    "format": "prettier --write --experimental-cli .",
+    "format:check": "prettier --check --experimental-cli .",
+    "check": "run-s type-check lint format:check \"test:unit --run\""
   },
   "dependencies": {
     "@internationalized/date": "^3.12.2",

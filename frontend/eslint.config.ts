@@ -10,15 +10,17 @@ export default defineConfigWithVueTs(
     files: ['**/*.{vue,ts,mts,tsx}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/dev-dist/**', '**/coverage/**']),
 
-  ...pluginVue.configs['flat/essential'],
-  vueTsConfigs.recommended,
+  ...pluginVue.configs['flat/recommended'],
+  vueTsConfigs.recommendedTypeChecked,
 
   {
     name: 'app/vue-rule-overrides',
     rules: {
       'vue/multi-word-component-names': 'off',
+      // Prettier owns attribute layout; this rule would leave unindented attributes.
+      'vue/first-attribute-linebreak': 'off',
     },
   },
 
