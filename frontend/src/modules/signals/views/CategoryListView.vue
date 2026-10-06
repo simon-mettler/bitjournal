@@ -8,7 +8,7 @@ const categories = ref<SignalCategory[]>([])
 const categoriesError = ref('')
 
 onMounted(() => {
-  getCategories()
+  void getCategories()
 })
 
 async function getCategories() {
@@ -28,7 +28,7 @@ async function getCategories() {
 
 <template>
   <div>
-    <p v-if="categoriesError" style="color: red;">{{ categoriesError }}</p>
+    <p v-if="categoriesError" style="color: red">{{ categoriesError }}</p>
     <ul v-if="categories.length">
       <li v-for="cat in categories" :key="cat.id">
         {{ cat.icon }} {{ cat.name }} <span :style="{ color: cat.color }">●</span>

@@ -43,7 +43,6 @@ withDefaults(
   }
 
   &:disabled {
-
     cursor: not-allowed;
     opacity: 0.5;
   }

@@ -29,13 +29,13 @@ async function loadSignals() {
 }
 
 const availableSignals = computed(() =>
-  allSignals.value.filter(s => !props.excludeIds.includes(s.id))
+  allSignals.value.filter((s) => !props.excludeIds.includes(s.id)),
 )
 
 const filteredSignals = computed(() => {
   const query = search.value.trim().toLowerCase()
   if (!query) return availableSignals.value
-  return availableSignals.value.filter(s => s.name.toLowerCase().includes(query))
+  return availableSignals.value.filter((s) => s.name.toLowerCase().includes(query))
 })
 
 function confirmAdd(chosen: Signal[]) {
@@ -69,8 +69,14 @@ onMounted(loadSignals)
     <InputText v-model="search" placeholder="Search signals..." />
 
     <ul class="picker-list">
-      <li v-for="signal in filteredSignals" :key="signal.id" class="picker-row"
-        :class="{ selected: selectedIds.has(signal.id) }" @click="onRowClick(signal)" @mousedown.prevent>
+      <li
+        v-for="signal in filteredSignals"
+        :key="signal.id"
+        class="picker-row"
+        :class="{ selected: selectedIds.has(signal.id) }"
+        @click="onRowClick(signal)"
+        @mousedown.prevent
+      >
         <span class="picker-name">{{ signal.name }}</span>
         <span class="picker-type">{{ signal.type }}</span>
       </li>
@@ -78,12 +84,19 @@ onMounted(loadSignals)
     </ul>
 
     <template #footer>
-      <Button v-if="allowCreate" class="footer-button" variant="secondary" @click="onCreate">Create new signal</Button>
+      <Button v-if="allowCreate" class="footer-button" variant="secondary" @click="onCreate"
+        >Create new signal</Button
+      >
       <DialogClose v-else as-child>
         <Button class="footer-button" variant="secondary">Cancel</Button>
       </DialogClose>
-      <Button v-if="multiple" class="footer-button" variant="primary" :disabled="selectedIds.size === 0"
-        @click="confirmAdd(allSignals.filter(s => selectedIds.has(s.id)))">
+      <Button
+        v-if="multiple"
+        class="footer-button"
+        variant="primary"
+        :disabled="selectedIds.size === 0"
+        @click="confirmAdd(allSignals.filter((s) => selectedIds.has(s.id)))"
+      >
         Add {{ selectedIds.size || '' }}
       </Button>
     </template>

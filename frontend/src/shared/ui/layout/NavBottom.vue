@@ -12,12 +12,16 @@ const emit = defineEmits<{
       <component :is="moreNavIcon" :size="22" />
       <span class="bottom-nav-label">More</span>
     </button>
-    <RouterLink v-for="item in primaryNavItems" :key="item.label" :to="item.to" class="bottom-nav-item"
-      active-class="active">
+    <RouterLink
+      v-for="item in primaryNavItems"
+      :key="item.label"
+      :to="item.to"
+      class="bottom-nav-item"
+      active-class="active"
+    >
       <component :is="item.icon" :size="22" />
       <span class="bottom-nav-label">{{ item.label }}</span>
     </RouterLink>
-
   </nav>
 </template>
 

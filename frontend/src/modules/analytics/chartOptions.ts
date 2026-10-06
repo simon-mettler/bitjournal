@@ -25,7 +25,10 @@ export function valueTooltip(signal: Signal): EChartsOption['tooltip'] {
   }
 }
 
-export function categoryAxis(data: string[], labelAt?: (index: number) => string): EChartsOption['xAxis'] {
+export function categoryAxis(
+  data: string[],
+  labelAt?: (index: number) => string,
+): EChartsOption['xAxis'] {
   return {
     type: 'category',
     data,

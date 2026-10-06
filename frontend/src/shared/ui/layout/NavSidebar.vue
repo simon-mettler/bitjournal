@@ -8,12 +8,19 @@ import IconButton from '@/shared/ui/components/IconButton.vue'
 const route = useRoute()
 const drawerOpen = ref(false)
 
-watch(() => route.fullPath, () => {
-  drawerOpen.value = false
-})
+watch(
+  () => route.fullPath,
+  () => {
+    drawerOpen.value = false
+  },
+)
 
-function open() { drawerOpen.value = true }
-function close() { drawerOpen.value = false }
+function open() {
+  drawerOpen.value = true
+}
+function close() {
+  drawerOpen.value = false
+}
 
 defineExpose({ open, close })
 </script>

@@ -10,12 +10,12 @@ withDefaults(
     type: 'button',
     variant: 'primary',
     size: 'lg',
-  }
+  },
 )
 </script>
 
 <template>
-  <button :type="type" class="button" :class="variant, size" :disabled="disabled">
+  <button :type="type" class="button" :class="(variant, size)" :disabled="disabled">
     <slot />
   </button>
 </template>

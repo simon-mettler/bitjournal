@@ -10,7 +10,12 @@ import AlertDialog from '@/shared/ui/components/AlertDialog.vue'
 import SignalForm from '@/modules/signals/components/SignalForm.vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
-import { getSignal, updateSignal, deleteSignal, type CreateSignalPayload } from '@/modules/signals/api'
+import {
+  getSignal,
+  updateSignal,
+  deleteSignal,
+  type CreateSignalPayload,
+} from '@/modules/signals/api'
 import type { Signal } from '@/modules/signals/types'
 import { useToast } from '@/shared/lib/useToast'
 
@@ -71,7 +76,11 @@ async function save() {
   if (signal.value.type === 'value') {
     payload.value_config = { unit: signalUnit.value }
   }
-  if (signal.value.type === 'range' && minValue.value !== undefined && maxValue.value !== undefined) {
+  if (
+    signal.value.type === 'range' &&
+    minValue.value !== undefined &&
+    maxValue.value !== undefined
+  ) {
     payload.range_config = {
       min_value: minValue.value,
       max_value: maxValue.value,
@@ -97,7 +106,7 @@ async function save() {
 async function confirmDeleteSignal() {
   try {
     await deleteSignal(signalId)
-    router.push({ name: 'manage-signals' })
+    await router.push({ name: 'manage-signals' })
   } catch (err) {
     console.log(err)
     toaster.toast({ description: 'Could not delete signal.', variant: 'danger' })
@@ -107,13 +116,15 @@ onMounted(load)
 </script>
 
 <template>
-
   <AppShellHeader>
     <Header heading="Edit signal">
       <template #actions>
-        <AlertDialog title="Delete signal" confirm-text="Delete"
+        <AlertDialog
+          title="Delete signal"
+          confirm-text="Delete"
           :description="`Are you sure you want to delete signal &quot;${signalName}&quot;? This can't be undone.`"
-          @confirm="confirmDeleteSignal">
+          @confirm="confirmDeleteSignal"
+        >
           <template #trigger>
             <IconButton class="danger" variant="float" aria-label="Delete signal">
               <Trash2 />
@@ -131,23 +142,31 @@ onMounted(load)
   </AppShellHeader>
 
   <div class="edit-signal-content">
-    <SignalForm v-if="signal" v-model:name="signalName" v-model:color="color" v-model:icon="icon"
-      v-model:unit="signalUnit" v-model:summary-method="selectedSummaryMethod" v-model:min-value="minValue"
-      v-model:max-value="maxValue" v-model:min-label="minLabel" v-model:max-label="maxLabel" :type="signal.type"
-      :errors="errors" lock-type />
+    <SignalForm
+      v-if="signal"
+      v-model:name="signalName"
+      v-model:color="color"
+      v-model:icon="icon"
+      v-model:unit="signalUnit"
+      v-model:summary-method="selectedSummaryMethod"
+      v-model:min-value="minValue"
+      v-model:max-value="maxValue"
+      v-model:min-label="minLabel"
+      v-model:max-label="maxLabel"
+      :type="signal.type"
+      :errors="errors"
+      lock-type
+    />
   </div>
 
   <AppShellFooter>
     <Footer>
-      <Button variant="secondary" @click="router.back()">
-        Cancel
-      </Button>
+      <Button variant="secondary" @click="router.back()"> Cancel </Button>
       <Button variant="primary" :disabled="saving" @click="save">
         {{ saving ? 'Saving...' : 'Save' }}
       </Button>
     </Footer>
   </AppShellFooter>
-
 </template>
 
 <style scoped>
@@ -155,7 +174,7 @@ onMounted(load)
   padding: 0 var(--padding-app);
 }
 
-.danger>svg {
+.danger > svg {
   color: var(--color-danger);
 }
 </style>

@@ -7,10 +7,7 @@ import Footer from '@/shared/ui/components/Footer.vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
 import WidgetForm from '@/modules/analytics/components/WidgetForm.vue'
-import {
-  getAnalyticsWidget,
-  updateAnalyticsWidget,
-} from '@/modules/analytics/api'
+import { getAnalyticsWidget, updateAnalyticsWidget } from '@/modules/analytics/api'
 import {
   defaultWidgetFormState,
   formStateToPayload,

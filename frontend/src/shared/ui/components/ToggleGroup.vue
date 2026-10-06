@@ -13,13 +13,24 @@ defineProps<{
 const model = defineModel<T>({ required: true })
 
 function onUpdate(value: unknown) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed by vue-tsc for generic T
   if (typeof value === 'string' && value) model.value = value as T
 }
 </script>
 
 <template>
-  <ToggleGroupRoot type="single" :model-value="model" class="toggle-group" @update:model-value="onUpdate">
-    <ToggleGroupItem v-for="option in options" :key="option.value" :value="option.value" class="toggle-group-item">
+  <ToggleGroupRoot
+    type="single"
+    :model-value="model"
+    class="toggle-group"
+    @update:model-value="onUpdate"
+  >
+    <ToggleGroupItem
+      v-for="option in options"
+      :key="option.value"
+      :value="option.value"
+      class="toggle-group-item"
+    >
       {{ option.label }}
     </ToggleGroupItem>
   </ToggleGroupRoot>

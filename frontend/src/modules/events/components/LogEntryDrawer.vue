@@ -38,23 +38,26 @@ function initialize() {
   numberValue.value = props.initialValue ?? 0
   rangeValue.value = props.initialValue ?? defaultRange.value
 
-  const [h = 0, m = 0, s = 0] =
-    props.initialDuration?.split(':').map(Number) ?? []
+  const [h = 0, m = 0, s = 0] = props.initialDuration?.split(':').map(Number) ?? []
 
   hours.value = h
   minutes.value = m
   seconds.value = s
 }
 
-watch(open, (isOpen) => {
-  if (isOpen) {
-    initialize()
-  }
-}, { immediate: true })
+watch(
+  open,
+  (isOpen) => {
+    if (isOpen) {
+      initialize()
+    }
+  },
+  { immediate: true },
+)
 
 const duration = computed(() =>
   [hours.value, minutes.value, seconds.value]
-    .map(value => String(value).padStart(2, '0'))
+    .map((value) => String(value).padStart(2, '0'))
     .join(':'),
 )
 
@@ -93,27 +96,36 @@ function submit() {
       <component :is="icon" :size="24" :style="{ color: signal.color }" />
     </template>
 
-    <InputNumber v-if="signal.type === 'value'" v-model="numberValue" :label="signal.value_config?.unit ?? ''" />
+    <InputNumber
+      v-if="signal.type === 'value'"
+      v-model="numberValue"
+      :label="signal.value_config?.unit ?? ''"
+    />
 
-    <RangeSlider v-else-if="signal.type === 'range'" v-model="rangeValue" :min="signal.range_config?.min_value ?? 0"
-      :max="signal.range_config?.max_value ?? 100" :min-label="signal.range_config?.min_label"
-      :max-label="signal.range_config?.max_label" />
+    <RangeSlider
+      v-else-if="signal.type === 'range'"
+      v-model="rangeValue"
+      :min="signal.range_config?.min_value ?? 0"
+      :max="signal.range_config?.max_value ?? 100"
+      :min-label="signal.range_config?.min_label"
+      :max-label="signal.range_config?.max_label"
+    />
 
-    <DurationInput v-else-if="signal.type === 'duration'" v-model:hours="hours" v-model:minutes="minutes"
-      v-model:seconds="seconds" :numpad="numpad" />
+    <DurationInput
+      v-else-if="signal.type === 'duration'"
+      v-model:hours="hours"
+      v-model:minutes="minutes"
+      v-model:seconds="seconds"
+      :numpad="numpad"
+    />
 
-    <p v-else class="tally-note">
-      Tap add to log this.
-    </p>
+    <p v-else class="tally-note">Tap add to log this.</p>
 
     <NumberPad v-if="numpad && signal.type === 'value'" enable-decimal enable-sign />
 
     <template #footer>
       <div class="footer">
-
-        <Button variant="secondary" @click="open = false">
-          Cancel
-        </Button>
+        <Button variant="secondary" @click="open = false"> Cancel </Button>
 
         <Button variant="primary" @click="submit">
           <template #icon>
@@ -122,10 +134,8 @@ function submit() {
           </template>
           {{ editing ? 'Save' : 'Add' }}
         </Button>
-
       </div>
     </template>
-
   </Drawer>
 </template>
 

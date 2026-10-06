@@ -51,14 +51,21 @@ export function formatStatValue(signal: Signal, value: number): string {
   return `${roundTo2(value)}${unit}`
 }
 
-const SHIFT_BY_TIMEFRAME: Record<Timeframe, { unit: 'weeks' | 'months' | 'years'; amount: number }> = {
+const SHIFT_BY_TIMEFRAME: Record<
+  Timeframe,
+  { unit: 'weeks' | 'months' | 'years'; amount: number }
+> = {
   week: { unit: 'weeks', amount: 1 },
   month: { unit: 'months', amount: 1 },
   quarter: { unit: 'months', amount: 3 },
   year: { unit: 'years', amount: 1 },
 }
 
-export function shiftPeriod(date: CalendarDate, timeframe: Timeframe, direction: 1 | -1): CalendarDate {
+export function shiftPeriod(
+  date: CalendarDate,
+  timeframe: Timeframe,
+  direction: 1 | -1,
+): CalendarDate {
   const { unit, amount } = SHIFT_BY_TIMEFRAME[timeframe]
   return date.add({ [unit]: amount * direction })
 }
@@ -85,7 +92,11 @@ export function formatPeriodRange(period: SignalStatsPeriod): string {
     case 'week':
     default: {
       const startFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' })
-      const endFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+      const endFmt = new Intl.DateTimeFormat(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
       return `${startFmt.format(start)} - ${endFmt.format(endInclusive)}`
     }
   }

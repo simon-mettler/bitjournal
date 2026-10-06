@@ -20,17 +20,17 @@ async function loadSignals() {
   try {
     const { data } = await getSignals()
     signals.value = data
-  } catch (e) {
+  } catch {
     errorLoad.value = 'Faild to load signals.'
   }
 }
 
 function openSignal(signal: Signal) {
-  router.push({ name: 'signal-edit', params: { id: signal.id } })
+  void router.push({ name: 'signal-edit', params: { id: signal.id } })
 }
 
 const signalsWithIcon = computed(() =>
-  filteredSignals.value.map(signal => ({
+  filteredSignals.value.map((signal) => ({
     ...signal,
     iconComponent: resolveIcon(signal.icon),
   })),
@@ -39,11 +39,11 @@ const signalsWithIcon = computed(() =>
 const filteredSignals = computed(() => {
   const query = search.value.trim().toLowerCase()
   if (!query) return signals.value
-  return signals.value.filter(signal => signal.name.toLowerCase().includes(query))
+  return signals.value.filter((signal) => signal.name.toLowerCase().includes(query))
 })
 
 function addSignal() {
-  router.push({ name: 'signal-add' })
+  void router.push({ name: 'signal-add' })
 }
 
 onMounted(loadSignals)
@@ -51,8 +51,7 @@ onMounted(loadSignals)
 
 <template>
   <AppShellHeader>
-    <Header heading="Manage signals">
-    </Header>
+    <Header heading="Manage signals"> </Header>
   </AppShellHeader>
 
   <AppShellFooter>
@@ -65,7 +64,12 @@ onMounted(loadSignals)
     <InputText v-model="search" placeholder="Search signals..." />
 
     <ul class="signal-list">
-      <li v-for="signal in signalsWithIcon" :key="signal.id" class="signal-row" @click="openSignal(signal)">
+      <li
+        v-for="signal in signalsWithIcon"
+        :key="signal.id"
+        class="signal-row"
+        @click="openSignal(signal)"
+      >
         <span class="signal-icon" :style="{ color: signal.color }">
           <component :is="signal.iconComponent" v-if="signal.iconComponent" />
         </span>
@@ -78,12 +82,9 @@ onMounted(loadSignals)
         <ChevronRight :size="20" class="board-chevron" />
       </li>
 
-      <li v-if="filteredSignals.length === 0" class="empty-state">
-        No signals found.
-      </li>
+      <li v-if="filteredSignals.length === 0" class="empty-state">No signals found.</li>
     </ul>
   </div>
-
 </template>
 
 <style scoped>

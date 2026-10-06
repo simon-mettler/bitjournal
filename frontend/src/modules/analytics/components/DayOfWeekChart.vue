@@ -2,7 +2,12 @@
 import { computed } from 'vue'
 import Chart from '@/shared/ui/components/Chart.vue'
 import { signalColor } from '@/modules/analytics/chartColors'
-import { DAY_LABELS, categoryAxis, valueTooltip, valueYAxis } from '@/modules/analytics/chartOptions'
+import {
+  DAY_LABELS,
+  categoryAxis,
+  valueTooltip,
+  valueYAxis,
+} from '@/modules/analytics/chartOptions'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
 import type { SignalStatsDayOfWeekPoint } from '@/modules/analytics/types'
@@ -19,7 +24,14 @@ const values = computed(() => {
 
 const option = computed<EChartsOption>(() => ({
   tooltip: valueTooltip(props.signal),
-  grid: { left: 0, right: 16, top: 16, bottom: 0, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
+  grid: {
+    left: 0,
+    right: 16,
+    top: 16,
+    bottom: 0,
+    outerBoundsMode: 'same',
+    outerBoundsContain: 'axisLabel',
+  },
   xAxis: categoryAxis(DAY_LABELS),
   yAxis: valueYAxis(props.signal, values.value),
   series: [

@@ -37,11 +37,11 @@ export function provideNumpadGroup(enabled: boolean): NumpadGroup {
   let buffer = ''
 
   function activeField(): NumpadField | undefined {
-    return fields.find(f => f.id === activeId.value)
+    return fields.find((f) => f.id === activeId.value)
   }
 
   function currentIndex() {
-    return fields.findIndex(f => f.id === activeId.value)
+    return fields.findIndex((f) => f.id === activeId.value)
   }
 
   function register(field: NumpadField) {
@@ -52,7 +52,7 @@ export function provideNumpadGroup(enabled: boolean): NumpadGroup {
   }
 
   function unregister(id: string) {
-    const i = fields.findIndex(f => f.id === id)
+    const i = fields.findIndex((f) => f.id === id)
     if (i !== -1) fields.splice(i, 1)
     if (activeId.value === id) {
       activeId.value = fields[0]?.id ?? null
@@ -91,7 +91,7 @@ export function provideNumpadGroup(enabled: boolean): NumpadGroup {
   }
 
   function enterDigit(digit: number) {
-    withActiveField(field => {
+    withActiveField((field) => {
       if (freshEntry) {
         buffer = ''
         freshEntry = false
@@ -109,14 +109,16 @@ export function provideNumpadGroup(enabled: boolean): NumpadGroup {
       buffer += String(digit)
       commitBuffer(field)
 
-      const nowFull = field.maxLength && !buffer.includes('.') &&
+      const nowFull =
+        field.maxLength &&
+        !buffer.includes('.') &&
         buffer.replace('-', '').length >= field.maxLength
       if (nowFull && fields.length > 1) next()
     })
   }
 
   function enterDot() {
-    withActiveField(field => {
+    withActiveField((field) => {
       if (buffer.includes('.')) return
 
       if (freshEntry) {
@@ -130,7 +132,7 @@ export function provideNumpadGroup(enabled: boolean): NumpadGroup {
   }
 
   function toggleSign() {
-    withActiveField(field => {
+    withActiveField((field) => {
       if (freshEntry) {
         buffer = String(field.value.value ?? 0)
         freshEntry = false
@@ -142,7 +144,7 @@ export function provideNumpadGroup(enabled: boolean): NumpadGroup {
   }
 
   function backspace() {
-    withActiveField(field => {
+    withActiveField((field) => {
       if (freshEntry || buffer === '') {
         field.value.value = field.min ?? 0
         buffer = ''

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from 'reka-ui'
 
-const props = defineProps<{
+defineProps<{
   min: number
   max: number
   minLabel?: string
@@ -24,8 +24,15 @@ const sliderValue = computed<number[]>({
   <div class="range-slider">
     <div class="range-slider-value">{{ model }}</div>
 
-    <SliderRoot v-model="sliderValue" @pointerdown.stop @touchstart.stop class="range-slider-root" :min="min" :max="max"
-      :step="1">
+    <SliderRoot
+      v-model="sliderValue"
+      class="range-slider-root"
+      :min="min"
+      :max="max"
+      :step="1"
+      @pointerdown.stop
+      @touchstart.stop
+    >
       <SliderTrack class="range-slider-track">
         <SliderRange class="range-slider-range" />
       </SliderTrack>

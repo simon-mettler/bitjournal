@@ -19,7 +19,14 @@ const id = useId()
     <Label v-if="label" class="label" :for="id">
       {{ label }}
     </Label>
-    <input :id="id" class="input" :type="type" :placeholder="placeholder" v-model="model" v-bind="$attrs">
+    <input
+      :id="id"
+      v-model="model"
+      class="input"
+      :type="type"
+      :placeholder="placeholder"
+      v-bind="$attrs"
+    />
     <p v-if="error" class="error-text">{{ error }}</p>
   </div>
 </template>

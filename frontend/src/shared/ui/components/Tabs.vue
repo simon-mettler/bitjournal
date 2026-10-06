@@ -34,7 +34,7 @@ const model = defineModel<string>({ required: true })
   overflow-x: auto;
   scrollbar-width: none;
 
-  &>:first-child {
+  & > :first-child {
     margin-left: 16px;
   }
 }
@@ -48,7 +48,7 @@ const model = defineModel<string>({ required: true })
   flex-shrink: 0;
   padding: 8px 16px;
   border-radius: var(--radius-xl);
-  border: 1px solid #62656B;
+  border: 1px solid #62656b;
   font-size: var(--font-size-sm);
   color: var(--input-color-text);
   cursor: pointer;

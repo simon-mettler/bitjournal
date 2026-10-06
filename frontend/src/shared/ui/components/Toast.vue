@@ -23,14 +23,20 @@ function handleOpenChange(id: number, open: boolean) {
 
 <template>
   <ToastProvider swipe-direction="right">
-    <ToastRoot v-for="item in toasts" :key="item.id" class="toast-root" :class="item.variant" :duration="item.duration"
+    <ToastRoot
+      v-for="item in toasts"
+      :key="item.id"
+      class="toast-root"
+      :class="item.variant"
+      :duration="item.duration"
       :type="item.variant === 'danger' ? 'foreground' : 'background'"
-      @update:open="(open) => handleOpenChange(item.id, open)">
+      @update:open="(open) => handleOpenChange(item.id, open)"
+    >
       <div class="toast-icon">
-        <Lightbulb :size="20" v-if="item.variant == 'info'" />
-        <Check :size="20" v-if="item.variant == 'success'" />
-        <Flag :size="20" v-if="item.variant == 'warn'" />
-        <X :size="20" v-if="item.variant == 'danger'" />
+        <Lightbulb v-if="item.variant == 'info'" :size="20" />
+        <Check v-if="item.variant == 'success'" :size="20" />
+        <Flag v-if="item.variant == 'warn'" :size="20" />
+        <X v-if="item.variant == 'danger'" :size="20" />
       </div>
       <ToastTitle v-if="item.title" class="toast-title">
         {{ item.title }}
@@ -39,7 +45,11 @@ function handleOpenChange(id: number, open: boolean) {
         {{ item.description }}
       </ToastDescription>
 
-      <ToastAction v-if="item.onAction" as-child :alt-text="item.actionAltText ?? item.actionLabel ?? 'Action'">
+      <ToastAction
+        v-if="item.onAction"
+        as-child
+        :alt-text="item.actionAltText ?? item.actionLabel ?? 'Action'"
+      >
         <button type="button" class="toast-action" @click="item.onAction?.()">
           {{ item.actionLabel }}
         </button>
@@ -88,12 +98,9 @@ function handleOpenChange(id: number, open: boolean) {
 }
 
 .toast-root:not(:has(.toast-title)) {
-  grid-template-areas:
-    'icon desc action close';
+  grid-template-areas: 'icon desc action close';
   grid-template-rows: auto;
 }
-
-
 
 .toast-icon {
   grid-area: icon;
@@ -104,11 +111,10 @@ function handleOpenChange(id: number, open: boolean) {
   height: 30px;
   border-radius: 40px;
 
-  &>svg {
+  & > svg {
     color: white;
   }
 }
-
 
 .info {
   &.toast-root {
@@ -144,7 +150,6 @@ function handleOpenChange(id: number, open: boolean) {
 }
 
 .danger {
-
   &.toast-root {
     border: 1px solid var(--color-danger);
     background-color: var(--color-danger-bg);
@@ -191,24 +196,24 @@ function handleOpenChange(id: number, open: boolean) {
   color: var(--color-text);
 }
 
-.toast-root[data-state="open"] {
+.toast-root[data-state='open'] {
   animation: toast-in 200ms ease-out;
 }
 
-.toast-root[data-state="closed"] {
+.toast-root[data-state='closed'] {
   animation: toast-out 200ms ease-in;
 }
 
-.toast-root[data-swipe="move"] {
+.toast-root[data-swipe='move'] {
   transform: translateX(var(--reka-toast-swipe-move-x));
 }
 
-.toast-root[data-swipe="cancel"] {
+.toast-root[data-swipe='cancel'] {
   transform: translateX(0);
   transition: transform 200ms ease-out;
 }
 
-.toast-root[data-swipe="end"] {
+.toast-root[data-swipe='end'] {
   animation: toast-swipe-out 150ms ease-out;
 }
 
@@ -245,9 +250,8 @@ function handleOpenChange(id: number, open: boolean) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .toast-root[data-state],
-  .toast-root[data-swipe="end"] {
+  .toast-root[data-swipe='end'] {
     animation: none;
   }
 }

@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <div :class="{ 'scrolled': !arrivedState.top }" class="header">
+  <div :class="{ scrolled: !arrivedState.top }" class="header">
     <div class="header-heading">
       <h1>{{ heading }}</h1>
       <div class="header-actions">
@@ -19,7 +19,6 @@ defineProps<{
       <slot name="content" />
     </div>
   </div>
-
 </template>
 
 <style scoped>

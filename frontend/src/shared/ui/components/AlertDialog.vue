@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from '@/shared/ui/components/Button.vue';
+import Button from '@/shared/ui/components/Button.vue'
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -66,7 +66,9 @@ const open = defineModel<boolean>('open', { default: false })
 .dialog-content {
   background-color: var(--dialog-color-background);
   border-radius: var(--dialog-radius);
-  box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+  box-shadow:
+    hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
+    hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
   position: fixed;
   top: 50%;
   left: 50%;

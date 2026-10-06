@@ -8,7 +8,6 @@ import router from './router'
 import { useAuthStore } from '@/modules/authentication/store'
 import { setupApiInterceptors } from '@/shared/api'
 
-
 const app = createApp(App)
 const pinia = createPinia()
 
@@ -17,6 +16,6 @@ app.use(router)
 
 setupApiInterceptors()
 
-const auth = useAuthStore()
+useAuthStore()
 
 app.mount('#app')

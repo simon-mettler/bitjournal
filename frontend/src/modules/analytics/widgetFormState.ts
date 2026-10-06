@@ -42,7 +42,10 @@ export function widgetToFormState(widget: AnalyticsWidget): WidgetFormState {
 }
 
 // Caller makes sure a signal is selected (form validation).
-export function formStateToPayload(state: WidgetFormState, signalId: string): AnalyticsWidgetPayload {
+export function formStateToPayload(
+  state: WidgetFormState,
+  signalId: string,
+): AnalyticsWidgetPayload {
   return {
     type: state.type,
     title: state.title.trim(),

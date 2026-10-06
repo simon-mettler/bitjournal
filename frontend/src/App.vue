@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Toast from '@/shared/ui/components/Toast.vue'
 import AppShell from '@/shared/ui/layout/AppShell.vue'
-import { useViewportHeight } from './shared/lib/useViewportHeight';
+import { useViewportHeight } from './shared/lib/useViewportHeight'
 import { watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/authentication/store'
@@ -11,30 +11,36 @@ useViewportHeight()
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
-watch(() => auth.isAuthenticated, (authenticated) => {
-  if (!authenticated && !route.matched.some((r) => r.meta.public)) router.push({ name: 'login' })
-})
+watch(
+  () => auth.isAuthenticated,
+  (authenticated) => {
+    if (!authenticated && !route.matched.some((r) => r.meta.public))
+      void router.push({ name: 'login' })
+  },
+)
 </script>
 
-
 <template>
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap"
-    rel="stylesheet">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet"
+  />
 
   <Toast />
   <AppShell />
 </template>
 
-
 <style>
 body {
   background-color: var(--color-app-bg);
   margin: 0px;
-  font-family: "Work sans", sans-serif;
+  font-family: 'Work sans', sans-serif;
 }
 
 :focus-visible {

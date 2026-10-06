@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'reka-ui'
+import type { Component } from 'vue'
 import { Check } from '@lucide/vue'
 
 export interface DropdownMenuOption {
@@ -16,7 +17,7 @@ export interface DropdownMenuOption {
   label?: string
   value?: string
   disabled?: boolean
-  icon?: any
+  icon?: Component
   onSelect?: () => void
 }
 
@@ -41,8 +42,7 @@ const emit = defineEmits<{
 }>()
 
 function handleSelect(option: DropdownMenuOption) {
-  if (option.disabled)
-    return
+  if (option.disabled) return
   option.onSelect?.()
   emit('select', option.value, option)
   emit('update:modelValue', option.value)
@@ -56,8 +56,12 @@ function handleSelect(option: DropdownMenuOption) {
     </DropdownMenuTrigger>
 
     <DropdownMenuPortal>
-      <DropdownMenuContent class="dropdown-content" :align="props.align" :side="props.side"
-        :side-offset="props.sideOffset">
+      <DropdownMenuContent
+        class="dropdown-content"
+        :align="props.align"
+        :side="props.side"
+        :side-offset="props.sideOffset"
+      >
         <template v-for="(option, index) in props.options" :key="option.value ?? index">
           <DropdownMenuSeparator v-if="option.type === 'separator'" class="dropdown-separator" />
 
@@ -65,9 +69,16 @@ function handleSelect(option: DropdownMenuOption) {
             {{ option.label }}
           </DropdownMenuLabel>
 
-          <DropdownMenuItem v-else class="dropdown-item"
-            :class="{ 'dropdown-item--checked': option.value !== undefined && option.value === props.modelValue }"
-            :disabled="option.disabled" @select="handleSelect(option)">
+          <DropdownMenuItem
+            v-else
+            class="dropdown-item"
+            :class="{
+              'dropdown-item--checked':
+                option.value !== undefined && option.value === props.modelValue,
+            }"
+            :disabled="option.disabled"
+            @select="handleSelect(option)"
+          >
             <DropdownMenuItemIndicator class="dropdown-item-indicator">
               <Check :size="14" />
             </DropdownMenuItemIndicator>
@@ -89,7 +100,11 @@ function handleSelect(option: DropdownMenuOption) {
   padding: 5px;
   border-radius: var(--input-radius, 8px);
   border: var(--input-border, 1px solid #e2e2e2);
-  box-shadow: var(--shadow-md, 0 10px 38px -10px rgba(22, 23, 24, 0.35), 0 10px 20px -15px rgba(22, 23, 24, 0.2));
+  box-shadow: var(
+    --shadow-md,
+    0 10px 38px -10px rgba(22, 23, 24, 0.35),
+    0 10px 20px -15px rgba(22, 23, 24, 0.2)
+  );
   background-color: var(--color-surface, #ffffff);
   animation-duration: 500ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);

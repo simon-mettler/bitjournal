@@ -1,13 +1,7 @@
 import { api } from '@/shared/api'
-import type {
-  Signal,
-  SignalCategory,
-} from './types'
+import type { Signal, SignalCategory } from './types'
 
-export type CreateSignalPayload = Omit<
-  Signal,
-  'id' | 'created_at' | 'updated_at' | 'is_archived'
->
+export type CreateSignalPayload = Omit<Signal, 'id' | 'created_at' | 'updated_at' | 'is_archived'>
 
 // Can't change type after creation
 export type UpdateSignalPayload = Partial<Omit<CreateSignalPayload, 'type'>>

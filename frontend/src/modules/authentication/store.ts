@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
-import { api } from '@/shared/api';
+import { api } from '@/shared/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    accessToken: '' as string,
+    accessToken: '',
     initialized: false,
   }),
 

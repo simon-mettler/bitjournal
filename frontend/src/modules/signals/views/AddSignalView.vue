@@ -56,7 +56,11 @@ async function submitSignal() {
   if (selectedSignalType.value === 'value') {
     payload.value_config = { unit: signalUnit.value }
   }
-  if (selectedSignalType.value === 'range' && minValue.value !== undefined && maxValue.value !== undefined) {
+  if (
+    selectedSignalType.value === 'range' &&
+    minValue.value !== undefined &&
+    maxValue.value !== undefined
+  ) {
     payload.range_config = {
       min_value: minValue.value,
       max_value: maxValue.value,
@@ -73,7 +77,7 @@ async function submitSignal() {
     resetForm()
     const boardId = route.query.boardId
     if (typeof boardId === 'string') {
-      router.replace({ name: 'track', query: { boardId, addSignalId: data.id } })
+      await router.replace({ name: 'track', query: { boardId, addSignalId: data.id } })
     } else {
       router.back()
     }
@@ -91,10 +95,20 @@ async function submitSignal() {
   </AppShellHeader>
 
   <div class="add-signal-content">
-    <SignalForm ref="signalFormRef" v-model:name="signalName" v-model:color="color" v-model:icon="icon"
-      v-model:unit="signalUnit" v-model:type="selectedSignalType" v-model:summary-method="selectedSummaryMethod"
-      v-model:min-value="minValue" v-model:max-value="maxValue" v-model:min-label="minLabel"
-      v-model:max-label="maxLabel" :errors="errors" />
+    <SignalForm
+      ref="signalFormRef"
+      v-model:name="signalName"
+      v-model:color="color"
+      v-model:icon="icon"
+      v-model:unit="signalUnit"
+      v-model:type="selectedSignalType"
+      v-model:summary-method="selectedSummaryMethod"
+      v-model:min-value="minValue"
+      v-model:max-value="maxValue"
+      v-model:min-label="minLabel"
+      v-model:max-label="maxLabel"
+      :errors="errors"
+    />
   </div>
   <AppShellFooter>
     <Footer>

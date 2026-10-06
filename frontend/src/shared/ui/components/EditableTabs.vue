@@ -37,7 +37,11 @@ useSortableList(listEl, list, {
   delay: 200,
   delayOnTouchOnly: true,
   touchStartThreshold: 5,
-  onSorted: () => emit('reorder', list.value.map((i) => i.value)),
+  onSorted: () =>
+    emit(
+      'reorder',
+      list.value.map((i) => i.value),
+    ),
 })
 
 function move(id: string, offset: -1 | 1) {
@@ -54,10 +58,20 @@ function menuOptions(item: TabItem, index: number): DropdownMenuOption[] {
     { label: 'Rename', value: 'rename', icon: Pencil, onSelect: () => emit('rename', item.value) },
   ]
   if (index > 0) {
-    options.push({ label: 'Move left', value: 'left', icon: ArrowLeft, onSelect: () => move(item.value, -1) })
+    options.push({
+      label: 'Move left',
+      value: 'left',
+      icon: ArrowLeft,
+      onSelect: () => move(item.value, -1),
+    })
   }
   if (index < props.items.length - 1) {
-    options.push({ label: 'Move right', value: 'right', icon: ArrowRight, onSelect: () => move(item.value, 1) })
+    options.push({
+      label: 'Move right',
+      value: 'right',
+      icon: ArrowRight,
+      onSelect: () => move(item.value, 1),
+    })
   }
   options.push(
     { type: 'separator' },
@@ -71,20 +85,41 @@ function menuOptions(item: TabItem, index: number): DropdownMenuOption[] {
   <Tabs v-if="!editing" v-model="model" :items="allItems" />
 
   <div v-else class="edit-tabs">
-    <button v-for="item in pinned" :key="item.value" type="button" class="chip"
-      :class="{ active: model === item.value }" :aria-pressed="model === item.value" @click="model = item.value">
+    <button
+      v-for="item in pinned"
+      :key="item.value"
+      type="button"
+      class="chip"
+      :class="{ active: model === item.value }"
+      :aria-pressed="model === item.value"
+      @click="model = item.value"
+    >
       {{ item.label }}
     </button>
 
     <div ref="listEl" class="edit-tabs-list">
-      <div v-for="(item, index) in list" :key="item.value" class="chip editable"
-        :class="{ active: model === item.value }">
-        <button type="button" class="chip-label" :aria-pressed="model === item.value" @click="model = item.value">
+      <div
+        v-for="(item, index) in list"
+        :key="item.value"
+        class="chip editable"
+        :class="{ active: model === item.value }"
+      >
+        <button
+          type="button"
+          class="chip-label"
+          :aria-pressed="model === item.value"
+          @click="model = item.value"
+        >
           {{ item.label }}
         </button>
         <DropdownMenu v-if="model === item.value" :options="menuOptions(item, index)" align="start">
           <template #trigger>
-            <IconButton variant="tertiary" size="sm" class="chip-menu" :aria-label="`Options for ${item.label}`">
+            <IconButton
+              variant="tertiary"
+              size="sm"
+              class="chip-menu"
+              :aria-label="`Options for ${item.label}`"
+            >
               <MoreVertical :size="16" />
             </IconButton>
           </template>
@@ -127,7 +162,7 @@ function menuOptions(item: TabItem, index: number): DropdownMenuOption[] {
   flex-shrink: 0;
   padding: 8px 16px;
   border-radius: var(--radius-xl);
-  border: 1px solid #62656B;
+  border: 1px solid #62656b;
   font-size: var(--font-size-sm);
   color: var(--input-color-text);
   white-space: nowrap;

@@ -9,7 +9,7 @@ import { APP_SHELL_HEADER_ID, APP_SHELL_FOOTER_ID } from '@/shared/lib/appShellS
 
 const route = useRoute()
 const contentRef = ref<HTMLElement | null>(null)
-const sidebar = ref<InstanceType<typeof NavSidebar> | null>(null)
+const sidebar = ref<{ open: () => void } | null>(null)
 const scroll = useScroll(contentRef)
 provide(SCROLL_KEY, scroll)
 </script>
@@ -43,10 +43,10 @@ provide(SCROLL_KEY, scroll)
 .app-shell-main {
   display: grid;
   grid-template-areas:
-    "header"
-    "content"
-    "footer"
-    "bottom-nav";
+    'header'
+    'content'
+    'footer'
+    'bottom-nav';
   grid-template-rows: auto minmax(0, 1fr) auto auto;
   flex: 1;
   min-width: 0;

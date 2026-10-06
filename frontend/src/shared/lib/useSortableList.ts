@@ -18,11 +18,10 @@ export function useSortableList<T>(
     watchElement: true, // the element may be rendered conditionally
     disabled: enabled ? !enabled.value : false,
     ...options,
-    onEnd: async () => {
-      await nextTick()
-      onSorted()
+    onEnd: () => {
+      void nextTick().then(onSorted)
     },
-  } as UseSortableOptions)
+  })
 
   if (enabled) watch(enabled, (on) => sortable.option('disabled', !on))
   return sortable

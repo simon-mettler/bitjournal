@@ -16,12 +16,7 @@ import {
   SelectViewport,
 } from 'reka-ui'
 
-import {
-  ChevronDown,
-  ChevronsDown,
-  ChevronsUp,
-  Check,
-} from '@lucide/vue'
+import { ChevronDown, ChevronsDown, ChevronsUp, Check } from '@lucide/vue'
 export interface SelectOption {
   value: string
   label: string
@@ -62,8 +57,13 @@ const id = useId()
           </SelectScrollUpButton>
 
           <SelectViewport class="select-viewport">
-            <SelectItem v-for="option in props.options" :key="option.value" class="select-item" :value="option.value"
-              :disabled="option.disabled">
+            <SelectItem
+              v-for="option in props.options"
+              :key="option.value"
+              class="select-item"
+              :value="option.value"
+              :disabled="option.disabled"
+            >
               <SelectItemText>{{ option.label }}</SelectItemText>
               <SelectItemIndicator class="select-item-indicator">
                 <Check />
@@ -161,7 +161,7 @@ button {
   }
 }
 
-.select-trigger.float[data-state="open"] {
+.select-trigger.float[data-state='open'] {
   border: 2px solid transparent;
 }
 
@@ -181,7 +181,7 @@ button {
   color: var(--input-color-placeholder);
 }
 
-.select-trigger[data-state="open"] {
+.select-trigger[data-state='open'] {
   border: var(--input-border-focus);
 }
 

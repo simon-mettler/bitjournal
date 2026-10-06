@@ -22,7 +22,7 @@ async function handleSubmit() {
   loading.value = true
   try {
     await auth.login({ email: email.value, password: password.value })
-    router.push({ name: 'track' })
+    await router.push({ name: 'track' })
   } catch (err) {
     if (isAxiosError(err)) {
       error.value = err.response?.data?.detail || 'Login failed'
@@ -58,7 +58,7 @@ form {
   padding: var(--padding-app);
 }
 
-form>button {
+form > button {
   margin-top: 16px;
 }
 

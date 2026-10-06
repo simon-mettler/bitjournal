@@ -5,7 +5,6 @@ import { useAuthStore } from '@/modules/authentication/store'
 
 const auth = useAuthStore()
 const emit = defineEmits<{ navigate: [] }>()
-
 </script>
 
 <template>
@@ -14,7 +13,12 @@ const emit = defineEmits<{ navigate: [] }>()
       <p class="nav-content-group-label">{{ group.label }}</p>
       <ul class="nav-content-section">
         <li v-for="item in group.items" :key="item.label">
-          <RouterLink :to="item.to" class="nav-content-item" active-class="active" @click="emit('navigate')">
+          <RouterLink
+            :to="item.to"
+            class="nav-content-item"
+            active-class="active"
+            @click="emit('navigate')"
+          >
             <component :is="item.icon" :size="20" />
             <span>{{ item.label }}</span>
           </RouterLink>

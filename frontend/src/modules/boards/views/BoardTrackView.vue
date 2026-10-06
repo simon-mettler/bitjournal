@@ -15,7 +15,13 @@ import DropdownMenu from '@/shared/ui/components/DropdownMenu.vue'
 import type { DropdownMenuOption } from '@/shared/ui/components/DropdownMenu.vue'
 import LogEntryDrawer from '@/modules/events/components/LogEntryDrawer.vue'
 import EventDraftBar from '@/modules/events/components/EventDraftBar.vue'
-import { createBoard, deleteBoard, getBoards, reorderBoards, updateBoard } from '@/modules/boards/api'
+import {
+  createBoard,
+  deleteBoard,
+  getBoards,
+  reorderBoards,
+  updateBoard,
+} from '@/modules/boards/api'
 import { getSignals } from '@/modules/signals/api'
 import { useToast } from '@/shared/lib/useToast'
 import { enqueueBoardWrite } from '@/shared/lib/boardWriteQueue'
@@ -25,7 +31,15 @@ import { resolveIcon } from '@/shared/lib/iconRegistry'
 import type { Board } from '@/modules/boards/types'
 import type { Signal } from '@/modules/signals/types'
 import type { DraftEntry } from '@/modules/events/types'
-import { now, getLocalTimeZone, ZonedDateTime, toCalendarDate, toTime, type DateValue, fromDate } from '@internationalized/date'
+import {
+  now,
+  getLocalTimeZone,
+  ZonedDateTime,
+  toCalendarDate,
+  toTime,
+  type DateValue,
+  fromDate,
+} from '@internationalized/date'
 import type { TimeValue } from 'reka-ui'
 
 const route = useRoute()
@@ -56,7 +70,7 @@ const draftDate = computed<DateValue>({
       month: newDate.month,
       day: newDate.day,
     })
-  }
+  },
 })
 
 const draftTime = computed<TimeValue>({
@@ -84,7 +98,7 @@ const activeSignals = computed<Signal[]>(() => {
   if (activeTab.value === ALL_TAB) {
     return signals.value
   }
-  const board = boards.value.find(board => board.id === activeTab.value)
+  const board = boards.value.find((board) => board.id === activeTab.value)
   return board ? board.board_signals.map((bs) => bs.signal) : []
 })
 
@@ -98,7 +112,8 @@ async function load() {
     boards.value = boardsData
     signals.value = signalsData
 
-    const stillExists = activeTab.value === ALL_TAB || boards.value.some(b => b.id === activeTab.value)
+    const stillExists =
+      activeTab.value === ALL_TAB || boards.value.some((b) => b.id === activeTab.value)
     if (!stillExists) {
       activeTab.value = ALL_TAB
     }
@@ -202,7 +217,8 @@ const signalIds = (board: Board) => signalsOf(board).map((s) => s.id)
 
 const boardApi = {
   create: async (name: string) => (await createBoard({ name })).data,
-  rename: (board: Board, name: string) => updateBoard(board.id, { name, signal_ids: signalIds(board) }),
+  rename: (board: Board, name: string) =>
+    updateBoard(board.id, { name, signal_ids: signalIds(board) }),
   remove: (board: Board) => deleteBoard(board.id),
   reorder: (ids: string[]) => reorderBoards({ board_ids: ids }),
   reload: load,
@@ -220,9 +236,11 @@ const boardSignals = computed<Signal[]>({
 })
 
 function persistSignals(board: Board) {
-  enqueueBoardWrite(() => updateBoard(board.id, { name: board.name, signal_ids: signalIds(board) })).catch(() => {
+  enqueueBoardWrite(() =>
+    updateBoard(board.id, { name: board.name, signal_ids: signalIds(board) }),
+  ).catch(() => {
     toaster.toast({ description: 'Could not save board.', variant: 'danger' })
-    load()
+    void load()
   })
 }
 
@@ -243,7 +261,10 @@ function onRemoveSignalFromBoard(signal: Signal) {
   const board = activeBoard.value
   if (!board) return
   const index = boardSignals.value.findIndex((s) => s.id === signal.id)
-  setBoardSignals(board, boardSignals.value.filter((s) => s.id !== signal.id))
+  setBoardSignals(
+    board,
+    boardSignals.value.filter((s) => s.id !== signal.id),
+  )
   persistSignals(board)
   toaster.toast({
     description: `Removed "${signal.name}" from ${board.name}.`,
@@ -259,14 +280,14 @@ function onRemoveSignalFromBoard(signal: Signal) {
 
 function onCreateSignalForBoard() {
   if (!activeBoard.value) return
-  router.push({ name: 'signal-add', query: { boardId: activeBoard.value.id } })
+  void router.push({ name: 'signal-add', query: { boardId: activeBoard.value.id } })
 }
 
 // Add newly created signal to board.
 function addCreatedSignalFromRoute() {
   const { boardId, addSignalId } = route.query
   if (typeof boardId !== 'string' || typeof addSignalId !== 'string') return
-  router.replace({ name: route.name!, params: route.params })
+  void router.replace({ name: route.name!, params: route.params })
 
   const board = boards.value.find((b) => b.id === boardId)
   const signal = signals.value.find((s) => s.id === addSignalId)
@@ -336,21 +357,36 @@ onMounted(async () => {
 </script>
 
 <template>
-
   <AppShellHeader>
     <Header :heading="isEditing ? 'Edit entry' : boardEditing ? 'Edit boards' : 'Log events'">
       <template #actions>
-        <IconButton v-if="boardEditing" variant="primary" aria-label="Done editing" @click="boardEditing = false">
+        <IconButton
+          v-if="boardEditing"
+          variant="primary"
+          aria-label="Done editing"
+          @click="boardEditing = false"
+        >
           <Check />
         </IconButton>
-        <IconButton v-else-if="!isEditing" variant="tertiary" aria-label="Edit boards" :disabled="draftBarVisible"
-          @click="boardEditing = true">
+        <IconButton
+          v-else-if="!isEditing"
+          variant="tertiary"
+          aria-label="Edit boards"
+          :disabled="draftBarVisible"
+          @click="boardEditing = true"
+        >
           <Pencil />
         </IconButton>
       </template>
       <template #content>
-        <BoardTabs v-model:boards="boards" v-model:active="activeTabId" :editing="boardEditing"
-          :show-tabs="boardEditing || boards.length > 0" :pinned="pinnedTabs" v-bind="boardApi" />
+        <BoardTabs
+          v-model:boards="boards"
+          v-model:active="activeTabId"
+          :editing="boardEditing"
+          :show-tabs="boardEditing || boards.length > 0"
+          :pinned="pinnedTabs"
+          v-bind="boardApi"
+        />
       </template>
     </Header>
   </AppShellHeader>
@@ -361,8 +397,13 @@ onMounted(async () => {
 
   <div ref="gridEl" class="signal-grid" :class="{ 'has-draft-bar': draftBarVisible }">
     <template v-if="!loading">
-      <SignalCard v-for="signal in activeSignals" :key="signal.id" :signal="signal"
-        :class="{ 'is-editing': boardEditing }" @select="onAddSignalEntry(signal)">
+      <SignalCard
+        v-for="signal in activeSignals"
+        :key="signal.id"
+        :signal="signal"
+        :class="{ 'is-editing': boardEditing }"
+        @select="onAddSignalEntry(signal)"
+      >
         <template #icon>
           <component :is="resolveIcon(signal.icon)" :style="{ color: signal.color }" />
         </template>
@@ -374,13 +415,23 @@ onMounted(async () => {
         </template>
 
         <template v-if="!boardEditing || canEditSignals" #actions>
-          <IconButton v-if="canEditSignals" variant="tertiary" size="sm"
-            :aria-label="`Remove ${signal.name} from board`" @click.stop="onRemoveSignalFromBoard(signal)">
+          <IconButton
+            v-if="canEditSignals"
+            variant="tertiary"
+            size="sm"
+            :aria-label="`Remove ${signal.name} from board`"
+            @click.stop="onRemoveSignalFromBoard(signal)"
+          >
             <X />
           </IconButton>
           <DropdownMenu v-else :options="signalOptions(signal)">
             <template #trigger>
-              <IconButton @click.stop :aria-label="`Options for ${signal.name}`" variant="tertiary" size="sm">
+              <IconButton
+                :aria-label="`Options for ${signal.name}`"
+                variant="tertiary"
+                size="sm"
+                @click.stop
+              >
                 <MoreVertical />
               </IconButton>
             </template>
@@ -388,26 +439,50 @@ onMounted(async () => {
         </template>
       </SignalCard>
 
-      <SignalPickerDialog v-if="canEditSignals" :exclude-ids="boardSignals.map((s) => s.id)" allow-create
-        @add="onSignalsAdded" @create="onCreateSignalForBoard">
+      <SignalPickerDialog
+        v-if="canEditSignals"
+        :exclude-ids="boardSignals.map((s) => s.id)"
+        allow-create
+        @add="onSignalsAdded"
+        @create="onCreateSignalForBoard"
+      >
         <template #trigger>
           <AddTile>Add signal</AddTile>
         </template>
       </SignalPickerDialog>
 
       <p v-if="activeSignals.length === 0 && !canEditSignals" class="empty-state">
-        {{ activeBoard ? 'No signals in this board yet. Tap Edit to add some.' : 'No signals yet.' }}
+        {{
+          activeBoard ? 'No signals in this board yet. Tap Edit to add some.' : 'No signals yet.'
+        }}
       </p>
     </template>
   </div>
 
-  <LogEntryDrawer v-if="selectedSignal" v-model:open="entryDrawerOpen" :numpad="true" :signal="selectedSignal"
-    :editing="!!editingSignalEntry" :initial-value="editingSignalEntry?.value"
-    :initial-duration="editingSignalEntry?.duration" @save="onSignalEntrySaved" />
+  <LogEntryDrawer
+    v-if="selectedSignal"
+    v-model:open="entryDrawerOpen"
+    :numpad="true"
+    :signal="selectedSignal"
+    :editing="!!editingSignalEntry"
+    :initial-value="editingSignalEntry?.value"
+    :initial-duration="editingSignalEntry?.duration"
+    @save="onSignalEntrySaved"
+  />
 
-  <EventDraftBar v-if="draftBarVisible" :entries="draftSignalEntries" v-model:date="draftDate" v-model:time="draftTime"
-    @edit-entry="onEditSignalEntry" @remove-entry="onRemoveSignalEntry" @note-click="onNoteClick"
-    @location-click="onLocationClick" @people-click="onPeopleClick" @cancel="onCancelDraft" @save="onSaveDraft" />
+  <EventDraftBar
+    v-if="draftBarVisible"
+    v-model:date="draftDate"
+    v-model:time="draftTime"
+    :entries="draftSignalEntries"
+    @edit-entry="onEditSignalEntry"
+    @remove-entry="onRemoveSignalEntry"
+    @note-click="onNoteClick"
+    @location-click="onLocationClick"
+    @people-click="onPeopleClick"
+    @cancel="onCancelDraft"
+    @save="onSaveDraft"
+  />
 </template>
 
 <style scoped>

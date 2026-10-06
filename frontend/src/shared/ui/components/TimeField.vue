@@ -5,15 +5,10 @@ import InputNumber from '@/shared/ui/components/InputNumber.vue'
 import NumberPad from '@/shared/ui/components/NumberPad.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import { provideNumpadGroup } from '@/shared/lib/useNumpadGroup'
-import {
-  Label,
-  TimeFieldInput,
-  TimeFieldRoot,
-  type TimeValue,
-} from 'reka-ui'
+import { Label, TimeFieldInput, TimeFieldRoot, type TimeValue } from 'reka-ui'
 import { Time } from '@internationalized/date'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     label?: string
     granularity?: 'hour' | 'minute' | 'second'
@@ -58,8 +53,15 @@ const seconds = computed({
       {{ label }}
     </Label>
 
-    <TimeFieldRoot :model-value="model" :id="id" v-slot="{ segments }" :granularity="granularity" :hourCycle="24"
-      readonly class="time-field">
+    <TimeFieldRoot
+      :id="id"
+      v-slot="{ segments }"
+      :model-value="model"
+      :granularity="granularity"
+      :hour-cycle="24"
+      readonly
+      class="time-field"
+    >
       <template v-for="item in segments" :key="item.part">
         <TimeFieldInput v-if="item.part === 'literal'" :part="item.part" class="time-field-literal">
           {{ item.value }}
@@ -74,19 +76,22 @@ const seconds = computed({
       <div class="time-numpad-inputs">
         <InputNumber v-model="hours" label="Hours" :min="0" :max="23" :max-length="2" />
         <InputNumber v-model="minutes" label="Minutes" :min="0" :max="59" :max-length="2" />
-        <InputNumber v-if="granularity === 'second'" v-model="seconds" label="Seconds" :min="0" :max="59"
-          :max-length="2" />
+        <InputNumber
+          v-if="granularity === 'second'"
+          v-model="seconds"
+          label="Seconds"
+          :min="0"
+          :max="59"
+          :max-length="2"
+        />
       </div>
       <NumberPad enable-next />
 
       <template #footer>
         <div class="footer">
-          <Button variant="primary" @click="drawerOpen = false">
-            Done
-          </Button>
+          <Button variant="primary" @click="drawerOpen = false"> Done </Button>
         </div>
       </template>
-
     </Drawer>
   </div>
 </template>

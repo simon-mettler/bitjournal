@@ -42,7 +42,9 @@ import { getLocalTimeZone, today, type DateValue } from '@internationalized/date
 type View = 'day' | 'month' | 'year'
 
 // see https://github.com/unovue/reka-ui/issues/1641
-const selectedDate = defineModel<DateValue>({ default: () => today(getLocalTimeZone()) }) as Ref<DateValue>
+const selectedDate = defineModel<DateValue>({
+  default: () => today(getLocalTimeZone()),
+}) as Ref<DateValue>
 const placeholder = ref<DateValue>(selectedDate.value) as Ref<DateValue>
 
 const drawerOpen = ref(false)
@@ -102,12 +104,9 @@ const monthLabels = [
   'DEC',
 ]
 
-const monthLabel = computed(
-  () => monthLabels[placeholder.value.month - 1],
-)
+const monthLabel = computed(() => monthLabels[placeholder.value.month - 1])
 
 const yearLabel = computed(() => String(placeholder.value.year))
-
 </script>
 
 <template>
@@ -119,23 +118,36 @@ const yearLabel = computed(() => String(placeholder.value.year))
 
   <Drawer v-model:open="drawerOpen" title="Select date">
     <div ref="containerRef" class="dp-container">
-
       <!-- Day View -->
-      <CalendarRoot v-if="view === 'day'" v-slot="{ weekDays, grid }" v-model="selectedDate"
-        v-model:placeholder="placeholder" class="dp-root" fixed-weeks>
+      <CalendarRoot
+        v-if="view === 'day'"
+        v-slot="{ weekDays, grid }"
+        v-model="selectedDate"
+        v-model:placeholder="placeholder"
+        class="dp-root"
+        fixed-weeks
+      >
         <CalendarHeader class="dp-header">
           <CalendarPrev class="dp-nav-button">
             <ArrowLeft />
           </CalendarPrev>
 
           <CalendarHeading class="dp-heading-group">
-            <button type="button" class="dp-month-button dp-heading-inactive" aria-label="Select month view"
-              @click="openMonthView">
+            <button
+              type="button"
+              class="dp-month-button dp-heading-inactive"
+              aria-label="Select month view"
+              @click="openMonthView"
+            >
               {{ monthLabel }}
             </button>
 
-            <button type="button" class="dp-year-button dp-heading-inactive" aria-label="Select year view"
-              @click="openYearView">
+            <button
+              type="button"
+              class="dp-year-button dp-heading-inactive"
+              aria-label="Select year view"
+              @click="openYearView"
+            >
               {{ yearLabel }}
             </button>
           </CalendarHeading>
@@ -155,10 +167,23 @@ const yearLabel = computed(() => String(placeholder.value.year))
           </CalendarGridHead>
 
           <CalendarGridBody class="dp-grid-body">
-            <CalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`" class="dp-grid-row">
-              <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate" class="dp-cell">
-                <CalendarCellTrigger :day="weekDate" :month="month.value" class="dp-cell-trigger dp-day-trigger"
-                  @click="selectDate(weekDate)" />
+            <CalendarGridRow
+              v-for="(weekDates, index) in month.rows"
+              :key="`weekDate-${index}`"
+              class="dp-grid-row"
+            >
+              <CalendarCell
+                v-for="weekDate in weekDates"
+                :key="weekDate.toString()"
+                :date="weekDate"
+                class="dp-cell"
+              >
+                <CalendarCellTrigger
+                  :day="weekDate"
+                  :month="month.value"
+                  class="dp-cell-trigger dp-day-trigger"
+                  @click="selectDate(weekDate)"
+                />
               </CalendarCell>
             </CalendarGridRow>
           </CalendarGridBody>
@@ -166,21 +191,36 @@ const yearLabel = computed(() => String(placeholder.value.year))
       </CalendarRoot>
 
       <!-- Month View -->
-      <MonthPickerRoot v-else-if="view === 'month'" v-slot="{ grid }" v-model:placeholder="placeholder" class="dp-root"
-        @update:model-value="onMonthSelect">
+      <MonthPickerRoot
+        v-else-if="view === 'month'"
+        v-slot="{ grid }"
+        v-model:placeholder="placeholder"
+        class="dp-root"
+        @update:model-value="onMonthSelect"
+      >
         <MonthPickerHeader class="dp-header">
           <MonthPickerPrev class="dp-nav-button">
             <ArrowLeft />
           </MonthPickerPrev>
 
           <MonthPickerHeading class="dp-heading-group">
-            <button type="button" class="dp-month-button" :class="{ 'dp-heading-inactive': view !== 'month' }"
-              :aria-pressed="view === 'month'" aria-label="Select month view" @click="openMonthView">
+            <button
+              type="button"
+              class="dp-month-button"
+              :class="{ 'dp-heading-inactive': view !== 'month' }"
+              :aria-pressed="view === 'month'"
+              aria-label="Select month view"
+              @click="openMonthView"
+            >
               {{ monthLabel }}
             </button>
 
-            <button type="button" class="dp-year-button dp-heading-inactive" aria-label="Select year view"
-              @click="openYearView">
+            <button
+              type="button"
+              class="dp-year-button dp-heading-inactive"
+              aria-label="Select year view"
+              @click="openYearView"
+            >
               {{ yearLabel }}
             </button>
           </MonthPickerHeading>
@@ -192,8 +232,11 @@ const yearLabel = computed(() => String(placeholder.value.year))
 
         <MonthPickerGrid class="dp-picker-grid">
           <MonthPickerGridBody>
-            <MonthPickerGridRow v-for="(monthRow, rowIndex) in grid.rows" :key="`monthRow-${rowIndex}`"
-              class="dp-picker-row">
+            <MonthPickerGridRow
+              v-for="(monthRow, rowIndex) in grid.rows"
+              :key="`monthRow-${rowIndex}`"
+              class="dp-picker-row"
+            >
               <MonthPickerCell v-for="month in monthRow" :key="month.toString()" :date="month">
                 <MonthPickerCellTrigger :month="month" class="dp-cell-trigger dp-picker-trigger" />
               </MonthPickerCell>
@@ -203,21 +246,36 @@ const yearLabel = computed(() => String(placeholder.value.year))
       </MonthPickerRoot>
 
       <!-- Year View -->
-      <YearPickerRoot v-else v-slot="{ grid }" v-model:placeholder="placeholder" class="dp-root"
-        @update:model-value="onYearSelect">
+      <YearPickerRoot
+        v-else
+        v-slot="{ grid }"
+        v-model:placeholder="placeholder"
+        class="dp-root"
+        @update:model-value="onYearSelect"
+      >
         <YearPickerHeader class="dp-header">
           <YearPickerPrev class="dp-nav-button">
             <ArrowLeft />
           </YearPickerPrev>
 
           <YearPickerHeading class="dp-heading-group">
-            <button type="button" class="dp-month-button dp-heading-inactive" aria-label="Select month view"
-              @click="openMonthView">
+            <button
+              type="button"
+              class="dp-month-button dp-heading-inactive"
+              aria-label="Select month view"
+              @click="openMonthView"
+            >
               {{ monthLabel }}
             </button>
 
-            <button type="button" class="dp-year-button" :class="{ 'dp-heading-inactive': view !== 'year' }"
-              :aria-pressed="view === 'year'" aria-label="Select year view" @click="openYearView">
+            <button
+              type="button"
+              class="dp-year-button"
+              :class="{ 'dp-heading-inactive': view !== 'year' }"
+              :aria-pressed="view === 'year'"
+              aria-label="Select year view"
+              @click="openYearView"
+            >
               {{ yearLabel }}
             </button>
           </YearPickerHeading>
@@ -229,8 +287,11 @@ const yearLabel = computed(() => String(placeholder.value.year))
 
         <YearPickerGrid class="dp-picker-grid">
           <YearPickerGridBody>
-            <YearPickerGridRow v-for="(yearRow, rowIndex) in grid.rows" :key="`yearRow-${rowIndex}`"
-              class="dp-picker-row">
+            <YearPickerGridRow
+              v-for="(yearRow, rowIndex) in grid.rows"
+              :key="`yearRow-${rowIndex}`"
+              class="dp-picker-row"
+            >
               <YearPickerCell v-for="year in yearRow" :key="year.toString()" :date="year">
                 <YearPickerCellTrigger :year="year" class="dp-cell-trigger dp-picker-trigger" />
               </YearPickerCell>
@@ -239,7 +300,6 @@ const yearLabel = computed(() => String(placeholder.value.year))
         </YearPickerGrid>
       </YearPickerRoot>
     </div>
-
   </Drawer>
 </template>
 

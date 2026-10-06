@@ -1,6 +1,8 @@
 import type { Signal } from '@/modules/signals/types'
 
-const primary = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim()
+const primary = getComputedStyle(document.documentElement)
+  .getPropertyValue('--color-primary')
+  .trim()
 
 export const chartColors = {
   primary,

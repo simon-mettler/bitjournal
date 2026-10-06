@@ -7,15 +7,9 @@ export function useViewportHeight() {
     const height = vv?.height ?? window.innerHeight
     const offsetTop = vv?.offsetTop ?? 0
 
-    document.documentElement.style.setProperty(
-      '--visual-viewport-height',
-      `${height}px`,
-    )
+    document.documentElement.style.setProperty('--visual-viewport-height', `${height}px`)
 
-    document.documentElement.style.setProperty(
-      '--visual-viewport-offset-top',
-      `${offsetTop}px`,
-    )
+    document.documentElement.style.setProperty('--visual-viewport-offset-top', `${offsetTop}px`)
   }
 
   onMounted(() => {

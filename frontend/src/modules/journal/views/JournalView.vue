@@ -40,7 +40,7 @@ const appliedBefore = ref<DateValue | undefined>(undefined) as Ref<DateValue | u
 const appliedSignals = ref<Signal[]>([])
 const appliedLogic = ref<SignalLogic>('or')
 
-const draftSignalIds = computed(() => draftSignals.value.map(s => s.id))
+const draftSignalIds = computed(() => draftSignals.value.map((s) => s.id))
 
 const dateBoundaryLabel = computed(() => {
   const date = draftBefore.value
@@ -56,7 +56,7 @@ function addSignals(signals: Signal[]) {
 }
 
 function removeSignal(id: string) {
-  draftSignals.value = draftSignals.value.filter(s => s.id !== id)
+  draftSignals.value = draftSignals.value.filter((s) => s.id !== id)
 }
 
 // Include the whole selected day, since occurred_at is a datetime and the filter is <=
@@ -83,7 +83,7 @@ const hasActiveFilters = computed(
 function currentFilterParams() {
   return {
     before: toBeforeIso(appliedBefore.value),
-    signalIds: appliedSignals.value.length ? appliedSignals.value.map(s => s.id) : undefined,
+    signalIds: appliedSignals.value.length ? appliedSignals.value.map((s) => s.id) : undefined,
     signalLogic: appliedSignals.value.length ? appliedLogic.value : undefined,
   }
 }
@@ -92,7 +92,7 @@ function applyFilters() {
   appliedBefore.value = draftBefore.value
   appliedSignals.value = [...draftSignals.value]
   appliedLogic.value = draftLogic.value
-  load()
+  void load()
 }
 
 function clearAll() {
@@ -102,7 +102,7 @@ function clearAll() {
   appliedBefore.value = undefined
   appliedSignals.value = []
   appliedLogic.value = 'or'
-  load()
+  void load()
 }
 
 const confirmDeleteOpen = ref(false)
@@ -150,7 +150,7 @@ async function confirmDelete() {
   deleting.value = true
   try {
     await deleteEvent(target.id)
-    events.value = events.value.filter(e => e.id !== target.id)
+    events.value = events.value.filter((e) => e.id !== target.id)
     toaster.toast({ description: 'Event deleted.', variant: 'success' })
   } catch (err) {
     console.error(err)
@@ -204,8 +204,14 @@ onMounted(load)
     </div>
 
     <div class="tracker-chips">
-      <SignalChip v-for="signal in draftSignals" :key="signal.id" :signal="signal" :value="signal.name" removable
-        @remove="removeSignal(signal.id)" />
+      <SignalChip
+        v-for="signal in draftSignals"
+        :key="signal.id"
+        :signal="signal"
+        :value="signal.name"
+        removable
+        @remove="removeSignal(signal.id)"
+      />
 
       <SignalPickerDialog :exclude-ids="draftSignalIds" @add="addSignals">
         <template #trigger>
@@ -217,7 +223,12 @@ onMounted(load)
       </SignalPickerDialog>
     </div>
 
-    <Button variant="primary" class="show-results-button" :disabled="!isDirty" @click="applyFilters">
+    <Button
+      variant="primary"
+      class="show-results-button"
+      :disabled="!isDirty"
+      @click="applyFilters"
+    >
       Show Results
     </Button>
   </Collapsible>
@@ -229,8 +240,12 @@ onMounted(load)
       </div>
 
       <div class="journal-day-events">
-        <JournalEventCard v-for="event in group.events" :key="event.id" :event="event"
-          @request-delete="requestDelete" />
+        <JournalEventCard
+          v-for="event in group.events"
+          :key="event.id"
+          :event="event"
+          @request-delete="requestDelete"
+        />
       </div>
     </section>
 
@@ -245,9 +260,13 @@ onMounted(load)
     </div>
   </div>
 
-  <AlertDialog title="Delete entry" confirm-text="Delete"
-    description="Are you sure you want to delete this entry? This can't be undone." v-model:open="confirmDeleteOpen"
-    @confirm="confirmDelete">
+  <AlertDialog
+    v-model:open="confirmDeleteOpen"
+    title="Delete entry"
+    confirm-text="Delete"
+    description="Are you sure you want to delete this entry? This can't be undone."
+    @confirm="confirmDelete"
+  >
     <template #cancel>
       <Button variant="secondary">Cancel</Button>
     </template>

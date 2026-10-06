@@ -9,7 +9,7 @@ const authenticationRoutes = [
     meta: {
       public: true,
       hideNav: true,
-    }
+    },
   },
   {
     path: '/login',
@@ -18,7 +18,7 @@ const authenticationRoutes = [
     meta: {
       public: true,
       hideNav: true,
-    }
+    },
   },
 ]
 

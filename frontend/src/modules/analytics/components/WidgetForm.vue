@@ -8,7 +8,12 @@ import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
 import { getSignals } from '@/modules/signals/api'
 import type { Signal } from '@/modules/signals/types'
-import type { WidgetAggregation, WidgetChartType, WidgetTimeframe, WidgetType } from '@/modules/analytics/types'
+import type {
+  WidgetAggregation,
+  WidgetChartType,
+  WidgetTimeframe,
+  WidgetType,
+} from '@/modules/analytics/types'
 import type { WidgetFormState } from '@/modules/analytics/widgetFormState'
 import {
   WIDGET_TIMEFRAME_LABELS,
@@ -48,7 +53,9 @@ const yearOptions = earlierYearOptions()
 const SINGLE_DAY_TIMEFRAMES: WidgetTimeframe[] = ['today', 'yesterday']
 const timeframeOptions = computed(() =>
   Object.entries(WIDGET_TIMEFRAME_LABELS)
-    .filter(([value]) => !isTimeseries.value || !SINGLE_DAY_TIMEFRAMES.includes(value as WidgetTimeframe))
+    .filter(
+      ([value]) => !isTimeseries.value || !SINGLE_DAY_TIMEFRAMES.includes(value as WidgetTimeframe),
+    )
     .map(([value, label]) => ({ value, label })),
 )
 
@@ -121,7 +128,9 @@ defineExpose({ validateAll, errors })
       <SignalPickerDialog :multiple="false" @add="([signal]) => (form.signalId = signal.id)">
         <template #trigger>
           <button type="button" class="signal-trigger" :class="{ placeholder: !selectedSignal }">
-            <span class="signal-trigger-value">{{ selectedSignal?.name ?? 'Select signal...' }}</span>
+            <span class="signal-trigger-value">{{
+              selectedSignal?.name ?? 'Select signal...'
+            }}</span>
             <ChevronDown />
           </button>
         </template>
@@ -129,8 +138,13 @@ defineExpose({ validateAll, errors })
       <p v-if="errors['signal']" class="error-text">{{ errors['signal'] }}</p>
     </div>
 
-    <InputText v-model="form.title" label="Title" placeholder="" @blur="validateField('title')"
-      :error="errors['title']" />
+    <InputText
+      v-model="form.title"
+      label="Title"
+      placeholder=""
+      :error="errors['title']"
+      @blur="validateField('title')"
+    />
 
     <div v-if="!isTimeseries" class="field">
       <span class="label">Display</span>
@@ -150,12 +164,31 @@ defineExpose({ validateAll, errors })
 
     <Select v-model="timeframeModel" label="Timeframe" :options="timeframeOptions" />
 
-    <Select v-if="form.timeframe === 'quarter'" v-model="form.periodStart" label="Quarter" :options="quarterOptions"
-      placeholder="Select quarter..." :error="errors['periodStart']" />
-    <Select v-if="form.timeframe === 'year'" v-model="form.periodStart" label="Year" :options="yearOptions"
-      placeholder="Select year..." :error="errors['periodStart']" />
-    <InputNumber v-if="form.timeframe === 'last_days'" v-model="form.days" label="Days back (including today)"
-      :min="1" :step="1" :error="errors['days']" @blur="validateField('days')" />
+    <Select
+      v-if="form.timeframe === 'quarter'"
+      v-model="form.periodStart"
+      label="Quarter"
+      :options="quarterOptions"
+      placeholder="Select quarter..."
+      :error="errors['periodStart']"
+    />
+    <Select
+      v-if="form.timeframe === 'year'"
+      v-model="form.periodStart"
+      label="Year"
+      :options="yearOptions"
+      placeholder="Select year..."
+      :error="errors['periodStart']"
+    />
+    <InputNumber
+      v-if="form.timeframe === 'last_days'"
+      v-model="form.days"
+      label="Days back (including today)"
+      :min="1"
+      :step="1"
+      :error="errors['days']"
+      @blur="validateField('days')"
+    />
   </div>
 </template>
 

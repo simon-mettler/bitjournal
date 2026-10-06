@@ -88,14 +88,17 @@ function goToNextPeriod() {
 watch([timeframe, anchorDate], loadStats)
 
 onMounted(() => {
-  loadSignal()
-  loadStats()
+  void loadSignal()
+  void loadStats()
 })
 </script>
 
 <template>
   <AppShellHeader>
-    <Header :heading="signal?.name ?? 'Signal stats'" :style="{ '--header-color-heading': signal?.color }">
+    <Header
+      :heading="signal?.name ?? 'Signal stats'"
+      :style="{ '--header-color-heading': signal?.color }"
+    >
       <template #actions>
         <div class="back-button-wrap">
           <IconButton variant="float" aria-label="Back" @click="router.back()">
@@ -108,14 +111,29 @@ onMounted(() => {
 
   <div class="signal-stats-content">
     <div class="period-controls">
-      <Select v-model="timeframe" :options="timeframeOptions" variant="float" class="timeframe-select" />
+      <Select
+        v-model="timeframe"
+        :options="timeframeOptions"
+        variant="float"
+        class="timeframe-select"
+      />
       <div class="period-nav">
-        <IconButton variant="tertiary" size="sm" aria-label="Previous period" @click="goToPreviousPeriod">
+        <IconButton
+          variant="tertiary"
+          size="sm"
+          aria-label="Previous period"
+          @click="goToPreviousPeriod"
+        >
           <ChevronLeft />
         </IconButton>
         <span class="period-range">{{ stats ? formatPeriodRange(stats.period) : '' }}</span>
-        <IconButton variant="tertiary" size="sm" aria-label="Next period" :disabled="isNextDisabled"
-          @click="goToNextPeriod">
+        <IconButton
+          variant="tertiary"
+          size="sm"
+          aria-label="Next period"
+          :disabled="isNextDisabled"
+          @click="goToNextPeriod"
+        >
           <ChevronRight />
         </IconButton>
       </div>
@@ -138,8 +156,12 @@ onMounted(() => {
         <span class="chart-section-title">Over time</span>
         <ToggleGroup v-model="chartType" :options="chartTypeOptions" />
       </div>
-      <TimeseriesChart :signal="signal" :timeseries="stats.timeseries" :timeframe="stats.period.timeframe"
-        :chart-type="chartType" />
+      <TimeseriesChart
+        :signal="signal"
+        :timeseries="stats.timeseries"
+        :timeframe="stats.period.timeframe"
+        :chart-type="chartType"
+      />
     </div>
 
     <div v-if="signal && stats" class="chart-section">

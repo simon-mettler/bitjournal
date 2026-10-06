@@ -1,15 +1,13 @@
 import { reactive } from 'vue'
-
-type Rule = (value: any) => string | true
+import type { Rule } from '@/shared/lib/validators'
 
 export function useFormValidation(
-  fields: Record<string, () => any>,
+  fields: Record<string, () => unknown>,
   rules: Record<string, Rule[]>,
 ) {
   const errors = reactive<Record<string, string>>({})
 
   function validateField(key: string) {
-
     for (const rule of rules[key] ?? []) {
       const result = rule(fields[key]())
       if (result !== true) {
@@ -27,7 +25,7 @@ export function useFormValidation(
 
   function clear(key?: string) {
     if (key) delete errors[key]
-    else Object.keys(errors).forEach(k => delete errors[k])
+    else Object.keys(errors).forEach((k) => delete errors[k])
   }
 
   return { errors, validateField, validateAll, clear }

@@ -5,15 +5,12 @@ import IconButton from '@/shared/ui/components/IconButton.vue'
 
 import { icons, type IconName } from '@/shared/lib/iconRegistry'
 
-
 const model = defineModel<string>()
 const open = ref<boolean>(false)
 const search = ref<string>('')
 
 const currentIcon = computed(() =>
-  model.value && model.value in icons
-    ? icons[model.value as IconName]
-    : null,
+  model.value && model.value in icons ? icons[model.value as IconName] : null,
 )
 
 const filteredIcons = computed(() => {
@@ -39,15 +36,25 @@ function selectIcon(name: IconName) {
     </template>
 
     <div class="icon-picker">
-      <input v-model="search" type="text" placeholder="Search icons..." class="icon-picker-search" />
+      <input
+        v-model="search"
+        type="text"
+        placeholder="Search icons..."
+        class="icon-picker-search"
+      />
       <div class="icon-picker-grid">
-        <button v-for="name in filteredIcons" :key="name" type="button" class="icon-picker-item"
-          :class="{ 'icon-picker-item-selected': model === name }" :title="name" @click="selectIcon(name)">
+        <button
+          v-for="name in filteredIcons"
+          :key="name"
+          type="button"
+          class="icon-picker-item"
+          :class="{ 'icon-picker-item-selected': model === name }"
+          :title="name"
+          @click="selectIcon(name)"
+        >
           <component :is="icons[name]" :size="24" />
         </button>
-        <p v-if="filteredIcons.length === 0" class="icon-picker-empty">
-          No icons found
-        </p>
+        <p v-if="filteredIcons.length === 0" class="icon-picker-empty">No icons found</p>
       </div>
     </div>
   </Dialog>

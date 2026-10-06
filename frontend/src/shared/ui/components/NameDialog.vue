@@ -40,7 +40,13 @@ function submit() {
 <template>
   <Modal v-model:open="open" :title="title">
     <div @keydown.enter.prevent="submit">
-      <InputText v-model="name" :label="label" placeholder="" @blur="validateField('name')" :error="errors['name']" />
+      <InputText
+        v-model="name"
+        :label="label"
+        placeholder=""
+        :error="errors['name']"
+        @blur="validateField('name')"
+      />
     </div>
 
     <template #footer>

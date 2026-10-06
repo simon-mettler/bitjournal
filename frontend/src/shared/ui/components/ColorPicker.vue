@@ -54,19 +54,26 @@ const hueId = useId()
 
 <template>
   <Dialog title="Color">
-
     <template #trigger>
       <IconButton variant="secondary" class="swatch-trigger" aria-label="Choose color">
-        <ColorSwatch :color="hexColor" class="swatch-preview"
-          :style="{ backgroundColor: 'var(--reka-color-swatch-color)' }" />
+        <ColorSwatch
+          :color="hexColor"
+          class="swatch-preview"
+          :style="{ backgroundColor: 'var(--reka-color-swatch-color)' }"
+        />
       </IconButton>
     </template>
 
     <div class="picker">
-
       <!-- 2D color area (saturation/lightness) -->
-      <ColorAreaRoot v-slot="{ style }" :model-value="colorObj" color-space="hsl" x-channel="saturation"
-        y-channel="lightness" @update:color="handleColorUpdate">
+      <ColorAreaRoot
+        v-slot="{ style }"
+        :model-value="colorObj"
+        color-space="hsl"
+        x-channel="saturation"
+        y-channel="lightness"
+        @update:color="handleColorUpdate"
+      >
         <ColorAreaArea class="area" :style="style">
           <ColorAreaThumb class="area-thumb" />
         </ColorAreaArea>
@@ -75,17 +82,29 @@ const hueId = useId()
       <!-- Hue slider -->
       <div class="field-group">
         <Label class="field-label" :for="hueId">Hue</Label>
-        <ColorSliderRoot :model-value="colorObj" :id="hueId" channel="hue" color-space="hsl" class="slider-root"
-          @update:color="handleColorUpdate">
+        <ColorSliderRoot
+          :id="hueId"
+          :model-value="colorObj"
+          channel="hue"
+          color-space="hsl"
+          class="slider-root"
+          @update:color="handleColorUpdate"
+        >
           <ColorSliderTrack class="slider-track hue-gradient" />
           <ColorSliderThumb class="slider-thumb" />
         </ColorSliderRoot>
       </div>
 
       <!-- HEX value field -->
-      <InputText v-model="hexDraft" label="HEX" placeholder="#000000" spellcheck="false" autocomplete="off"
-        @blur="commitHex" @keydown.enter.prevent="commitHex" />
-
+      <InputText
+        v-model="hexDraft"
+        label="HEX"
+        placeholder="#000000"
+        spellcheck="false"
+        autocomplete="off"
+        @blur="commitHex"
+        @keydown.enter.prevent="commitHex"
+      />
     </div>
 
     <template #footer>
@@ -93,7 +112,6 @@ const hueId = useId()
         <Button type="button" class="button-done">Done</Button>
       </DialogClose>
     </template>
-
   </Dialog>
 </template>
 
@@ -129,7 +147,9 @@ const hueId = useId()
   border-radius: 50%;
   background: white;
   border: 2px solid white;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.4);
   cursor: pointer;
   transition: transform 0.15s;
 }
@@ -165,9 +185,16 @@ const hueId = useId()
 }
 
 .hue-gradient {
-  background: linear-gradient(to right,
-      #ff0000 0%, #ffff00 17%, #00ff00 33%,
-      #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+  background: linear-gradient(
+    to right,
+    #ff0000 0%,
+    #ffff00 17%,
+    #00ff00 33%,
+    #00ffff 50%,
+    #0000ff 67%,
+    #ff00ff 83%,
+    #ff0000 100%
+  );
 }
 
 .slider-thumb {
@@ -177,7 +204,9 @@ const hueId = useId()
   border-radius: 50%;
   background: white;
   border: 2px solid white;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.4);
   cursor: pointer;
   transition: transform 0.15s;
   top: calc(50% - 8px);

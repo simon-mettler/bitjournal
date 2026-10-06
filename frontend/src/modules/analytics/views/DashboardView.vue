@@ -78,7 +78,7 @@ async function loadValues(boardId: string) {
 
 watch(activeBoardId, (id) => {
   values.value = {}
-  if (id) loadValues(id)
+  if (id) void loadValues(id)
 })
 
 const hasNoEntries = (widget: AnalyticsWidget) => values.value[widget.id]?.count === 0
@@ -117,10 +117,13 @@ function persistWidgetOrder() {
   const board = activeBoard.value
   if (!board) return
   enqueueBoardWrite(() =>
-    updateAnalyticsBoard(board.id, { name: board.name, widget_ids: board.widgets.map((w) => w.id) }),
+    updateAnalyticsBoard(board.id, {
+      name: board.name,
+      widget_ids: board.widgets.map((w) => w.id),
+    }),
   ).catch(() => {
     toaster.toast({ description: 'Could not save new order.', variant: 'danger' })
-    loadBoards()
+    void loadBoards()
   })
 }
 
@@ -154,17 +157,22 @@ async function confirmDeleteWidget() {
 }
 
 function openWidget(widget: AnalyticsWidget) {
-  router.push({ name: 'analytics-widget-edit', params: { id: widget.id } })
+  void router.push({ name: 'analytics-widget-edit', params: { id: widget.id } })
 }
 
 function openAddWidget() {
   if (!activeBoard.value) return
-  router.push({ name: 'analytics-widget-add', params: { boardId: activeBoard.value.id } })
+  void router.push({ name: 'analytics-widget-add', params: { boardId: activeBoard.value.id } })
 }
 
 function widgetOptions(widget: AnalyticsWidget): DropdownMenuOption[] {
   return [
-    { label: 'Edit widget', value: 'edit-widget', icon: Pencil, onSelect: () => openWidget(widget) },
+    {
+      label: 'Edit widget',
+      value: 'edit-widget',
+      icon: Pencil,
+      onSelect: () => openWidget(widget),
+    },
   ]
 }
 
@@ -181,44 +189,74 @@ onMounted(async () => {
   const previousId = activeBoardId.value
   await loadBoards()
   if (boards.value.length === 0) editing.value = false
-  if (activeBoardId.value && activeBoardId.value === previousId) loadValues(activeBoardId.value)
+  if (activeBoardId.value && activeBoardId.value === previousId)
+    void loadValues(activeBoardId.value)
 })
 </script>
 
 <template>
-
   <AppShellHeader>
     <Header :heading="editing ? 'Edit dashboard' : 'Dashboard'">
       <template #actions>
-        <IconButton v-if="editing" variant="primary" aria-label="Done editing" @click="editing = false">
+        <IconButton
+          v-if="editing"
+          variant="primary"
+          aria-label="Done editing"
+          @click="editing = false"
+        >
           <Check />
         </IconButton>
-        <IconButton v-else-if="boards.length > 0" variant="tertiary" aria-label="Edit dashboard"
-          @click="editing = true">
+        <IconButton
+          v-else-if="boards.length > 0"
+          variant="tertiary"
+          aria-label="Edit dashboard"
+          @click="editing = true"
+        >
           <Pencil />
         </IconButton>
       </template>
       <template #content>
-        <BoardTabs ref="boardTabs" noun="dashboard" v-model:boards="boards" v-model:active="activeBoardId"
-          :editing="editing" :show-tabs="boards.length > 0 && (editing || boards.length > 1)"
-          :delete-description="describeBoardDelete" v-bind="boardApi" />
+        <BoardTabs
+          ref="boardTabs"
+          v-model:boards="boards"
+          v-model:active="activeBoardId"
+          noun="dashboard"
+          :editing="editing"
+          :show-tabs="boards.length > 0 && (editing || boards.length > 1)"
+          :delete-description="describeBoardDelete"
+          v-bind="boardApi"
+        />
       </template>
     </Header>
   </AppShellHeader>
 
   <div ref="gridEl" class="widget-grid" :class="{ editing }">
     <template v-if="!loading">
-      <div v-for="widget in widgets" :key="widget.id" class="widget-card"
-        :class="{ editing, wide: widget.type === 'timeseries' }" @click="editing && openWidget(widget)">
+      <div
+        v-for="widget in widgets"
+        :key="widget.id"
+        class="widget-card"
+        :class="{ editing, wide: widget.type === 'timeseries' }"
+        @click="editing && openWidget(widget)"
+      >
         <div class="widget-top">
           <span v-if="editing" class="widget-handle" aria-hidden="true" @click.stop>
             <GripVertical :size="18" />
           </span>
-          <component :is="resolveIcon(widget.signal.icon)" class="widget-icon" :size="18"
-            :style="{ color: widget.signal.color }" />
+          <component
+            :is="resolveIcon(widget.signal.icon)"
+            class="widget-icon"
+            :size="18"
+            :style="{ color: widget.signal.color }"
+          />
           <span class="widget-title">{{ widget.title }}</span>
-          <IconButton v-if="editing" variant="tertiary" size="sm" :aria-label="`Delete ${widget.title}`"
-            @click.stop="askDeleteWidget(widget)">
+          <IconButton
+            v-if="editing"
+            variant="tertiary"
+            size="sm"
+            :aria-label="`Delete ${widget.title}`"
+            @click.stop="askDeleteWidget(widget)"
+          >
             <X />
           </IconButton>
           <DropdownMenu v-else :options="widgetOptions(widget)">
@@ -230,23 +268,41 @@ onMounted(async () => {
           </DropdownMenu>
         </div>
         <template v-if="widget.type === 'timeseries'">
-          <p v-if="hasNoEntries(widget)" class="widget-chart-placeholder">No entries in this period</p>
+          <p v-if="hasNoEntries(widget)" class="widget-chart-placeholder">
+            No entries in this period
+          </p>
           <p v-else-if="!values[widget.id]?.timeseries" class="widget-chart-placeholder">…</p>
-          <TimeseriesChart v-else :signal="widget.signal" :timeseries="values[widget.id].timeseries!"
-            :chart-type="widget.chart_type" :show-average="widget.show_average"
-            :weekly="periodUsesWeeklyBins(values[widget.id].period)" :height="220" />
+          <TimeseriesChart
+            v-else
+            :signal="widget.signal"
+            :timeseries="values[widget.id].timeseries!"
+            :chart-type="widget.chart_type"
+            :show-average="widget.show_average"
+            :weekly="periodUsesWeeklyBins(values[widget.id].period)"
+            :height="220"
+          />
           <span class="widget-meta">{{ formatWidgetTimeframe(widget) }}</span>
         </template>
         <template v-else>
-          <span class="widget-value" :style="{ color: widget.signal.color }">{{ displayValue(widget) }}</span>
+          <span class="widget-value" :style="{ color: widget.signal.color }">{{
+            displayValue(widget)
+          }}</span>
           <span class="widget-meta">
-            {{ hasNoEntries(widget) ? 'No entries' : widget.aggregation === 'average' ? 'Average' : 'Total' }}
+            {{
+              hasNoEntries(widget)
+                ? 'No entries'
+                : widget.aggregation === 'average'
+                  ? 'Average'
+                  : 'Total'
+            }}
             · {{ formatWidgetTimeframe(widget) }}
           </span>
         </template>
       </div>
 
-      <AddTile v-if="editing && activeBoard" class="add-widget-tile" @click="openAddWidget">Add widget</AddTile>
+      <AddTile v-if="editing && activeBoard" class="add-widget-tile" @click="openAddWidget"
+        >Add widget</AddTile
+      >
 
       <div v-if="boards.length === 0" class="empty-state">
         <p>No dashboards yet.</p>
@@ -259,9 +315,13 @@ onMounted(async () => {
     </template>
   </div>
 
-  <AlertDialog v-model:open="deleteWidgetOpen" title="Delete widget" confirm-text="Delete"
+  <AlertDialog
+    v-model:open="deleteWidgetOpen"
+    title="Delete widget"
+    confirm-text="Delete"
     :description="`Are you sure you want to delete &quot;${widgetToDelete?.title ?? ''}&quot;? This can't be undone.`"
-    @confirm="confirmDeleteWidget" />
+    @confirm="confirmDeleteWidget"
+  />
 </template>
 
 <style scoped>

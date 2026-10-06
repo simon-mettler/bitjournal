@@ -24,7 +24,7 @@ const options: DropdownMenuOption[] = [
     label: 'Edit entry',
     value: 'edit-entry',
     icon: Pencil,
-    onSelect: () => router.push({ name: 'track', params: { eventId: props.event.id } })
+    onSelect: () => router.push({ name: 'track', params: { eventId: props.event.id } }),
   },
   {
     label: 'Delete entry',
@@ -42,8 +42,11 @@ const options: DropdownMenuOption[] = [
 
       <DropdownMenu :options="options">
         <template #trigger>
-          <IconButton class="journal-card-menu" variant="tertiary"
-            :aria-label="`Options for entry at ${formatEventTime(props.event.occurred_at)}`">
+          <IconButton
+            class="journal-card-menu"
+            variant="tertiary"
+            :aria-label="`Options for entry at ${formatEventTime(props.event.occurred_at)}`"
+          >
             <MoreVertical :size="18" />
           </IconButton>
         </template>
@@ -53,8 +56,12 @@ const options: DropdownMenuOption[] = [
     <p v-if="props.event.note" class="journal-card-note">{{ props.event.note }}</p>
 
     <div class="journal-card-chips">
-      <SignalChip v-for="entry in props.event.entries" :key="entry.signal.id" :signal="entry.signal"
-        :value="formatDraftEntryLabel(entry)" />
+      <SignalChip
+        v-for="entry in props.event.entries"
+        :key="entry.signal.id"
+        :signal="entry.signal"
+        :value="formatDraftEntryLabel(entry)"
+      />
     </div>
   </div>
 </template>

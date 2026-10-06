@@ -19,8 +19,7 @@ provideNumpadGroup(props.numpad)
     <InputNumber v-model="seconds" label="Seconds" :min="0" :max="59" :max-length="2" />
   </div>
 
-  <NumberPad enable-next v-if="numpad" />
-
+  <NumberPad v-if="numpad" enable-next />
 </template>
 
 <style scoped>

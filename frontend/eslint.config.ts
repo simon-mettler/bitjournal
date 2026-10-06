@@ -19,6 +19,8 @@ export default defineConfigWithVueTs(
     name: 'app/vue-rule-overrides',
     rules: {
       'vue/multi-word-component-names': 'off',
+      // Optional TS props (`foo?: T`) default to undefined; explicit defaults are noise.
+      'vue/require-default-prop': 'off',
       // Prettier owns attribute layout; this rule would leave unindented attributes.
       'vue/first-attribute-linebreak': 'off',
     },

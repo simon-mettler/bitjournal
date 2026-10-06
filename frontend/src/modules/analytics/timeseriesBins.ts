@@ -15,7 +15,8 @@ export interface TimeseriesBin {
 const WEEKLY_BIN_MIN_DAYS = 100
 
 export function periodUsesWeeklyBins(period: { start: string; end: string }): boolean {
-  const days = (parseIsoDate(period.end).getTime() - parseIsoDate(period.start).getTime()) / 86_400_000
+  const days =
+    (parseIsoDate(period.end).getTime() - parseIsoDate(period.start).getTime()) / 86_400_000
   return days > WEEKLY_BIN_MIN_DAYS
 }
 

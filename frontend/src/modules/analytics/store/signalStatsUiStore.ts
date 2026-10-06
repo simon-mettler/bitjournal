@@ -25,9 +25,11 @@ export const useSignalStatsUiStore = defineStore('signal-stats-ui', () => {
 
   watch([timeframe, chartType], ([newTimeframe, newChartType]) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ timeframe: newTimeframe, chartType: newChartType }))
-    } catch {
-    }
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ timeframe: newTimeframe, chartType: newChartType }),
+      )
+    } catch {}
   })
 
   return { timeframe, chartType }

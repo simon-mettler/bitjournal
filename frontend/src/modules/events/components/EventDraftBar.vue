@@ -32,10 +32,19 @@ const time = defineModel<TimeValue>('time')
 <template>
   <div class="draft-bar">
     <div class="draft-chips">
-      <span class="draft-chip-empty" v-if="entries.length === 0">Select a signal to add to this event</span>
-      <SignalChip v-for="entry in entries" :key="entry.id" :signal="entry.signal" :value="formatDraftEntryLabel(entry)"
-        :clickable="entry.signal.type !== 'tally'" removable @click="emit('editEntry', entry.id)"
-        @remove="emit('removeEntry', entry.id)" />
+      <span v-if="entries.length === 0" class="draft-chip-empty"
+        >Select a signal to add to this event</span
+      >
+      <SignalChip
+        v-for="entry in entries"
+        :key="entry.id"
+        :signal="entry.signal"
+        :value="formatDraftEntryLabel(entry)"
+        :clickable="entry.signal.type !== 'tally'"
+        removable
+        @click="emit('editEntry', entry.id)"
+        @remove="emit('removeEntry', entry.id)"
+      />
     </div>
 
     <div class="draft-controls">
@@ -60,7 +69,9 @@ const time = defineModel<TimeValue>('time')
 
     <div class="draft-footer">
       <Button variant="secondary" @click="emit('cancel')">Cancel</Button>
-      <Button variant="primary" :disabled="entries.length === 0" @click="emit('save')">Save Entry</Button>
+      <Button variant="primary" :disabled="entries.length === 0" @click="emit('save')"
+        >Save Entry</Button
+      >
     </div>
   </div>
 </template>
@@ -140,7 +151,7 @@ const time = defineModel<TimeValue>('time')
   gap: var(--spacing-sm);
 }
 
-.draft-footer> :deep(*) {
+.draft-footer > :deep(*) {
   flex: 1;
 }
 </style>

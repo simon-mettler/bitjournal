@@ -34,7 +34,7 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: 'login' })
   }
 
-  if (to.matched.some(record => record.meta.public)) {
+  if (to.matched.some((record) => record.meta.public)) {
     next()
   } else if (auth.isAuthenticated) {
     next()

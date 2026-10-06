@@ -12,7 +12,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",
-    "fix": "run-s lint:fix format",
+    "fix": "run-s --continue-on-error lint:fix format",
     "format": "prettier --write --experimental-cli .",
     "format:check": "prettier --check --experimental-cli .",
     "check": "run-s type-check lint format:check \"test:unit --run\""

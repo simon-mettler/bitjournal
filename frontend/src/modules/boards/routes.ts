@@ -1,4 +1,4 @@
-import BoardTrackView from "./views/BoardTrackView.vue"
+import BoardTrackView from './views/BoardTrackView.vue'
 
 const boardRoutes = [
   // boards are managed inline on the track view now

@@ -3,11 +3,11 @@ import { api } from './axios'
 import { useAuthStore } from '@/modules/authentication/store'
 
 let refreshing: Promise<string> | null = null
-let initialized = false;
+let initialized = false
 
 export function setupApiInterceptors() {
-  if (initialized) return;
-  initialized = true;
+  if (initialized) return
+  initialized = true
 
   api.interceptors.request.use((config) => {
     const auth = useAuthStore()
@@ -29,9 +29,10 @@ export function setupApiInterceptors() {
 
       if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
         originalRequest._retry = true
-        refreshing ??= auth.refreshAccessToken()
+        refreshing ??= auth
+          .refreshAccessToken()
           .catch((refreshError) => {
-            auth.logout()
+            void auth.logout()
             throw refreshError
           })
           .finally(() => (refreshing = null))
@@ -41,7 +42,6 @@ export function setupApiInterceptors() {
       }
 
       return Promise.reject(error)
-    }
+    },
   )
-
 }

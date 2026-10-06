@@ -17,7 +17,6 @@ defineProps<{
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
-
 </script>
 
 <template>
@@ -65,7 +64,8 @@ const open = defineModel<boolean>('open', { default: false })
   z-index: 11;
   background-color: var(--dialog-color-background);
   border-radius: var(--dialog-radius);
-  box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
+  box-shadow:
+    hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
     hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
   position: fixed;
   top: calc(var(--visual-viewport-offset-top) + var(--visual-viewport-height) / 2);

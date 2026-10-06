@@ -1,12 +1,11 @@
 :root {
-
   /*** Primitive/semantic tokens ***/
 
   /* Color */
-  --color-app-bg-bk: #DFE5EA;
-  --color-app-bg: #F4F6F8;
+  --color-app-bg-bk: #dfe5ea;
+  --color-app-bg: #f4f6f8;
   --color-app-backdrop: rgba(54 54 54 / 46%);
-  --color-primary: #2D8FA1;
+  --color-primary: #2d8fa1;
   --color-primary-hover: #4338ca;
 
   --color-success: #16a34a;
@@ -54,30 +53,21 @@
   /* Shadow */
   --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.12);
   --shadow-card: /* kinda overdid it here... */
-    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px,
-    rgba(42, 51, 69, 0.04) 0px 1px 1px -0.5px,
-    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px,
-    rgba(42, 51, 70, 0.04) 0px 6px 6px -3px,
-    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px,
-    rgba(14, 63, 126, 0.04) 0px 24px 24px -12px;
+    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(42, 51, 69, 0.04) 0px 1px 1px -0.5px,
+    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(42, 51, 70, 0.04) 0px 6px 6px -3px,
+    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px, rgba(14, 63, 126, 0.04) 0px 24px 24px -12px;
   --shadow-interact:
-    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px,
-    rgba(19, 174, 182, 0.15) 0px 1px 1px 1px,
-    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px,
-    rgba(41, 102, 147, 0.17) 0px 6px 6px -3px,
-    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px,
-    rgba(14, 63, 126, 0.04) 0px 24px 24px -12px,
+    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(19, 174, 182, 0.15) 0px 1px 1px 1px,
+    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(41, 102, 147, 0.17) 0px 6px 6px -3px,
+    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px, rgba(14, 63, 126, 0.04) 0px 24px 24px -12px,
     rgba(19, 174, 182, 0.07) 0px 0px 8px 2px;
   --shadow-fields:
-    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px,
-    rgba(19, 174, 182, 0.15) 0px 1px 1px 1px,
-    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px,
-    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px;
+    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(19, 174, 182, 0.15) 0px 1px 1px 1px,
+    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(14, 63, 126, 0.04) 0px 12px 12px -6px;
 
   --shadow-footer:
-  0px 0px 0px 1px rgba(14, 63, 126, 0.05),
-  0px -3px 8px -1.5px rgba(42, 51, 70, 0.08),
-  0px -12px 12px -6px rgba(14, 63, 126, 0.09);
+    0px 0px 0px 1px rgba(14, 63, 126, 0.05), 0px -3px 8px -1.5px rgba(42, 51, 70, 0.08),
+    0px -12px 12px -6px rgba(14, 63, 126, 0.09);
 
   /*** Component tokens ***/
 
@@ -100,7 +90,6 @@
   --input-color-background-disabled: var(--color-surface);
   --input-color-text-disabled: var(--color-surface-medium);
   --input-border-disabled: 1px dashed var(--color-surface-medium);
-
 
   /* Dialog */
   --dialog-padding: var(--spacing-md);

@@ -8,18 +8,21 @@ import { enqueueBoardWrite } from '@/shared/lib/boardWriteQueue'
 import { useToast } from '@/shared/lib/useToast'
 
 // Board tabs with the add / rename / reorder / delete flow of the board pages. The page supplies the API calls.
-const props = withDefaults(defineProps<{
-  noun?: 'board' | 'dashboard'
-  editing: boolean
-  showTabs: boolean
-  pinned?: TabItem[]
-  create: (name: string) => Promise<B>
-  rename: (board: B, name: string) => Promise<unknown>
-  remove: (board: B) => Promise<unknown>
-  reorder: (ids: string[]) => Promise<unknown>
-  reload: () => Promise<unknown>
-  deleteDescription?: (board: B) => string
-}>(), { noun: 'board' })
+const props = withDefaults(
+  defineProps<{
+    noun?: 'board' | 'dashboard'
+    editing: boolean
+    showTabs: boolean
+    pinned?: TabItem[]
+    create: (name: string) => Promise<B>
+    rename: (board: B, name: string) => Promise<unknown>
+    remove: (board: B) => Promise<unknown>
+    reorder: (ids: string[]) => Promise<unknown>
+    reload: () => Promise<unknown>
+    deleteDescription?: (board: B) => string
+  }>(),
+  { noun: 'board' },
+)
 
 const boards = defineModel<B[]>('boards', { required: true })
 const active = defineModel<string | null>('active', { required: true })
@@ -61,7 +64,10 @@ async function submitName(name: string) {
     }
     nameDialogOpen.value = false
   } catch {
-    toaster.toast({ description: `Could not ${nameDialogMode.value === 'add' ? 'create' : 'rename'} ${props.noun}.`, variant: 'danger' })
+    toaster.toast({
+      description: `Could not ${nameDialogMode.value === 'add' ? 'create' : 'rename'} ${props.noun}.`,
+      variant: 'danger',
+    })
   } finally {
     nameDialogBusy.value = false
   }
@@ -72,7 +78,7 @@ function onReorder(ids: string[]) {
   boards.value = ids.map((id) => byId.get(id)).filter((b): b is B => !!b)
   enqueueBoardWrite(() => props.reorder(ids)).catch(() => {
     toaster.toast({ description: 'Could not save new order.', variant: 'danger' })
-    props.reload()
+    void props.reload()
   })
 }
 
@@ -81,7 +87,10 @@ const deleteOpen = ref(false)
 const deleteText = computed(() => {
   const board = boardToDelete.value
   if (!board) return ''
-  return props.deleteDescription?.(board) ?? `Are you sure you want to delete the ${props.noun} "${board.name}"? This can't be undone.`
+  return (
+    props.deleteDescription?.(board) ??
+    `Are you sure you want to delete the ${props.noun} "${board.name}"? This can't be undone.`
+  )
 })
 
 function askDeleteBoard(id: string) {
@@ -107,17 +116,38 @@ defineExpose({ askAddBoard })
 </script>
 
 <template>
-  <EditableTabs v-if="showTabs" :model-value="active ?? ''" :items="items" :pinned="pinned" :editing="editing"
-    :add-label="`Add ${noun}`" class="board-tabs" @update:model-value="active = $event" @add="askAddBoard"
-    @rename="askRenameBoard" @delete="askDeleteBoard" @reorder="onReorder" />
+  <EditableTabs
+    v-if="showTabs"
+    :model-value="active ?? ''"
+    :items="items"
+    :pinned="pinned"
+    :editing="editing"
+    :add-label="`Add ${noun}`"
+    class="board-tabs"
+    @update:model-value="active = $event"
+    @add="askAddBoard"
+    @rename="askRenameBoard"
+    @delete="askDeleteBoard"
+    @reorder="onReorder"
+  />
 
-  <NameDialog v-model:open="nameDialogOpen" :busy="nameDialogBusy" :label="`${nounCap} name`"
+  <NameDialog
+    v-model:open="nameDialogOpen"
+    :busy="nameDialogBusy"
+    :label="`${nounCap} name`"
     :title="`${nameDialogMode === 'add' ? 'Add' : 'Rename'} ${noun}`"
-    :confirm-text="nameDialogMode === 'add' ? 'Create' : 'Save'" :initial-name="renameTarget?.name"
-    @submit="submitName" />
+    :confirm-text="nameDialogMode === 'add' ? 'Create' : 'Save'"
+    :initial-name="renameTarget?.name"
+    @submit="submitName"
+  />
 
-  <AlertDialog v-model:open="deleteOpen" :title="`Delete ${noun}`" confirm-text="Delete" :description="deleteText"
-    @confirm="confirmDelete" />
+  <AlertDialog
+    v-model:open="deleteOpen"
+    :title="`Delete ${noun}`"
+    confirm-text="Delete"
+    :description="deleteText"
+    @confirm="confirmDelete"
+  />
 </template>
 
 <style scoped>

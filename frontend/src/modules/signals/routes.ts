@@ -19,7 +19,6 @@ const signalRoutes = [
     name: 'signal-add',
     component: AddSignalView,
     meta: { hideNav: true },
-
   },
   {
     path: '/manage/signals/:id',

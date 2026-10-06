@@ -15,31 +15,64 @@ defineProps<{
 <template>
   <div v-if="group" class="number-pad">
     <div class="number-pad-grid">
-      <button v-for="d in digits" :key="d" type="button" class="number-pad-key" :style="{ gridArea: 'd' + d }"
-        @click="group.enterDigit(d)">
+      <button
+        v-for="d in digits"
+        :key="d"
+        type="button"
+        class="number-pad-key"
+        :style="{ gridArea: 'd' + d }"
+        @click="group.enterDigit(d)"
+      >
         {{ d }}
       </button>
 
-      <button v-if="enableSign" type="button" class="number-pad-key number-pad-sign no-bg"
-        :style="{ gridArea: enableNext ? 'sign' : 'next' }" aria-label="Toggle positive/negative"
-        @click="group.toggleSign()">
+      <button
+        v-if="enableSign"
+        type="button"
+        class="number-pad-key number-pad-sign no-bg"
+        :style="{ gridArea: enableNext ? 'sign' : 'next' }"
+        aria-label="Toggle positive/negative"
+        @click="group.toggleSign()"
+      >
         <Diff />
       </button>
 
-      <button type="button" class="number-pad-key number-pad-delete" style="grid-area: del" aria-label="Delete digit"
-        @click="group.backspace()">
+      <button
+        type="button"
+        class="number-pad-key number-pad-delete"
+        style="grid-area: del"
+        aria-label="Delete digit"
+        @click="group.backspace()"
+      >
         <Delete />
       </button>
-      <button type="button" class="number-pad-key" style="grid-area: d0" @click="group.enterDigit(0)">
+      <button
+        type="button"
+        class="number-pad-key"
+        style="grid-area: d0"
+        @click="group.enterDigit(0)"
+      >
         0
       </button>
-      <button :disabled="!enableDecimal" type="button" class="number-pad-key" style="grid-area: dot"
-        aria-label="Decimal point" @click="group.enterDot()">
+      <button
+        :disabled="!enableDecimal"
+        type="button"
+        class="number-pad-key"
+        style="grid-area: dot"
+        aria-label="Decimal point"
+        @click="group.enterDot()"
+      >
         {{ enableDecimal ? '.' : '' }}
       </button>
 
-      <button v-if="enableNext" type="button" class="number-pad-key number-pad-nav no-bg" style="grid-area: next"
-        aria-label="Jump to next field" @click="group.next()">
+      <button
+        v-if="enableNext"
+        type="button"
+        class="number-pad-key number-pad-nav no-bg"
+        style="grid-area: next"
+        aria-label="Jump to next field"
+        @click="group.next()"
+      >
         <ArrowRight />
       </button>
     </div>
@@ -104,7 +137,7 @@ defineProps<{
   color: var(--color-danger);
 }
 
-.number-pad-delete>svg {
+.number-pad-delete > svg {
   transform: translateX(-3px);
 }
 </style>

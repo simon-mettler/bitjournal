@@ -2,15 +2,18 @@
 import { X } from '@lucide/vue'
 import type { Signal } from '@/modules/signals/types'
 
-withDefaults(defineProps<{
-  signal: Signal
-  value: string | null
-  clickable?: boolean
-  removable?: boolean
-}>(), {
-  clickable: false,
-  removable: false,
-})
+withDefaults(
+  defineProps<{
+    signal: Signal
+    value: string | null
+    clickable?: boolean
+    removable?: boolean
+  }>(),
+  {
+    clickable: false,
+    removable: false,
+  },
+)
 
 const emit = defineEmits<{
   click: []
@@ -19,12 +22,21 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <component :is="clickable ? 'button' : 'span'" class="signal-chip" :type="clickable ? 'button' : undefined"
-    @click="clickable && emit('click')">
+  <component
+    :is="clickable ? 'button' : 'span'"
+    class="signal-chip"
+    :type="clickable ? 'button' : undefined"
+    @click="clickable && emit('click')"
+  >
     <span class="signal-chip-dot" :style="{ backgroundColor: signal.color }" />
     <span class="signal-chip-value" :class="{ 'value-padding': !removable }">{{ value }}</span>
-    <button v-if="removable" type="button" class="signal-chip-remove" :aria-label="`Remove ${signal.name}`"
-      @click.stop="emit('remove')">
+    <button
+      v-if="removable"
+      type="button"
+      class="signal-chip-remove"
+      :aria-label="`Remove ${signal.name}`"
+      @click.stop="emit('remove')"
+    >
       <X />
     </button>
   </component>

@@ -60,8 +60,9 @@ const option = computed<EChartsOption>(() => ({
   tooltip: {
     position: 'top',
     confine: true,
-    formatter: (params: any) => {
-      const [hour, dow] = params.value as [number, number, number]
+    formatter: (params) => {
+      const item = Array.isArray(params) ? params[0] : params
+      const [hour, dow] = item.value as [number, number, number]
       return tooltipText(dow, hour)
     },
     ...tooltipStyle,

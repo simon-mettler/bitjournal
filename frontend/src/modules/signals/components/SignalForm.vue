@@ -29,7 +29,9 @@ const color = defineModel<string>('color', { required: true })
 const icon = defineModel<string>('icon', { required: true })
 const signalUnit = defineModel<string>('unit', { required: true })
 const selectedSignalType = defineModel<CreateSignalPayload['type']>('type', { required: true })
-const selectedSummaryMethod = defineModel<CreateSignalPayload['summary_method']>('summaryMethod', { required: true })
+const selectedSummaryMethod = defineModel<CreateSignalPayload['summary_method']>('summaryMethod', {
+  required: true,
+})
 const minValue = defineModel<number>('minValue')
 const maxValue = defineModel<number>('maxValue')
 const minLabel = defineModel<string>('minLabel', { required: true })
@@ -38,7 +40,11 @@ const maxLabel = defineModel<string>('maxLabel', { required: true })
 const isRange = () => selectedSignalType.value === 'range'
 const isValue = () => selectedSignalType.value === 'value'
 
-const { errors: validationErrors, validateField, validateAll } = useFormValidation(
+const {
+  errors: validationErrors,
+  validateField,
+  validateAll,
+} = useFormValidation(
   {
     name: () => signalName.value,
     minLabel: () => minLabel.value,
@@ -51,8 +57,20 @@ const { errors: validationErrors, validateField, validateAll } = useFormValidati
     name: [required('Name is required'), maxLength(50, '50 characters or fewer')],
     minLabel: [when(isRange, maxLength(50, '50 characters or fewer'))],
     maxLabel: [when(isRange, maxLength(50, '50 characters or fewer'))],
-    minValue: [when(isRange, required('Min value is required')), when(isRange, isLessThan(() => maxValue.value, 'Must be less than max'))],
-    maxValue: [when(isRange, required('Max value is required')), when(isRange, isMoreThan(() => minValue.value, 'Must be more than min'))],
+    minValue: [
+      when(isRange, required('Min value is required')),
+      when(
+        isRange,
+        isLessThan(() => maxValue.value, 'Must be less than max'),
+      ),
+    ],
+    maxValue: [
+      when(isRange, required('Max value is required')),
+      when(
+        isRange,
+        isMoreThan(() => minValue.value, 'Must be more than min'),
+      ),
+    ],
     signalUnit: [when(isValue, maxLength(20, '20 characters or fewer'))],
   },
 )
@@ -63,31 +81,69 @@ defineExpose({ validateAll, errors: validationErrors })
 <template>
   <div class="form">
     <div class="form-name">
-      <InputText v-model="signalName" label="Name" placeholder="" @blur="validateField('name')"
-        :error="validationErrors['name']" />
+      <InputText
+        v-model="signalName"
+        label="Name"
+        placeholder=""
+        :error="validationErrors['name']"
+        @blur="validateField('name')"
+      />
       <IconPicker v-model="icon" />
       <ColorPicker v-model="color" />
     </div>
 
-    <Select v-model="selectedSummaryMethod" :options="summaryMethod" label="Summary method"
-      placeholder="Summary method" />
-    <Select v-model="selectedSignalType" :options="signalType" label="Signal type" placeholder="Choose a type"
-      :disabled="lockType" />
+    <Select
+      v-model="selectedSummaryMethod"
+      :options="summaryMethod"
+      label="Summary method"
+      placeholder="Summary method"
+    />
+    <Select
+      v-model="selectedSignalType"
+      :options="signalType"
+      label="Signal type"
+      placeholder="Choose a type"
+      :disabled="lockType"
+    />
 
-    <InputText v-if="selectedSignalType === 'value'" v-model="signalUnit" label="Unit" placeholder="Unit"
-      @blur="validateField('signalUnit')" :error="validationErrors['signalUnit']" />
+    <InputText
+      v-if="selectedSignalType === 'value'"
+      v-model="signalUnit"
+      label="Unit"
+      placeholder="Unit"
+      :error="validationErrors['signalUnit']"
+      @blur="validateField('signalUnit')"
+    />
     <template v-if="selectedSignalType === 'range'">
       <div class="form-group">
-        <InputNumber v-model.number="minValue" label="Min value" signToggle @blur="validateField('minValue')"
-          :error="validationErrors['minValue']" />
-        <InputText v-model="minLabel" label="Min label" @blur="validateField('minLabel')"
-          :error="validationErrors['minLabel']" />
+        <InputNumber
+          v-model.number="minValue"
+          label="Min value"
+          sign-toggle
+          :error="validationErrors['minValue']"
+          @blur="validateField('minValue')"
+        />
+        <InputText
+          v-model="minLabel"
+          label="Min label"
+          :error="validationErrors['minLabel']"
+          @blur="validateField('minLabel')"
+        />
       </div>
       <div class="form-group">
-        <InputNumber v-model.number="maxValue" label="Max value" @blur="validateField('maxValue')"
-          :error="validationErrors['maxValue']" signToggle />
-        <InputText v-model="maxLabel" label="Max label" @blur="validateField('maxLabel')"
-          :error="validationErrors['maxLabel']" />
+        <InputNumber
+          v-model.number="maxValue"
+          label="Max value"
+          :error="validationErrors['maxValue']"
+          sign-toggle
+          @blur="validateField('maxValue')"
+        />
+        <InputText
+          v-model="maxLabel"
+          label="Max label"
+          :error="validationErrors['maxLabel']"
+          @blur="validateField('maxLabel')"
+        />
       </div>
     </template>
   </div>
@@ -112,7 +168,7 @@ defineExpose({ validateAll, errors: validationErrors })
   gap: 8px;
 }
 
-.form-group>* {
+.form-group > * {
   flex: 1;
   min-width: 0;
 }

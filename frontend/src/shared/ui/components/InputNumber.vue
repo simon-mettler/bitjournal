@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import {
-  NumberFieldInput,
-  NumberFieldRoot,
-} from 'reka-ui'
-import { Diff } from '@lucide/vue';
+import { NumberFieldInput, NumberFieldRoot } from 'reka-ui'
+import { Diff } from '@lucide/vue'
 import { computed, onMounted, onUnmounted, useId, nextTick } from 'vue'
 import { useNumpadGroup } from '@/shared/lib/useNumpadGroup'
 
@@ -35,7 +32,7 @@ const numpadActive = computed(() => !!group?.enabled)
 const isActiveField = computed(() => numpadActive.value && group?.activeId.value === id)
 
 function handleBlur() {
-  nextTick(() => emit('blur'))
+  void nextTick(() => emit('blur'))
 }
 
 onMounted(() => {
@@ -71,16 +68,40 @@ function toggleSign() {
     <label class="label" :for="id">
       {{ label }}
     </label>
-    <NumberFieldRoot :id="id" v-model="model" class="number-root" :class="{ 'number-root-active': isActiveField }"
-      :min="min" :max="max" :step="step" :disabled="disabled" @click="focusField"
-      :format-options="{ useGrouping: false, maximumFractionDigits: 2 }">
-      <button v-if="signToggle && !numpadActive" class="number-sign-toggle" type="button" tabindex="-1" aria-label="Toggle positive or
-        negative" @click="toggleSign">
+    <NumberFieldRoot
+      :id="id"
+      v-model="model"
+      class="number-root"
+      :class="{ 'number-root-active': isActiveField }"
+      :min="min"
+      :max="max"
+      :step="step"
+      :disabled="disabled"
+      :format-options="{ useGrouping: false, maximumFractionDigits: 2 }"
+      @click="focusField"
+    >
+      <button
+        v-if="signToggle && !numpadActive"
+        class="number-sign-toggle"
+        type="button"
+        tabindex="-1"
+        aria-label="Toggle positive or
+        negative"
+        @click="toggleSign"
+      >
         <Diff :size="20" />
       </button>
-      <NumberFieldInput class="number-input" v-bind="$attrs" :placeholder="placeholder" :readonly="numpadActive"
-        :inputmode="numpadActive ? 'none' : 'decimal'" :tabindex="numpadActive ? -1 : undefined"
-        @mousedown="blockNative" @focus="focusField" @blur="handleBlur" />
+      <NumberFieldInput
+        class="number-input"
+        v-bind="$attrs"
+        :placeholder="placeholder"
+        :readonly="numpadActive"
+        :inputmode="numpadActive ? 'none' : 'decimal'"
+        :tabindex="numpadActive ? -1 : undefined"
+        @mousedown="blockNative"
+        @focus="focusField"
+        @blur="handleBlur"
+      />
     </NumberFieldRoot>
     <p v-if="error" class="error-text">{{ error }}</p>
   </div>

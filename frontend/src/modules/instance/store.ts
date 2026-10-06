@@ -11,7 +11,7 @@ const defaultConfig: InstanceConfig = {
 
 export const useInstanceStore = defineStore('instance', {
   state: () => ({
-    config: { ...defaultConfig } as InstanceConfig,
+    config: { ...defaultConfig },
     loaded: false,
   }),
 
