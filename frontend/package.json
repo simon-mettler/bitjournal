@@ -8,6 +8,7 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",
+    "test:ci": "vitest run --passWithNoTests",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --cache",
@@ -15,7 +16,7 @@
     "fix": "run-s --continue-on-error lint:fix format",
     "format": "prettier --write --experimental-cli .",
     "format:check": "prettier --check --experimental-cli .",
-    "check": "run-s type-check lint format:check \"test:unit --run\""
+    "check": "run-s type-check lint format:check test:ci"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.2",

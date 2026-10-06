@@ -29,6 +29,7 @@ withDefaults(
   border-radius: var(--input-radius);
   cursor: pointer;
   box-shadow: var(--shadow-fields);
+  background-color: var(--color-surface);
 
   &:focus {
     box-shadow: var(--input-shadow-focus);
