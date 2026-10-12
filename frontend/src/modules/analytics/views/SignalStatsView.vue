@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from '@lucide/vue'
 import { today, getLocalTimeZone, type CalendarDate } from '@internationalized/date'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Header from '@/shared/ui/components/Header.vue'
+import StatValue from '@/modules/analytics/components/StatValue.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
 import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import Select from '@/shared/ui/components/Select.vue'
@@ -14,7 +15,7 @@ import DayOfWeekChart from '@/modules/analytics/components/DayOfWeekChart.vue'
 import HeatmapChart from '@/modules/analytics/components/HeatmapChart.vue'
 import { getSignal } from '@/modules/signals/api'
 import { getSignalStats } from '@/modules/analytics/api'
-import { formatStatValue, formatPeriodRange, shiftPeriod } from '@/modules/analytics/format'
+import { formatStatParts, formatPeriodRange, shiftPeriod } from '@/modules/analytics/format'
 import { useToast } from '@/shared/lib/useToast'
 import { useSignalStatsUiStore } from '@/modules/analytics/store/signalStatsUiStore'
 import type { Signal } from '@/modules/signals/types'
@@ -143,11 +144,11 @@ onMounted(() => {
     <div v-else class="stat-tiles">
       <div class="stat-tile">
         <span class="stat-tile-label">Total</span>
-        <span class="stat-tile-value">{{ formatStatValue(signal, stats.total) }}</span>
+        <StatValue class="stat-tile-value" :parts="formatStatParts(signal, stats.total)" />
       </div>
       <div class="stat-tile">
         <span class="stat-tile-label">Average</span>
-        <span class="stat-tile-value">{{ formatStatValue(signal, stats.average) }}</span>
+        <StatValue class="stat-tile-value" :parts="formatStatParts(signal, stats.average)" />
       </div>
     </div>
 
@@ -216,7 +217,6 @@ onMounted(() => {
 }
 
 .period-range {
-  min-width: 132px;
   text-align: center;
   font-size: var(--font-size-sm);
   color: var(--input-color-label);

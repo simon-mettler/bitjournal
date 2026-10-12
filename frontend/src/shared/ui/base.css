@@ -1,0 +1,29 @@
+body {
+  background-color: var(--color-app-bg);
+  margin: 0px;
+  font-family: 'Figtree', sans-serif;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--input-shadow-focus) !important;
+  border: var(--input-border-focus) !important;
+}
+
+html,
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: pan-x pan-y;
+}
+
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}

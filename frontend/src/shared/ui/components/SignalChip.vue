@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue'
+import { computed } from 'vue'
 import type { Signal } from '@/modules/signals/types'
+import { resolveIcon } from '@/shared/lib/iconRegistry'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     signal: Signal
     value: string | null
     clickable?: boolean
     removable?: boolean
+    colored?: boolean
   }>(),
   {
     clickable: false,
     removable: false,
+    colored: false,
   },
 )
 
@@ -19,16 +23,21 @@ const emit = defineEmits<{
   click: []
   remove: []
 }>()
+
+const icon = computed(() => resolveIcon(props.signal.icon))
 </script>
 
 <template>
   <component
     :is="clickable ? 'button' : 'span'"
     class="signal-chip"
+    :class="{ colored }"
+    :style="{ '--chip-signal-color': signal.color }"
     :type="clickable ? 'button' : undefined"
     @click="clickable && emit('click')"
   >
-    <span class="signal-chip-dot" :style="{ backgroundColor: signal.color }" />
+    <component :is="icon" v-if="icon" class="signal-chip-icon" :style="{ color: signal.color }" />
+    <span v-else class="signal-chip-dot" :style="{ backgroundColor: signal.color }" />
     <span class="signal-chip-value" :class="{ 'value-padding': !removable }">{{ value }}</span>
     <button
       v-if="removable"
@@ -48,13 +57,22 @@ const emit = defineEmits<{
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding-left: 11px;
+  padding-left: 9px;
   border-radius: var(--radius-xl);
-  background-color: var(--color-surface-muted);
+  background-color: var(--color-surface);
+  box-sizing: border-box;
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.08);
+  border: 1px solid #dfdfdf;
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text);
   cursor: pointer;
-  height: 36px;
+  height: 33px;
+}
+
+.signal-chip.colored {
+  background-color: oklab(from var(--chip-signal-color) l a b / 0.07);
+  border-color: oklab(from var(--chip-signal-color) l a b / 0.7);
 }
 
 .signal-chip-dot {
@@ -64,14 +82,26 @@ const emit = defineEmits<{
   flex-shrink: 0;
 }
 
+.signal-chip-icon {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+}
+
 .signal-chip-remove {
   all: unset;
   display: inline-flex;
   align-items: center;
   justify-items: center;
-  color: var(--input-color-label);
+  color: var(--color-text);
+  opacity: 0.8;
   height: 36px;
-  width: 31px;
+  width: 29px;
+
+  & > svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 .value-padding {

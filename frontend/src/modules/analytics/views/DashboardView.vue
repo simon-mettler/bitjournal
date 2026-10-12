@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { Check, GripVertical, MoreVertical, Pencil, X } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Header from '@/shared/ui/components/Header.vue'
+import StatValue from '@/modules/analytics/components/StatValue.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
 import AddTile from '@/shared/ui/components/AddTile.vue'
@@ -22,7 +23,7 @@ import {
   updateAnalyticsBoard,
 } from '@/modules/analytics/api'
 import TimeseriesChart from '@/modules/analytics/components/TimeseriesChart.vue'
-import { formatStatValue, formatWidgetTimeframe } from '@/modules/analytics/format'
+import { formatStatParts, formatWidgetTimeframe, type StatPart } from '@/modules/analytics/format'
 import { periodUsesWeeklyBins } from '@/modules/analytics/timeseriesBins'
 import { useDashboardUiStore } from '@/modules/analytics/store/dashboardUiStore'
 import type {
@@ -83,11 +84,11 @@ watch(activeBoardId, (id) => {
 
 const hasNoEntries = (widget: AnalyticsWidget) => values.value[widget.id]?.count === 0
 
-function displayValue(widget: AnalyticsWidget): string {
+function displayValue(widget: AnalyticsWidget): StatPart[] {
   const value = values.value[widget.id]
-  if (!value) return '…'
-  if (value.count === 0 || value.value === null) return '–'
-  return formatStatValue(widget.signal, value.value)
+  if (!value) return [{ text: '…' }]
+  if (value.count === 0 || value.value === null) return [{ text: '–' }]
+  return formatStatParts(widget.signal, value.value)
 }
 
 // TABS (BOARDS)
@@ -284,9 +285,11 @@ onMounted(async () => {
           <span class="widget-meta">{{ formatWidgetTimeframe(widget) }}</span>
         </template>
         <template v-else>
-          <span class="widget-value" :style="{ color: widget.signal.color }">{{
-            displayValue(widget)
-          }}</span>
+          <StatValue
+            class="widget-value"
+            :style="{ color: widget.signal.color }"
+            :parts="displayValue(widget)"
+          />
           <span class="widget-meta">
             {{
               hasNoEntries(widget)

@@ -89,8 +89,8 @@ const time = defineModel<TimeValue>('time')
   background-color: var(--color-surface);
   border-top: var(--input-border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: var(--spacing-md);
-  padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
+  padding: calc(var(--spacing-md) - 5px) var(--spacing-md)
+    calc(var(--spacing-md) + env(safe-area-inset-bottom)) var(--spacing-md);
   box-shadow: var(--shadow-md);
 }
 
@@ -100,6 +100,9 @@ const time = defineModel<TimeValue>('time')
   gap: 8px;
   max-height: 150px;
   overflow-y: auto;
+  padding: 5px;
+  width: 100%;
+  transform: translateX(-5px);
 }
 
 .draft-chip-empty {
