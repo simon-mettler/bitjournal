@@ -40,17 +40,17 @@ function onUpdate(value: unknown) {
 .toggle-group {
   display: flex;
   gap: 2px;
-  padding: 2px;
-  border-radius: var(--radius-xl);
-  background-color: var(--color-surface-muted);
+  padding: 4px;
+  border: 1px solid #eee;
+  border-radius: calc(var(--radius-md) - 2px);
+  background-color: var(--color-surface);
 }
 
 .toggle-group-item {
   all: unset;
-  padding: 6px 12px;
-  border-radius: var(--radius-xl);
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
   color: var(--input-color-label);
   cursor: pointer;
 }
@@ -61,8 +61,10 @@ function onUpdate(value: unknown) {
 }
 
 .toggle-group-item[data-state='on'] {
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-text) 8%, transparent),
+    0 1px 3px rgba(0, 0, 0, 0.12);
 }
 </style>

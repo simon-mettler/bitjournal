@@ -1,4 +1,5 @@
 import './shared/ui/tokens.css'
+import './shared/ui/base.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

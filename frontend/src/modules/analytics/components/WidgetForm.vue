@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { ChevronDown } from '@lucide/vue'
+import { Plus } from '@lucide/vue'
 import InputText from '@/shared/ui/components/InputText.vue'
 import InputNumber from '@/shared/ui/components/InputNumber.vue'
+import SignalChip from '@/shared/ui/components/SignalChip.vue'
 import Select from '@/shared/ui/components/Select.vue'
 import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
@@ -125,16 +126,23 @@ defineExpose({ validateAll, errors })
 
     <div class="field">
       <span class="label">Signal</span>
-      <SignalPickerDialog :multiple="false" @add="([signal]) => (form.signalId = signal.id)">
-        <template #trigger>
-          <button type="button" class="signal-trigger" :class="{ placeholder: !selectedSignal }">
-            <span class="signal-trigger-value">{{
-              selectedSignal?.name ?? 'Select signal...'
-            }}</span>
-            <ChevronDown />
-          </button>
-        </template>
-      </SignalPickerDialog>
+      <div class="signal-chips">
+        <SignalChip
+          v-if="selectedSignal"
+          :signal="selectedSignal"
+          :value="selectedSignal.name"
+          removable
+          @remove="form.signalId = undefined"
+        />
+        <SignalPickerDialog v-else :multiple="false" @add="([signal]) => (form.signalId = signal.id)">
+          <template #trigger>
+            <button type="button" class="add-signal-button">
+              <Plus :size="14" />
+              Add signal
+            </button>
+          </template>
+        </SignalPickerDialog>
+      </div>
       <p v-if="errors['signal']" class="error-text">{{ errors['signal'] }}</p>
     </div>
 
@@ -211,43 +219,23 @@ defineExpose({ validateAll, errors })
   color: var(--input-color-label);
 }
 
-.signal-trigger {
+.signal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.add-signal-button {
   all: unset;
-  box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  height: var(--input-height);
-  padding: 0 10px;
-  font-size: var(--font-size-base);
-  color: var(--input-color-text);
-  background-color: var(--input-color-background);
-  border: var(--input-border);
-  border-radius: var(--input-radius);
-  box-shadow: var(--shadow-fields);
+  gap: 4px;
+  padding: 6px var(--spacing-md);
+  border-radius: var(--radius-xl);
+  border: 1px dashed var(--color-primary);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
   cursor: pointer;
-}
-
-.signal-trigger:focus-visible {
-  box-shadow: var(--input-shadow-focus);
-  border: var(--input-border-focus);
-}
-
-.signal-trigger.placeholder {
-  color: var(--input-color-placeholder);
-}
-
-.signal-trigger-value {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.signal-trigger :deep(svg) {
-  flex-shrink: 0;
-  color: var(--color-surface-medium);
 }
 
 .error-text {

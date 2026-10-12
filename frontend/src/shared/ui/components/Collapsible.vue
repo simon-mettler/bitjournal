@@ -13,8 +13,11 @@ const open = ref(false)
 <template>
   <CollapsibleRoot v-model:open="open" class="collapsible">
     <div class="collapsible-header">
+      <slot name="icon" />
       <span class="collapsible-title">{{ title }}</span>
-      <slot name="actions" />
+      <div class="collapsible-actions">
+        <slot name="actions" />
+      </div>
       <CollapsibleTrigger class="collapsible-trigger">
         <ChevronDown class="collapsible-icon" :class="{ 'is-open': open }" />
       </CollapsibleTrigger>
@@ -35,25 +38,36 @@ const open = ref(false)
 }
 
 .collapsible-header {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-md);
+}
+
+.collapsible-actions {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
 }
 
 .collapsible-trigger {
   all: unset;
-  flex: 1;
-  align-self: stretch;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   cursor: pointer;
+}
+
+/* Stretch the click target over the whole header (title included) */
+.collapsible-trigger::before {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
 .collapsible-title {
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-sm);
+  font-size: 1.15rem;
   color: var(--color-text);
 }
 
@@ -70,8 +84,17 @@ const open = ref(false)
 }
 
 .collapsible-content {
-  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+  padding: 0 var(--spacing-md) var(--spacing-md);
   overflow: hidden;
+}
+
+/* Divider between header and content */
+.collapsible-content::before {
+  content: '';
+  display: block;
+  height: 1px;
+  margin-bottom: var(--spacing-md);
+  background: var(--input-color-border);
 }
 
 .collapsible-content[data-state='open'] {

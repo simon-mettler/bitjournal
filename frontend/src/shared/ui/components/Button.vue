@@ -35,7 +35,6 @@ withDefaults(
   font-weight: var(--font-weight-normal);
   line-height: 1;
   cursor: pointer;
-  box-shadow: var(--shadow-fields);
 
   &:focus {
     box-shadow: var(--input-shadow-focus);
@@ -56,7 +55,7 @@ withDefaults(
 .button.secondary {
   background-color: var(--color-surface);
   color: var(--input-color-text);
-  border: var(--input-border);
+  border: var(--button-border);
 }
 
 .button.tertiary {

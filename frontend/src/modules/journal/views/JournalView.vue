@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, type Ref } from 'vue'
 import { getLocalTimeZone, today, type DateValue } from '@internationalized/date'
-import { CalendarDays, ChevronRight, Plus } from '@lucide/vue'
+import { CalendarDays, ChevronRight, ListFilter, Plus } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import JournalEventCard from '@/modules/journal/components/JournalEventCard.vue'
 import Header from '@/shared/ui/components/Header.vue'
@@ -171,33 +171,29 @@ onMounted(load)
   </AppShellHeader>
 
   <Collapsible title="Filters" class="filters-panel">
+    <template #icon>
+      <ListFilter :size="18" class="filters-icon" />
+    </template>
     <template #actions>
       <button type="button" class="filters-clear" @click="clearAll">Clear all</button>
     </template>
 
-    <div class="filter-row">
-      <div class="filter-row-icon">
-        <CalendarDays :size="18" />
-      </div>
-      <div class="filter-row-text">
-        <span class="filter-row-title">Date Boundary</span>
-        <span class="filter-row-subtitle">Filter events up to date</span>
-      </div>
-      <DatePicker v-model="draftBefore">
-        <template #trigger="{ open }">
-          <button type="button" class="filter-value-button" @click="open">
-            <span>{{ dateBoundaryLabel }}</span>
-            <ChevronRight :size="16" />
-          </button>
-        </template>
-      </DatePicker>
-    </div>
-
-    <div class="filters-divider" />
+    <DatePicker v-model="draftBefore">
+      <template #trigger="{ open }">
+        <button type="button" class="filter-button" @click="open">
+          <span class="filter-button-icon">
+            <CalendarDays :size="18" />
+          </span>
+          <span class="filter-button-label">Up to:</span>
+          <span class="filter-button-value">{{ dateBoundaryLabel }}</span>
+          <ChevronRight :size="16" class="filter-button-chevron" />
+        </button>
+      </template>
+    </DatePicker>
 
     <div class="trackers-header">
       <div class="trackers-label">
-        <span>TRACKERS</span>
+        <span>Signals</span>
         <span v-if="draftSignals.length" class="trackers-count">{{ draftSignals.length }}</span>
       </div>
       <ToggleGroup v-model="draftLogic" :options="logicOptions" />
@@ -217,7 +213,7 @@ onMounted(load)
         <template #trigger>
           <button type="button" class="add-tracker-button">
             <Plus :size="14" />
-            Add tracker
+            Add signal
           </button>
         </template>
       </SignalPickerDialog>
@@ -285,81 +281,70 @@ onMounted(load)
   all: unset;
   color: var(--color-primary);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  text-decoration: underline;
+  font-weight: var(--font-weight-normal);
   cursor: pointer;
 }
 
-.filters-divider {
-  height: 1px;
-  background: var(--input-color-border);
-  margin: var(--spacing-md) 0;
-}
-
-.filter-row {
+.filter-button {
+  all: unset;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  width: 100%;
+  height: var(--input-height);
+  margin-bottom: var(--spacing-lg);
+  padding: 0 var(--spacing-md);
+  border: 1px solid #eee;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--input-color-text);
+  font-size: var(--font-size-base);
+  cursor: pointer;
 }
 
-.filter-row-icon {
+.filter-button:focus-visible {
+  box-shadow: var(--input-shadow-focus);
+  border: var(--input-border-focus);
+}
+
+.filter-button-icon {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-muted);
   color: var(--input-color-label);
   flex-shrink: 0;
 }
 
-.filter-row-text {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.filter-row-title {
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-sm);
-}
-
-.filter-row-subtitle {
-  font-size: var(--font-size-sm);
+.filter-button-label {
   color: var(--input-color-label);
 }
 
-.filter-value-button {
-  all: unset;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-xl);
-  background: var(--color-surface-muted);
-  font-size: var(--font-size-sm);
+.filter-button-value {
+  flex: 1;
+  min-width: 0;
   font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  white-space: nowrap;
+}
+
+.filter-button-chevron {
+  flex-shrink: 0;
+  color: var(--input-color-label);
 }
 
 .trackers-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .trackers-label {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.04em;
-  color: var(--input-color-label);
+  color: var(--input-color-text);
 }
 
 .trackers-count {
@@ -379,7 +364,7 @@ onMounted(load)
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .add-tracker-button {

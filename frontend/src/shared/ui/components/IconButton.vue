@@ -15,7 +15,7 @@ withDefaults(
 </script>
 
 <template>
-  <button :type="type" class="button" :class="(variant, size)" :disabled="disabled">
+  <button :type="type" class="button" :class="[variant, size]" :disabled="disabled">
     <slot />
   </button>
 </template>
@@ -28,7 +28,6 @@ withDefaults(
   border: 2px solid transparent;
   border-radius: var(--input-radius);
   cursor: pointer;
-  box-shadow: var(--shadow-fields);
   background-color: var(--color-surface);
 
   &:focus {
@@ -60,6 +59,7 @@ withDefaults(
 .button.secondary {
   background-color: var(--color-surface);
   color: var(--input-color-text);
+  border: var(--button-border);
 }
 
 .button.tertiary {

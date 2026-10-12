@@ -2,14 +2,25 @@ import type { CalendarDate } from '@internationalized/date'
 import type { Signal } from '@/modules/signals/types'
 import type { AnalyticsWidget, SignalStatsPeriod, Timeframe, WidgetTimeframe } from './types'
 
-function formatSecondsDuration(totalSeconds: number): string {
+export interface StatPart {
+  text: string
+  unit?: boolean
+}
+
+function durationParts(totalSeconds: number): StatPart[] {
   const h = Math.floor(totalSeconds / 3600)
   const m = Math.floor((totalSeconds % 3600) / 60)
   const s = Math.floor(totalSeconds % 60)
 
-  if (h > 0) return `${h}h ${m}m`
-  if (m > 0) return `${m}min`
-  return `${s}s`
+  if (h > 0)
+    return [
+      { text: `${h}` },
+      { text: 'h ', unit: true },
+      { text: `${m}` },
+      { text: 'm', unit: true },
+    ]
+  if (m > 0) return [{ text: `${m}` }, { text: 'min', unit: true }]
+  return [{ text: `${s}` }, { text: 's', unit: true }]
 }
 
 // Format label for durations (like 45m or 1:30h).
@@ -40,15 +51,20 @@ function roundTo2(value: number): number {
   return Math.round(value * 100) / 100
 }
 
-export function formatStatValue(signal: Signal, value: number): string {
-  if (signal.type === 'duration') {
-    return formatSecondsDuration(value)
-  }
-  if (signal.type === 'tally') {
-    return `${roundTo2(value)}`
-  }
+export function formatStatParts(signal: Signal, value: number): StatPart[] {
+  if (signal.type === 'duration') return durationParts(value)
+  if (signal.type === 'tally') return [{ text: `${roundTo2(value)}` }]
   const unit = signal.value_config?.unit ?? ''
-  return `${roundTo2(value)}${unit}`
+  // split value and unit
+  return unit
+    ? [{ text: `${roundTo2(value)}` }, { text: ` ${unit}`, unit: true }]
+    : [{ text: `${roundTo2(value)}` }]
+}
+
+export function formatStatValue(signal: Signal, value: number): string {
+  return formatStatParts(signal, value)
+    .map((part) => part.text)
+    .join('')
 }
 
 const SHIFT_BY_TIMEFRAME: Record<

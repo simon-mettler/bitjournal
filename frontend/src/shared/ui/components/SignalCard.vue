@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import type { Signal } from '@/modules/signals/types'
 
-defineProps<{
-  signal: Signal
-}>()
+withDefaults(
+  defineProps<{
+    signal: Signal
+    colored?: boolean
+  }>(),
+  {
+    colored: false,
+  },
+)
 
 const emit = defineEmits<{
   select: []
@@ -11,7 +17,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="signal-card" @click="emit('select')">
+  <div
+    class="signal-card"
+    :class="{ colored }"
+    :style="{ '--card-signal-color': signal.color }" @click="emit('select')">
     <div class="signal-card-top">
       <span v-if="$slots.handle" class="signal-card-handle">
         <slot name="handle" />
@@ -27,7 +36,6 @@ const emit = defineEmits<{
 
     <div class="signal-card-info">
       <span class="signal-card-name">{{ signal.name }}</span>
-      <span class="signal-card-type">{{ signal.type }}</span>
     </div>
   </div>
 </template>
@@ -37,12 +45,18 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 75px;
+  height: 58px;
   padding: 10px 7px 14px 14px;
   border-radius: var(--input-radius);
   background-color: var(--color-surface);
-  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-surface-muted);
   cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+
+.signal-card.colored {
+  background-color: oklab(from var(--card-signal-color) l a b / 0.1);
+  border-color: oklab(from var(--card-signal-color) l a b / 0.7);
 }
 
 .signal-card-top {

@@ -91,6 +91,9 @@
   --input-color-text-disabled: var(--color-surface-medium);
   --input-border-disabled: 1px dashed var(--color-surface-medium);
 
+  /* Buttons */
+  --button-border: 1px solid #c7d0d8;
+
   /* Dialog */
   --dialog-padding: var(--spacing-md);
   --dialog-radius: var(--radius-lg);
