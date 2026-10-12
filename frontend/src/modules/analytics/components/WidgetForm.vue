@@ -134,7 +134,11 @@ defineExpose({ validateAll, errors })
           removable
           @remove="form.signalId = undefined"
         />
-        <SignalPickerDialog v-else :multiple="false" @add="([signal]) => (form.signalId = signal.id)">
+        <SignalPickerDialog
+          v-else
+          :multiple="false"
+          @add="([signal]) => (form.signalId = signal.id)"
+        >
           <template #trigger>
             <button type="button" class="add-signal-button">
               <Plus :size="14" />

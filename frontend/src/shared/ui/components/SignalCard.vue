@@ -20,7 +20,9 @@ const emit = defineEmits<{
   <div
     class="signal-card"
     :class="{ colored }"
-    :style="{ '--card-signal-color': signal.color }" @click="emit('select')">
+    :style="{ '--card-signal-color': signal.color }"
+    @click="emit('select')"
+  >
     <div class="signal-card-top">
       <span v-if="$slots.handle" class="signal-card-handle">
         <slot name="handle" />
