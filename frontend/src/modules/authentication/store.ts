@@ -38,6 +38,11 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async logoutAll() {
+      await api.post('users/me/logout-all/')
+      this.accessToken = ''
+    },
+
     async logout() {
       try {
         await api.post('token/logout/')

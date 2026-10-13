@@ -4,6 +4,7 @@ import signalRoutes from '@/modules/signals/routes'
 import boardRoutes from '@/modules/boards/routes'
 import journalRoutes from '@/modules/journal/routes'
 import analyticsRoutes from '@/modules/analytics/routes'
+import accountRoutes from '@/modules/account/routes'
 
 import { useAuthStore } from '@/modules/authentication/store'
 import { useInstanceStore } from '@/modules/instance/store'
@@ -18,6 +19,7 @@ const router = createRouter({
     ...boardRoutes,
     ...journalRoutes,
     ...analyticsRoutes,
+    ...accountRoutes,
   ],
 })
 
