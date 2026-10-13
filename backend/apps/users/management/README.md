@@ -13,10 +13,10 @@ python manage.py seed_demo_data --seed 42        # use a reproducible random see
 
 **Demo accounts** — password: `Demo12345!`
 
-* `demo_fitness`
-* `demo_focus`
-* `demo_wellness`
-* `demo_habits`
+- `demo_fitness@bitjournal.demo`
+- `demo_focus@bitjournal.demo`
+- `demo_wellness@bitjournal.demo`
+- `demo_habits@bitjournal.demo`
 
 Each account gets 6 signals, 2 boards, and up to 300 days of events with randomized values, trends, weekday patterns, shared events, and occasional notes.
 

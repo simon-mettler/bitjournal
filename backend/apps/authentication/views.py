@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db import connection, OperationalError
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 from apps.users.serializers import UserSerializer
 
 User = get_user_model()
@@ -14,7 +16,9 @@ COOKIE_KWARGS = dict(
     secure=not settings.DEBUG,  # True in production (requires HTTPS)
     samesite='Lax',
     path='/api/token/',
+    max_age=int(settings.REFRESH_TOKEN_LIFETIME.total_seconds()),
 )
+DELETE_COOKIE_KWARGS = dict(path=COOKIE_KWARGS['path'])
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
@@ -28,6 +32,13 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
 
 class CookieTokenRefreshView(TokenRefreshView):
+    def finalize_response(self, request, response, *args, **kwargs):
+        # Rotation issues a new refresh token on every refresh: move it to the cookie.
+        if response.status_code == 200 and 'refresh' in response.data:
+            refresh = response.data.pop('refresh')
+            response.set_cookie('refresh_token', refresh, **COOKIE_KWARGS)
+        return super().finalize_response(request, response, *args, **kwargs)
+
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token:
@@ -79,5 +90,11 @@ class LogoutView(APIView):
 
     def post(self, request):
         response = Response(status=204)
-        response.delete_cookie('refresh_token', path='/api/token/')
+        refresh_token = request.COOKIES.get('refresh_token')
+        if refresh_token:
+            try:
+                RefreshToken(refresh_token).blacklist()
+            except TokenError:
+                pass  # already expired/blacklisted/invalid: nothing to revoke
+        response.delete_cookie('refresh_token', **DELETE_COOKIE_KWARGS)
         return response

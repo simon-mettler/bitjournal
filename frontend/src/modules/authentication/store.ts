@@ -40,7 +40,7 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
-        await api.post('logout/')
+        await api.post('token/logout/')
       } finally {
         this.accessToken = ''
       }
