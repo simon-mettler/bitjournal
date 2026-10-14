@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import Header from '@/shared/ui/components/Header.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import { useAuthStore } from '@/modules/authentication/store'
 import { useToast } from '@/shared/lib/useToast'
 import ChangePasswordForm from '../components/ChangePasswordForm.vue'
+import DeleteAccountDialog from '../components/DeleteAccountDialog.vue'
 
 const auth = useAuthStore()
 const { toast } = useToast()
+const deleteOpen = ref(false)
 
 async function handleLogoutAll() {
   try {
@@ -34,7 +37,15 @@ async function handleLogoutAll() {
       <p>Log out on all devices, including this one.</p>
       <Button variant="secondary" @click="handleLogoutAll">Log out everywhere</Button>
     </section>
+
+    <section>
+      <h2>Delete account</h2>
+      <p>Permanently delete your account and all your data.</p>
+      <Button variant="warn" @click="deleteOpen = true">Delete account</Button>
+    </section>
   </div>
+
+  <DeleteAccountDialog v-model:open="deleteOpen" />
 </template>
 
 <style scoped>

@@ -44,3 +44,18 @@ class ChangePasswordSerializer(serializers.Serializer):
         except DjangoValidationError as e:
             raise serializers.ValidationError(list(e.messages))
         return value
+
+
+class DeleteAccountSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True)
+    email = serializers.CharField(write_only=True)
+
+    def validate_password(self, value):
+        if not self.context['request'].user.check_password(value):
+            raise serializers.ValidationError('Password is incorrect.')
+        return value
+
+    def validate_email(self, value):
+        if value.strip().lower() != self.context['request'].user.email.lower():
+            raise serializers.ValidationError('Email does not match your account.')
+        return value
