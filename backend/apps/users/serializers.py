@@ -3,11 +3,16 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
+from django.core import signing
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
 User = get_user_model()
+
+EMAIL_CHANGE_SALT = 'users.email-change'
+
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all(), lookup='iexact')]
@@ -85,4 +90,46 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         except DjangoValidationError as e:
             raise serializers.ValidationError({'new_password': list(e.messages)})
         attrs['user'] = user
+        return attrs
+
+
+class ChangeEmailSerializer(serializers.Serializer):
+    new_email = serializers.EmailField()
+    current_password = serializers.CharField(write_only=True)
+
+    def validate_current_password(self, value):
+        if not self.context['request'].user.check_password(value):
+            raise serializers.ValidationError('Password is incorrect.')
+        return value
+
+    def validate_new_email(self, value):
+        value = User.objects.normalize_email(value.strip()).lower()
+        if value == self.context['request'].user.email.lower():
+            raise serializers.ValidationError('This is already your email.')
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError('This email is already in use.')
+        return value
+
+
+class ConfirmEmailChangeSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+    def validate(self, attrs):
+        invalid = serializers.ValidationError(
+            {'token': ['This link is invalid or has expired.']}
+        )
+        try:
+            data = signing.loads(
+                attrs['token'], salt=EMAIL_CHANGE_SALT, max_age=settings.EMAIL_CHANGE_TIMEOUT
+            )
+        except signing.BadSignature:
+            raise invalid
+        user = User.objects.filter(pk=data['uid'], is_active=True).first()
+        # the old email must still be current: any other change invalidates the link
+        if user is None or user.email != data['old']:
+            raise invalid
+        if User.objects.filter(email__iexact=data['new']).exclude(pk=user.pk).exists():
+            raise serializers.ValidationError({'token': ['This email is already in use.']})
+        attrs['user'] = user
+        attrs['new_email'] = data['new']
         return attrs

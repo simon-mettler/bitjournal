@@ -1,0 +1,4 @@
+{% autoescape off %}The email address of your {{ site_name }} account was changed to {{ new_email }}.
+
+If this was not you, contact the administrator of this instance right away.
+{% endautoescape %}

@@ -50,12 +50,23 @@ SUBJECTS = {
     'password_reset': 'Reset your password',
     'email_change': 'Confirm your new email address',
     'password_changed': 'Your password was changed',
+    'email_changed': 'Your email address was changed',
 }
 
 
 def send_templated_mail(to, template, context=None):
-    """Render `users/email/<template>.txt` and `.html` and send them with SUBJECTS[template]."""
+    """Render `users/email/<template>.txt/html` and sends mail."""
     context = {'site_name': SITE_NAME, **(context or {})}
     text = render_to_string(f'users/email/{template}.txt', context).strip()
     html = render_to_string(f'users/email/{template}.html', context)
     send_mail(to, SUBJECTS[template], text, html)
+
+
+def notify(to, template, context=None):
+    """Security notification."""
+    if not settings.EMAIL_ENABLED:
+        return
+    try:
+        send_templated_mail(to, template, context)
+    except MailError:
+        pass  # already logged

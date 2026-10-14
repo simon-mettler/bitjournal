@@ -44,6 +44,9 @@ SITE_URL = os.getenv('SITE_URL', 'http://localhost:5173' if DEBUG else '').rstri
 # Lifetime of password reset links (seconds).
 PASSWORD_RESET_TIMEOUT = 60 * 60
 
+# Lifetime of email change confirmation links (seconds).
+EMAIL_CHANGE_TIMEOUT = 60 * 60 * 24
+
 EMAIL_ENABLED = bool(RESEND_API_KEY and DEFAULT_FROM_EMAIL and SITE_URL)
 
 # Public instance config: GET /api/config/
