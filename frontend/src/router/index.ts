@@ -36,6 +36,10 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: 'login' })
   }
 
+  if ((to.name === 'forgot-password' || to.name === 'reset-password') && !instance.emailEnabled) {
+    return next({ name: 'login' })
+  }
+
   if (to.matched.some((record) => record.meta.public)) {
     next()
   } else if (auth.isAuthenticated) {

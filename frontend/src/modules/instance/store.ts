@@ -17,6 +17,7 @@ export const useInstanceStore = defineStore('instance', {
 
   getters: {
     registrationEnabled: (state) => state.config.registration_enabled,
+    emailEnabled: (state) => state.config.email_enabled,
   },
 
   actions: {
