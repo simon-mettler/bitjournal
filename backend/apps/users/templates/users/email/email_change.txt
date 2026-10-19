@@ -1,0 +1,7 @@
+{% autoescape off %}Please confirm that {{ new_email }} is your new email address for {{ site_name }}.
+
+Confirm it here:
+{{ url }}
+
+Your email only changes once you confirm. If you did not ask for this, you can ignore this mail.
+{% endautoescape %}

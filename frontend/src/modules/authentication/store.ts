@@ -38,9 +38,19 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async logoutAll() {
+      await api.post('users/me/logout-all/')
+      this.accessToken = ''
+    },
+
+    async deleteAccount(payload: { password: string; email: string }) {
+      await api.post('users/me/delete/', payload)
+      this.accessToken = ''
+    },
+
     async logout() {
       try {
-        await api.post('logout/')
+        await api.post('token/logout/')
       } finally {
         this.accessToken = ''
       }

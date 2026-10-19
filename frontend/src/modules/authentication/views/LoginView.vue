@@ -44,6 +44,13 @@ async function handleSubmit() {
     <p v-if="error">{{ error }}</p>
   </form>
 
+  <p class="login-hint">
+    <RouterLink v-if="instance.emailEnabled" :to="{ name: 'forgot-password' }">
+      Forgot your password?
+    </RouterLink>
+    <template v-else>Forgot your password? Ask your instance admin to reset it.</template>
+  </p>
+
   <p v-if="instance.registrationEnabled" class="login-hint">
     No account yet?
     <RouterLink :to="{ name: 'register' }">Register here</RouterLink>

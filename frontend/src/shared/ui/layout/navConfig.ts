@@ -1,5 +1,12 @@
 import type { Component } from 'vue'
-import { LayoutDashboard, ListChecks, BookOpen, MoreHorizontal, Radio } from '@lucide/vue'
+import {
+  LayoutDashboard,
+  ListChecks,
+  BookOpen,
+  MoreHorizontal,
+  Radio,
+  UserRound,
+} from '@lucide/vue'
 
 export interface NavItem {
   label: string
@@ -24,5 +31,9 @@ export const sidebarGroups: NavGroup[] = [
   {
     label: 'Configuration',
     items: [{ label: 'Manage signals', icon: Radio, to: { name: 'manage-signals' } }],
+  },
+  {
+    label: 'Account',
+    items: [{ label: 'Account', icon: UserRound, to: { name: 'account' } }],
   },
 ]

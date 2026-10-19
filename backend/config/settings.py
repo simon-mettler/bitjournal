@@ -32,15 +32,22 @@ ALLOWED_HOSTS = env_list('ALLOWED_HOSTS')
 # Set REGISTRATION_ENABLED=false to close sign-ups.
 REGISTRATION_ENABLED = os.getenv('REGISTRATION_ENABLED', 'true').lower() == 'true'
 
-# Email
-EMAIL_HOST = os.getenv('EMAIL_HOST', '')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() == 'true'
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '')
+# Email (sent through Resend, see apps/users/mail.py)
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 
-EMAIL_ENABLED = bool(EMAIL_HOST and DEFAULT_FROM_EMAIL)
+# DEBUG always sends from Resend's test sender.
+DEFAULT_FROM_EMAIL = 'onboarding@resend.dev' if DEBUG else os.getenv('DEFAULT_FROM_EMAIL', '')
+EMAIL_CATCH_ALL = os.getenv('EMAIL_CATCH_ALL', '')
+# Public base URL of the frontend, used to build links in mails (reset, confirm email).
+SITE_URL = os.getenv('SITE_URL', 'http://localhost:5173' if DEBUG else '').rstrip('/')
+
+# Lifetime of password reset links (seconds).
+PASSWORD_RESET_TIMEOUT = 60 * 60
+
+# Lifetime of email change confirmation links (seconds).
+EMAIL_CHANGE_TIMEOUT = 60 * 60 * 24
+
+EMAIL_ENABLED = bool(RESEND_API_KEY and DEFAULT_FROM_EMAIL and SITE_URL)
 
 # Public instance config: GET /api/config/
 INSTANCE_NOTICE = os.getenv('INSTANCE_NOTICE', '')
@@ -58,6 +65,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'apps.authentication',
     'apps.users',
@@ -155,9 +163,13 @@ REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
 }
 
+REFRESH_TOKEN_LIFETIME = timedelta(days=180)
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1)
+    'REFRESH_TOKEN_LIFETIME': REFRESH_TOKEN_LIFETIME,
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 

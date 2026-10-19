@@ -1,0 +1,6 @@
+{% extends 'users/email/base.html' %}
+{% block content %}
+<p>Please confirm that <strong>{{ new_email }}</strong> is your new email address for {{ site_name }}.</p>
+{% include 'users/email/_button.html' with url=url label='Confirm new email' %}
+<p>Your email only changes once you confirm. If you did not ask for this, you can ignore this mail.</p>
+{% endblock %}
