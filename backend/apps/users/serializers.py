@@ -14,6 +14,15 @@ User = get_user_model()
 EMAIL_CHANGE_SALT = 'users.email-change'
 
 class UserSerializer(serializers.ModelSerializer):
+    """The current user, as returned by /users/me/."""
+
+    class Meta:
+        model = User
+        fields = ['id', 'email']
+        read_only_fields = fields
+
+
+class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all(), lookup='iexact')]
     )

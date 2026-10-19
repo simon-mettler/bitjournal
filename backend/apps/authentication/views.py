@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db import connection, OperationalError
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
-from apps.users.serializers import UserSerializer
+from apps.users.serializers import RegisterSerializer
 
 User = get_user_model()
 
@@ -56,7 +56,7 @@ class RegistrationEnabled(permissions.BasePermission):
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny, RegistrationEnabled]
     throttle_scope = 'auth'
 
