@@ -1,0 +1,48 @@
+# bitjournal, self-hosted:
+#
+#   curl -O https://raw.githubusercontent.com/simon-mettler/bitjournal/main/deploy/docker-compose.yml
+#   curl -o .env https://raw.githubusercontent.com/simon-mettler/bitjournal/main/.env.example
+#   # edit .env (SECRET_KEY, DB_PASSWORD, ALLOWED_HOSTS, ...), then:
+#   docker compose up -d
+#
+# Pin BITJOURNAL_VERSION in .env (e.g. 0.1.0) so upgrades are deliberate.
+# Migrations run on startup, so take a backup before upgrading and don't downgrade.
+
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:?set DB_NAME in .env}
+      POSTGRES_USER: ${DB_USER:?set DB_USER in .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - bitjournal_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    image: DOCKERHUB_USER/bitjournal:${BITJOURNAL_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "healthcheck.py"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  bitjournal_data:
