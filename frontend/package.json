@@ -21,7 +21,7 @@
   "dependencies": {
     "@internationalized/date": "^3.12.2",
     "@lucide/vue": "^1.24.0",
-    "@vueuse/components": "^14.4.0",
+    "@vueuse/components": "^15.0.0",
     "@vueuse/core": "^14.3.0",
     "@vueuse/integrations": "^14.3.0",
     "axios": "^1.18.1",
