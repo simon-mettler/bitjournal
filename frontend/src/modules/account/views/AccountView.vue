@@ -3,14 +3,12 @@ import { onMounted, ref } from 'vue'
 import Header from '@/shared/ui/components/Header.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
-import { useAuthStore } from '@/modules/authentication/store'
 import { useToast } from '@/shared/lib/useToast'
 import ChangeEmailForm from '../components/ChangeEmailForm.vue'
 import ChangePasswordForm from '../components/ChangePasswordForm.vue'
 import { getMe } from '../api'
 import DeleteAccountDialog from '../components/DeleteAccountDialog.vue'
 
-const auth = useAuthStore()
 const { toast } = useToast()
 const deleteOpen = ref(false)
 const email = ref('')
@@ -23,14 +21,6 @@ onMounted(async () => {
     toast({ title: 'Could not load your account', variant: 'danger' })
   }
 })
-
-async function handleLogoutAll() {
-  try {
-    await auth.logoutAll()
-  } catch {
-    toast({ title: 'Could not log out everywhere', variant: 'danger' })
-  }
-}
 </script>
 
 <template>
@@ -51,12 +41,6 @@ async function handleLogoutAll() {
     </section>
 
     <section>
-      <h2>Sessions</h2>
-      <p>Log out on all devices, including this one.</p>
-      <Button variant="secondary" @click="handleLogoutAll">Log out everywhere</Button>
-    </section>
-
-    <section>
       <h2>Delete account</h2>
       <p>Permanently delete your account and all your data.</p>
       <Button variant="warn" @click="deleteOpen = true">Delete account</Button>
@@ -70,7 +54,7 @@ async function handleLogoutAll() {
 .account-content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-xxxl);
   padding: var(--padding-app);
 }
 

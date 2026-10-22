@@ -7,6 +7,7 @@ import { isAxiosError } from 'axios'
 import InputText from '@/shared/ui/components/InputText.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import Header from '@/shared/ui/components/Header.vue'
+import AuthLogo from '../components/AuthLogo.vue'
 
 const auth = useAuthStore()
 const instance = useInstanceStore()
@@ -36,6 +37,7 @@ async function handleSubmit() {
 </script>
 
 <template>
+  <AuthLogo />
   <Header heading="Login"></Header>
   <form @submit.prevent="handleSubmit">
     <InputText v-model="email" type="email" label="Email" required />

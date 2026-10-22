@@ -73,7 +73,7 @@ const options: DropdownMenuOption[] = [
   gap: 12px;
   padding: 16px;
   border-radius: var(--input-radius);
-  background-color: var(--input-color-background);
+  background-color: var(--color-surface);
   box-shadow: var(--shadow-card);
 }
 
@@ -99,12 +99,9 @@ const options: DropdownMenuOption[] = [
   color: var(--color-text);
 }
 
-.journal-card-divider {
-  height: 1px;
-  background-color: var(--input-color-border);
-}
-
 .journal-card-chips {
+  --input-color-background: var(--color-surface-muted);
+  --input-shadow: none;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;

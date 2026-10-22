@@ -1,7 +1,13 @@
+html {
+  background-color: var(--color-app-bg);
+}
+
 body {
   background-color: var(--color-app-bg);
+  color: var(--color-text);
   margin: 0px;
   font-family: 'Figtree', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
@@ -23,7 +29,29 @@ textarea {
   user-select: text;
 }
 
+p {
+  margin: 0;
+}
+
 a {
   color: var(--color-primary);
   text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+::selection {
+  background: var(--color-primary-soft);
+}
+
+/* Theme switches cross-fade instead of snapping */
+body,
+.app-shell {
+  transition: background-color 200ms ease;
 }

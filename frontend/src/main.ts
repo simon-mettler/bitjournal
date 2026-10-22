@@ -8,6 +8,9 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from '@/modules/authentication/store'
 import { setupApiInterceptors } from '@/shared/api'
+import { initTheme } from '@/shared/lib/useTheme'
+
+initTheme()
 
 const app = createApp(App)
 const pinia = createPinia()

@@ -125,9 +125,10 @@ onMounted(loadSignals)
   gap: 12px;
   padding: 14px 16px;
   border-radius: var(--input-radius);
-  background-color: white;
+  background-color: var(--color-surface);
   cursor: pointer;
   box-shadow: var(--shadow-card);
+  transition: box-shadow 160ms ease;
 }
 
 .signal-icon {

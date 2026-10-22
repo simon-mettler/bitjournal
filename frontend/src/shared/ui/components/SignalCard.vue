@@ -51,14 +51,29 @@ const emit = defineEmits<{
   padding: 10px 7px 14px 14px;
   border-radius: var(--input-radius);
   background-color: var(--color-surface);
-  border: 1px solid var(--color-surface-muted);
+  border: 1px solid transparent;
   cursor: pointer;
   box-shadow: var(--shadow-card);
+  transition:
+    transform 140ms ease,
+    box-shadow 160ms ease;
+}
+
+.signal-card:active {
+  transform: scale(0.985);
+}
+
+@media (hover: hover) {
+  .signal-card:hover {
+    box-shadow: var(--shadow-interact);
+  }
 }
 
 .signal-card.colored {
-  background-color: oklab(from var(--card-signal-color) l a b / 0.1);
-  border-color: oklab(from var(--card-signal-color) l a b / 0.7);
+  background-image: linear-gradient(
+    oklab(from var(--card-signal-color) l a b / 0.16),
+    oklab(from var(--card-signal-color) l a b / 0.16)
+  );
 }
 
 .signal-card-top {
@@ -101,11 +116,5 @@ const emit = defineEmits<{
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
-}
-
-.signal-card-type {
-  font-size: var(--font-size-sm);
-  color: var(--input-color-label);
-  text-transform: capitalize;
 }
 </style>

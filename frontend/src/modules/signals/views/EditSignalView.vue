@@ -126,7 +126,7 @@ onMounted(load)
           @confirm="confirmDeleteSignal"
         >
           <template #trigger>
-            <IconButton class="danger" variant="float" aria-label="Delete signal">
+            <IconButton class="danger" variant="tertiary" aria-label="Delete signal">
               <Trash2 />
             </IconButton>
           </template>

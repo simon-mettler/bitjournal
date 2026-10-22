@@ -90,9 +90,9 @@ function handleOpenChange(id: number, open: boolean) {
   gap: 0 12px;
   padding: 12px;
   border-radius: var(--input-radius);
-  background-color: white;
+  background-color: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-filter-overlay);
   box-shadow: var(--shadow-md);
-  border-left: 4px solid var(--color-primary);
   width: 70vw;
   max-width: 380px;
 }
@@ -112,13 +112,12 @@ function handleOpenChange(id: number, open: boolean) {
   border-radius: 40px;
 
   & > svg {
-    color: white;
+    color: #fff;
   }
 }
 
 .info {
   &.toast-root {
-    border: 1px solid var(--color-info);
     background-color: var(--color-info-bg);
   }
 
@@ -129,7 +128,6 @@ function handleOpenChange(id: number, open: boolean) {
 
 .success {
   &.toast-root {
-    border: 1px solid var(--color-success);
     background-color: var(--color-success-bg);
   }
 
@@ -140,7 +138,6 @@ function handleOpenChange(id: number, open: boolean) {
 
 .warn {
   &.toast-root {
-    border: 1px solid var(--color-warn);
     background-color: var(--color-warn-bg);
   }
 
@@ -151,7 +148,6 @@ function handleOpenChange(id: number, open: boolean) {
 
 .danger {
   &.toast-root {
-    border: 1px solid var(--color-danger);
     background-color: var(--color-danger-bg);
   }
 

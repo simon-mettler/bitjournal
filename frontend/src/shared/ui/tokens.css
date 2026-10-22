@@ -1,31 +1,41 @@
 :root {
+  color-scheme: light;
+
   /*** Primitive/semantic tokens ***/
 
   /* Color */
-  --color-app-bg-bk: #dfe5ea;
-  --color-app-bg: #f4f6f8;
-  --color-app-backdrop: rgba(54 54 54 / 46%);
-  --color-primary: #2d8fa1;
-  --color-primary-hover: #4338ca;
+  --color-app-bg: #eaeef5;
+  --color-primary: #069dc0;
+  --color-primary-hover: #0a8ba9;
+  --color-primary-soft: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  --color-primary-border: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  --color-on-primary: #ffffff;
 
   --color-success: #16a34a;
-  --color-success-bg: #d4ecdd;
+  --color-success-bg: #aed6bc;
 
   --color-info: #2c86bc;
-  --color-info-bg: #d7ebf4;
+  --color-info-bg: #a2d6f2;
 
-  --color-warn: #c79b19;
-  --color-warn-bg: #f6f0cd;
+  --color-warn: #b98a0b;
+  --color-warn-bg: #e1d283;
 
   --color-danger: #dc2626;
-  --color-danger-bg: #f4e5e5;
+  --color-danger-bg: #f0b7b7;
 
-  --color-text: #1f2937;
-  --color-text-light: #5b5b5b;
+  --color-text: #1a2232;
+  --color-text-light: #5d6779;
   --color-focus: var(--color-primary);
   --color-surface: #ffffff;
-  --color-surface-medium: #8c8c8c;
-  --color-surface-muted: #f5f5f5;
+  --color-surface-medium: #8a94a6;
+  --color-surface-muted: #f2f5fa;
+  --color-border: rgba(26 34 50 / 9%);
+
+  /* Overlays (dialogs, drawers, menus, toasts) */
+  --glass-bg-strong: rgba(255 255 255 / 92%);
+  --glass-bg-solid: #ffffff;
+  --glass-filter-overlay: blur(12px) saturate(140%);
+  --backdrop-blur: blur(6px);
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -33,6 +43,8 @@
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  --spacing-xxxl: 64px;
 
   /* Typography */
   --font-size-sm: 0.875rem;
@@ -44,69 +56,114 @@
   --padding-app: var(--spacing-md);
 
   /* Radius */
-  --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
 
-  /* Shadow */
-  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.12);
-  --shadow-card: /* kinda overdid it here... */
-    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(42, 51, 69, 0.04) 0px 1px 1px -0.5px,
-    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(42, 51, 70, 0.04) 0px 6px 6px -3px,
-    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px, rgba(14, 63, 126, 0.04) 0px 24px 24px -12px;
-  --shadow-interact:
-    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(19, 174, 182, 0.15) 0px 1px 1px 1px,
-    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(41, 102, 147, 0.17) 0px 6px 6px -3px,
-    rgba(14, 63, 126, 0.04) 0px 12px 12px -6px, rgba(14, 63, 126, 0.04) 0px 24px 24px -12px,
-    rgba(19, 174, 182, 0.07) 0px 0px 8px 2px;
-  --shadow-fields:
-    rgba(14, 63, 126, 0.04) 0px 0px 0px 1px, rgba(19, 174, 182, 0.15) 0px 1px 1px 1px,
-    rgba(42, 51, 70, 0.04) 0px 3px 3px -1.5px, rgba(14, 63, 126, 0.04) 0px 12px 12px -6px;
-
-  --shadow-footer:
-    0px 0px 0px 1px rgba(14, 63, 126, 0.05), 0px -3px 8px -1.5px rgba(42, 51, 70, 0.08),
-    0px -12px 12px -6px rgba(14, 63, 126, 0.09);
+  /* Shadows */
+  --shadow-fields: 0 1px 3px rgba(26 34 50 / 12%);
+  --shadow-card: 0 1px 2px rgba(26 34 50 / 8%), 0 2px 8px -2px rgba(26 34 50 / 8%);
+  --shadow-interact: 0 2px 6px -1px rgba(26 34 50 / 10%);
+  --shadow-md: 0 4px 12px -2px rgba(26 34 50 / 14%);
+  --shadow-lg: 0 0 32px -8px rgba(26 34 50 / 28%);
+  --shadow-glow: 0 0 14px 1px color-mix(in srgb, var(--color-primary) 24%, transparent);
+  --shadow-footer: 0 -1px 0 rgba(26 34 50 / 8%);
 
   /*** Component tokens ***/
 
   /* Header */
-  --header-blur: 16px;
   --header-color-heading: var(--color-primary);
-  --header-color-background: color-mix(in srgb, var(--color-app-bg) 40%, transparent);
+  --header-color-background: var(--color-app-bg);
 
   /* Inputs and fields */
-  --input-font-size-label: var(--font-size-sm);
-  --input-color-border: var(--color-app-bg);
+  --input-color-border: var(--color-border);
   --input-color-background: var(--color-surface);
+  --input-shadow: var(--shadow-fields);
   --input-color-text: var(--color-text);
   --input-color-label: var(--color-text-light);
+  --input-color-placeholder: var(--color-surface-medium);
   --input-border: 2px solid transparent;
   --input-border-focus: 2px solid var(--color-focus);
-  --input-shadow-focus: 0 0 4px 4px oklab(from var(--color-focus) l a b / 0.2);
-  --input-radius: var(--radius-sm);
-  --input-height: 44px;
-  --input-color-background-disabled: var(--color-surface);
+  --input-shadow-focus: 0 0 0 4px oklab(from var(--color-focus) l a b / 0.22);
+  --input-radius: 12px;
+  --input-height: 46px;
+  --input-color-background-disabled: transparent;
   --input-color-text-disabled: var(--color-surface-medium);
   --input-border-disabled: 1px dashed var(--color-surface-medium);
 
   /* Buttons */
-  --button-border: 1px solid #c7d0d8;
+  --button-border: 2px solid transparent;
+
+  /* Signal chip */
+  --chip-border: 1px solid rgba(26 34 50 / 10%);
 
   /* Dialog */
-  --dialog-padding: var(--spacing-md);
+  --dialog-padding: var(--spacing-lg);
   --dialog-radius: var(--radius-lg);
-  --dialog-color-background: var(--color-surface);
+  --dialog-color-background: var(--glass-bg-strong);
 
   /* Drawer */
-  --drawer-color-background: var(--color-surface);
-  --drawer-handle-color: var(--color-surface-muted);
+  --drawer-color-background: var(--glass-bg-strong);
+  --drawer-handle-color: rgba(26 34 50 / 18%);
 
-  /* Color picker */
-  --colorpicker-area-color-border: var(--input-color-border);
+  /* Charts (read from JS, see analytics/chartColors.ts) */
+  --chart-grid: #e6eaf1;
+  --chart-axis-label: #8a94a6;
+  --chart-category-label: #5d6779;
+  --chart-tooltip-bg: #1a2232;
+  --chart-tooltip-text: #ffffff;
+  --chart-empty: #eef1f6;
+  --chart-surface: #ffffff;
 }
 
 [data-theme='dark'] {
-  /* Todo */
+  color-scheme: dark;
+
+  --color-app-bg: #0b0f17;
+  --color-on-primary: #ffffff;
+
+  --color-success: #3ccf7a;
+  --color-success-bg: #12301f;
+
+  --color-info: #4aa7dd;
+  --color-info-bg: #0a4b6e;
+
+  --color-warn: #e0b73a;
+  --color-warn-bg: #332b0f;
+
+  --color-danger: #f26b6b;
+  --color-danger-bg: #381717;
+
+  --color-text: #e8ecf5;
+  --color-text-light: #98a3b8;
+  --color-surface: #151b28;
+  --color-surface-medium: #6f7b91;
+  --color-surface-muted: #232d40;
+  --color-border: rgba(255 255 255 / 9%);
+
+  --glass-bg-strong: rgba(21 27 40 / 90%);
+  --glass-bg-solid: #1a2232;
+  --glass-filter-overlay: blur(12px) saturate(130%);
+
+  --shadow-card: 0 1px 2px rgba(0 0 0 / 30%), 0 2px 8px -2px rgba(0 0 0 / 30%);
+  --shadow-interact: 0 2px 6px -1px rgba(0 0 0 / 40%);
+  --shadow-md: 0 4px 12px -2px rgba(0 0 0 / 50%);
+  --shadow-lg: 0 0px 53px 9px rgba(0 0 0 / 90%);
+  --shadow-glow: 0 0 16px 1px color-mix(in srgb, var(--color-primary) 32%, transparent);
+  --shadow-footer: 0 -1px 0 rgba(255 255 255 / 8%);
+
+  --input-shadow-focus: 0 0 0 4px oklab(from var(--color-focus) l a b / 0.3);
+  --input-color-background: var(--color-surface-muted);
+  --input-shadow: none;
+  --chip-border: none;
+  --drawer-handle-color: rgba(255 255 255 / 22%);
+
+  --chart-grid: #232c3c;
+  --chart-axis-label: #7d889d;
+  --chart-category-label: #a3aec2;
+  --chart-tooltip-bg: #e8ecf5;
+  --chart-tooltip-text: #121826;
+  --chart-empty: #232d40;
+  --chart-surface: #151b28;
 }

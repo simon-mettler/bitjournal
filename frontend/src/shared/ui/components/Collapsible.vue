@@ -33,7 +33,7 @@ const open = ref(false)
 .collapsible {
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: var(--shadow-interact);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 

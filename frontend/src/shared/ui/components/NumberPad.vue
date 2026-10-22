@@ -89,12 +89,6 @@ defineProps<{
   background-color: var(--color-surface-muted);
 }
 
-.number-pad-header {
-  font-size: var(--font-size-sm);
-  color: var(--input-color-label);
-  text-align: center;
-}
-
 .number-pad-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr) 1fr;
@@ -116,7 +110,7 @@ defineProps<{
   font-size: var(--font-size-h1);
   cursor: pointer;
   background-color: var(--color-surface);
-  border: 1px solid #e7e7e7;
+  border: none;
 }
 
 .no-bg {
@@ -125,7 +119,8 @@ defineProps<{
 }
 
 .number-pad-key:active {
-  background-color: var(--color-surface-medium);
+  background-color: var(--color-primary-soft);
+  box-shadow: none;
 }
 
 .number-pad-sign,

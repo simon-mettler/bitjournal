@@ -89,9 +89,10 @@ const id = useId()
   max-height: var(--reka-select-content-available-height);
   border-radius: var(--input-radius);
   border: var(--input-border);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-md);
   color: var(--input-color-text);
-  background-color: var(--color-surface);
+  background-color: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-filter-overlay);
   z-index: 33;
 }
 
@@ -99,7 +100,7 @@ const id = useId()
   margin-top: 4px;
   border: none;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-interact);
+  box-shadow: var(--shadow-md);
 }
 
 .select-content.float .select-item {
@@ -127,7 +128,7 @@ button {
 }
 
 .select-trigger {
-  box-shadow: var(--shadow-fields);
+  box-shadow: var(--input-shadow);
   display: inline-flex;
   box-sizing: border-box;
   align-items: center;
@@ -205,21 +206,12 @@ button {
   user-select: none;
 
   &:hover {
-    background-color: var(--color-surface-muted);
+    background-color: var(--color-primary-soft);
   }
 }
 
 .select-item[data-disabled] {
-  color: red;
-}
-
-.select-label {
-  padding-left: 8px;
-  margin-bottom: 6px;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-normal);
-  min-height: var(--font-size-sm);
-  color: var(--input-color-label);
+  color: var(--color-danger);
 }
 
 .select-item-indicator {
@@ -233,7 +225,7 @@ button {
   align-items: center;
   justify-content: center;
   height: 25px;
-  color: black;
+  color: var(--color-text);
   cursor: default;
 }
 

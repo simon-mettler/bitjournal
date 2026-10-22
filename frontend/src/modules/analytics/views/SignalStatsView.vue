@@ -102,7 +102,7 @@ onMounted(() => {
     >
       <template #actions>
         <div class="back-button-wrap">
-          <IconButton variant="float" aria-label="Back" @click="router.back()">
+          <IconButton variant="tertiary" aria-label="Back" @click="router.back()">
             <ArrowLeft />
           </IconButton>
         </div>
@@ -185,7 +185,6 @@ onMounted(() => {
 .signal-stats-content {
   padding: 0 var(--padding-app) var(--spacing-lg);
   min-height: 100%;
-  background-color: var(--color-app-bg);
   box-sizing: border-box;
 }
 
@@ -235,7 +234,7 @@ onMounted(() => {
   gap: 8px;
   padding: 16px;
   border-radius: var(--radius-md);
-  background-color: var(--input-color-background);
+  background-color: var(--color-surface);
   box-shadow: var(--shadow-card);
 }
 
@@ -257,7 +256,7 @@ onMounted(() => {
   margin-top: 24px;
   padding: 16px;
   border-radius: var(--radius-md);
-  background-color: var(--input-color-background);
+  background-color: var(--color-surface);
   box-shadow: var(--shadow-card);
 }
 

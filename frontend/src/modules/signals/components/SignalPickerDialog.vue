@@ -84,15 +84,12 @@ onMounted(loadSignals)
     </ul>
 
     <template #footer>
-      <Button v-if="allowCreate" class="footer-button" variant="secondary" @click="onCreate"
-        >Create new signal</Button
-      >
+      <Button v-if="allowCreate" variant="secondary" @click="onCreate">Create new signal</Button>
       <DialogClose v-else as-child>
-        <Button class="footer-button" variant="secondary">Cancel</Button>
+        <Button variant="secondary">Cancel</Button>
       </DialogClose>
       <Button
         v-if="multiple"
-        class="footer-button"
         variant="primary"
         :disabled="selectedIds.size === 0"
         @click="confirmAdd(allSignals.filter((s) => selectedIds.has(s.id)))"
@@ -104,10 +101,6 @@ onMounted(loadSignals)
 </template>
 
 <style scoped>
-.footer-button {
-  flex: 1;
-}
-
 .picker-list {
   list-style: none;
   margin: 0;
@@ -128,12 +121,12 @@ onMounted(loadSignals)
 }
 
 .picker-row:hover {
-  background-color: var(--color-surface-muted);
+  background-color: var(--color-primary-soft);
 }
 
 .picker-row.selected {
-  background-color: var(--color-primary);
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .picker-type {
@@ -142,7 +135,7 @@ onMounted(loadSignals)
 }
 
 .picker-row.selected .picker-type {
-  color: white;
+  color: var(--color-on-primary);
   opacity: 0.85;
 }
 

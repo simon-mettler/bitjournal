@@ -59,10 +59,9 @@ const icon = computed(() => resolveIcon(props.signal.icon))
   gap: 6px;
   padding-left: 9px;
   border-radius: var(--radius-xl);
-  background-color: var(--color-surface);
+  background-color: var(--input-color-background);
   box-sizing: border-box;
-  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.08);
-  border: 1px solid #dfdfdf;
+  border: var(--chip-border);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
@@ -71,8 +70,10 @@ const icon = computed(() => resolveIcon(props.signal.icon))
 }
 
 .signal-chip.colored {
-  background-color: oklab(from var(--chip-signal-color) l a b / 0.07);
-  border-color: oklab(from var(--chip-signal-color) l a b / 0.7);
+  background-image: linear-gradient(
+    oklab(from var(--chip-signal-color) l a b / 0.16),
+    oklab(from var(--chip-signal-color) l a b / 0.16)
+  );
 }
 
 .signal-chip-dot {

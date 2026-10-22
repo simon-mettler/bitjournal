@@ -99,14 +99,11 @@ function handleSelect(option: DropdownMenuOption) {
   margin: 0 var(--padding-app);
   padding: 5px;
   border-radius: var(--input-radius, 8px);
-  border: var(--input-border, 1px solid #e2e2e2);
-  box-shadow: var(
-    --shadow-md,
-    0 10px 38px -10px rgba(22, 23, 24, 0.35),
-    0 10px 20px -15px rgba(22, 23, 24, 0.2)
-  );
-  background-color: var(--color-surface, #ffffff);
+  box-shadow: var(--shadow-md);
+  background-color: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-filter-overlay);
   animation-duration: 500ms;
+  z-index: 2;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 }
@@ -143,7 +140,7 @@ function handleSelect(option: DropdownMenuOption) {
 }
 
 .dropdown-item[data-highlighted] {
-  background-color: var(--color-surface-muted);
+  background-color: var(--color-primary-soft);
 }
 
 .dropdown-item[data-disabled] {
@@ -171,7 +168,7 @@ function handleSelect(option: DropdownMenuOption) {
 }
 
 .dropdown-item[data-highlighted] .dropdown-item-indicator {
-  color: var(--color-surface);
+  color: var(--color-primary);
 }
 
 .dropdown-item-icon {
@@ -194,7 +191,7 @@ function handleSelect(option: DropdownMenuOption) {
 .dropdown-separator {
   height: 1px;
   margin: 5px 8px;
-  background-color: var(--input-border);
+  background-color: var(--color-border);
 }
 
 @keyframes slideUpAndFade {

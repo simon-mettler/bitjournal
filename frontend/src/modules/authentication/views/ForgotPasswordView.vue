@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import InputText from '@/shared/ui/components/InputText.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import Header from '@/shared/ui/components/Header.vue'
+import AuthLogo from '../components/AuthLogo.vue'
 import { requestPasswordReset } from '../api'
 
 const email = ref('')
@@ -25,6 +26,7 @@ async function handleSubmit() {
 </script>
 
 <template>
+  <AuthLogo />
   <Header heading="Forgot password"></Header>
   <p v-if="sent" class="forgot-hint">
     If an account exists for {{ email }}, we sent a link to reset the password.

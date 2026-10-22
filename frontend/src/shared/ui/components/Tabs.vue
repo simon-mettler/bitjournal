@@ -48,17 +48,21 @@ const model = defineModel<string>({ required: true })
   flex-shrink: 0;
   padding: 8px 16px;
   border-radius: var(--radius-xl);
-  border: 1px solid #62656b;
+  border: 1px solid transparent;
+  background-color: var(--color-surface);
   font-size: var(--font-size-sm);
   color: var(--input-color-text);
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .tabs-trigger[data-state='active'] {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-surface);
+  background: var(--color-primary);
+  border-color: transparent;
+  color: var(--color-on-primary);
   font-weight: var(--font-weight-bold);
 }
 </style>
