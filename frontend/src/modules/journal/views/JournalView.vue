@@ -295,9 +295,8 @@ onMounted(load)
   height: var(--input-height);
   margin-bottom: var(--spacing-lg);
   padding: 0 var(--spacing-md);
-  border: 1px solid #eee;
+  background-color: var(--color-surface-muted);
   border-radius: var(--radius-md);
-  background-color: var(--color-surface);
   color: var(--input-color-text);
   font-size: var(--font-size-base);
   cursor: pointer;
@@ -355,7 +354,7 @@ onMounted(load)
   height: 18px;
   padding: 0 5px;
   border-radius: var(--radius-xl);
-  background: oklab(from var(--color-primary) l a b / 0.15);
+  background: var(--color-primary-soft);
   color: var(--color-primary);
   font-size: var(--font-size-sm);
 }
@@ -374,7 +373,7 @@ onMounted(load)
   gap: 4px;
   padding: 6px var(--spacing-md);
   border-radius: var(--radius-xl);
-  border: 1px dashed var(--color-primary);
+  border: 1px dashed var(--color-primary-border);
   color: var(--color-primary);
   font-size: var(--font-size-sm);
   cursor: pointer;

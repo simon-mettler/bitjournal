@@ -27,15 +27,13 @@ defineProps<{
   align-items: center;
   justify-content: space-between;
   flex-direction: column;
-  border-bottom: 2px solid transparent;
-  background-color: var(--color-app-bg);
+  position: relative;
+  z-index: 2;
+  background-color: var(--header-color-background);
   padding: var(--padding-app);
   box-sizing: border-box;
   max-width: 100vw;
-
-  transition:
-    box-shadow 150ms ease,
-    border-color 150ms ease;
+  transition: box-shadow 200ms ease;
 }
 
 .header-heading {
@@ -52,10 +50,10 @@ defineProps<{
 .header h1 {
   color: var(--header-color-heading);
   margin: 0;
+  font-weight: var(--font-weight-bold);
 }
 
 .header.scrolled {
-  border-bottom: 2px solid #cbcbcb;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  box-shadow: var(--shadow-md);
 }
 </style>

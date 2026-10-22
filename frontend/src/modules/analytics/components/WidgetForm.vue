@@ -236,7 +236,7 @@ defineExpose({ validateAll, errors })
   gap: 4px;
   padding: 6px var(--spacing-md);
   border-radius: var(--radius-xl);
-  border: 1px dashed var(--color-primary);
+  border: 1px dashed var(--color-primary-border);
   color: var(--color-primary);
   font-size: var(--font-size-sm);
   cursor: pointer;

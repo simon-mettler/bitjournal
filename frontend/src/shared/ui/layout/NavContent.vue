@@ -1,14 +1,22 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import Button from '@/shared/ui/components/Button.vue'
+import Logo from '@/shared/ui/components/Logo.vue'
 import { sidebarGroups } from '@/shared/ui/layout/navConfig'
 import { useAuthStore } from '@/modules/authentication/store'
 
 const auth = useAuthStore()
+const logo = ref<{ replay: () => void } | null>(null)
 const emit = defineEmits<{ navigate: [] }>()
+
+defineExpose({ replayLogo: () => logo.value?.replay() })
 </script>
 
 <template>
   <nav class="nav-content" aria-label="Settings and configuration">
+    <RouterLink :to="{ name: 'track' }" class="nav-content-logo" aria-label="bitjournal">
+      <Logo ref="logo" />
+    </RouterLink>
     <div v-for="group in sidebarGroups" :key="group.label" class="sidebar-group">
       <p class="nav-content-group-label">{{ group.label }}</p>
       <ul class="nav-content-section">
@@ -36,18 +44,23 @@ const emit = defineEmits<{ navigate: [] }>()
   gap: 20px;
 }
 
-.nav-content-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.nav-content-logo {
+  display: block;
+  width: 184px;
+  padding: 0 12px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.nav-content-logo :deep(.logo) {
+  width: 100%;
 }
 
 .nav-content-group-label {
-  font-size: var(--font-size-sm);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   color: var(--input-color-label);
   padding: 0 12px;
   margin: 0 0 4px;
-  text-transform: uppercase;
 }
 
 .nav-content-section {
@@ -67,15 +80,20 @@ const emit = defineEmits<{ navigate: [] }>()
   text-decoration: none;
   color: var(--input-color-text);
   font-size: var(--font-size-base);
+  transition: background-color 160ms ease;
+}
+
+.nav-content-item:hover {
+  background-color: var(--color-primary-soft);
 }
 
 .nav-content-item.active {
-  background-color: var(--color-surface-muted);
+  background-color: var(--color-primary-soft);
   color: var(--color-primary);
   font-weight: var(--font-weight-bold);
 }
 
 .nav-content-logout {
-  margin-top: 20%;
+  margin-top: auto;
 }
 </style>

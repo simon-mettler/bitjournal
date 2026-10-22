@@ -28,7 +28,15 @@ withDefaults(
   border: 2px solid transparent;
   border-radius: var(--input-radius);
   cursor: pointer;
-  background-color: var(--color-surface);
+  background-color: var(--input-color-background);
+  transition:
+    transform 120ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:active:not(:disabled) {
+    transform: scale(0.94);
+  }
 
   &:focus {
     box-shadow: var(--input-shadow-focus);
@@ -52,12 +60,12 @@ withDefaults(
 }
 
 .button.primary {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .button.secondary {
-  background-color: var(--color-surface);
+  background-color: var(--input-color-background);
   color: var(--input-color-text);
   border: var(--button-border);
 }
@@ -66,17 +74,21 @@ withDefaults(
   color: var(--input-color-text);
   background-color: transparent;
   box-shadow: none;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary-soft);
+  }
 }
 
 .button.float {
   color: var(--input-color-text);
   border-radius: var(--radius-xl);
   background-color: var(--color-surface);
-  box-shadow: var(--shadow-interact);
+  box-shadow: var(--shadow-glow);
 }
 
 .button.primary :deep(svg) {
-  color: var(--color-surface);
+  color: var(--color-on-primary);
 }
 
 :deep(svg) {

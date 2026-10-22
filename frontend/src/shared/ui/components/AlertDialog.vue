@@ -57,18 +57,21 @@ const open = defineModel<boolean>('open', { default: false })
 
 <style scoped>
 .dialog-overlay {
-  background-color: var(--color-app-backdrop);
+  z-index: 10;
+  backdrop-filter: var(--backdrop-blur);
   position: fixed;
   inset: 0;
   animation: overlayShow 1000ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dialog-content {
+  z-index: 11;
+  --input-color-background: var(--color-surface-muted);
+  --input-shadow: none;
   background-color: var(--dialog-color-background);
+  backdrop-filter: var(--glass-filter-overlay);
   border-radius: var(--dialog-radius);
-  box-shadow:
-    hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
-    hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+  box-shadow: var(--shadow-lg);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -101,8 +104,12 @@ const open = defineModel<boolean>('open', { default: false })
 .dialog-footer {
   display: flex;
   margin-top: var(--dialog-padding);
-  justify-content: flex-end;
   gap: var(--spacing-sm);
+}
+
+.dialog-footer > :deep(*) {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 @keyframes overlayShow {

@@ -7,11 +7,15 @@ import { chartColors } from './chartColors'
 export const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export const tooltipStyle = {
-  backgroundColor: chartColors.tooltipBackground,
+  get backgroundColor() {
+    return chartColors.tooltipBackground
+  },
   borderWidth: 0,
   borderRadius: 8,
   padding: [6, 10],
-  textStyle: { color: chartColors.tooltipText, fontSize: 12 },
+  get textStyle() {
+    return { color: chartColors.tooltipText, fontSize: 12 }
+  },
 }
 
 // Options shared by the bar/line charts.

@@ -27,16 +27,19 @@ const emit = defineEmits<{
 
 <style scoped>
 .bottom-nav {
+  --input-color-background: var(--color-surface-muted);
+  --input-shadow: none;
   display: flex;
   justify-content: space-around;
   align-items: center;
   height: 60px;
-  background-color: var(--input-color-background);
-  border-top: var(--input-border);
+  background-color: var(--color-surface);
   padding: 10px;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
   box-shadow: var(--shadow-footer);
-  border-radius: var(--radius-md) var(--radius-lg) 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  position: relative;
+  z-index: 3;
 }
 
 .bottom-nav-item {
@@ -52,10 +55,13 @@ const emit = defineEmits<{
   text-decoration: none;
   color: var(--input-color-label);
   cursor: pointer;
+  position: relative;
+  transition: color 160ms ease;
 }
 
 .bottom-nav-item.active {
   color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
 }
 
 .bottom-nav-label {

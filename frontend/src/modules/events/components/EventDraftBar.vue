@@ -78,6 +78,8 @@ const time = defineModel<TimeValue>('time')
 
 <style scoped>
 .draft-bar {
+  --input-color-background: var(--color-surface-muted);
+  --input-shadow: none;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -87,11 +89,10 @@ const time = defineModel<TimeValue>('time')
   flex-direction: column;
   gap: var(--spacing-md);
   background-color: var(--color-surface);
-  border-top: var(--input-border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: calc(var(--spacing-md) - 5px) var(--spacing-md)
     calc(var(--spacing-md) + env(safe-area-inset-bottom)) var(--spacing-md);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
 }
 
 .draft-chips {
@@ -130,8 +131,8 @@ const time = defineModel<TimeValue>('time')
   height: 16px;
   padding: 0 3px;
   border-radius: 999px;
-  background-color: var(--color-primary);
-  color: var(--color-surface);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   font-size: 10px;
   font-weight: var(--font-weight-bold);
   display: flex;

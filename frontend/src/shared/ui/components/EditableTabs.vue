@@ -162,7 +162,8 @@ function menuOptions(item: TabItem, index: number): DropdownMenuOption[] {
   flex-shrink: 0;
   padding: 8px 16px;
   border-radius: var(--radius-xl);
-  border: 1px solid #62656b;
+  border: 1px solid transparent;
+  background-color: var(--color-surface);
   font-size: var(--font-size-sm);
   color: var(--input-color-text);
   white-space: nowrap;
@@ -192,9 +193,9 @@ function menuOptions(item: TabItem, index: number): DropdownMenuOption[] {
 }
 
 .chip.active {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-surface);
+  background: var(--color-primary);
+  border-color: transparent;
+  color: var(--color-on-primary);
   font-weight: var(--font-weight-bold);
 }
 
@@ -204,15 +205,23 @@ function menuOptions(item: TabItem, index: number): DropdownMenuOption[] {
 
 .chip-menu {
   margin-block: -8px;
+
+  &:focus {
+    border: none;
+  }
 }
 
 .chip.active :deep(svg) {
-  color: var(--color-surface);
+  color: var(--color-on-primary);
 }
 
 .chip.add {
   gap: 4px;
   padding: 8px 14px 8px 10px;
   border-style: dashed;
+  border-color: var(--color-primary-border);
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--color-primary);
 }
 </style>

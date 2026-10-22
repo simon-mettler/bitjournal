@@ -41,9 +41,9 @@ function onUpdate(value: unknown) {
   display: flex;
   gap: 2px;
   padding: 4px;
-  border: 1px solid #eee;
+  border: none;
   border-radius: calc(var(--radius-md) - 2px);
-  background-color: var(--color-surface);
+  background-color: var(--color-surface-muted);
 }
 
 .toggle-group-item {
@@ -61,10 +61,7 @@ function onUpdate(value: unknown) {
 }
 
 .toggle-group-item[data-state='on'] {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--color-text) 8%, transparent),
-    0 1px 3px rgba(0, 0, 0, 0.12);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 </style>

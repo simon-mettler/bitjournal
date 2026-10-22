@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ArrowLeft } from '@lucide/vue'
 import NavContent from '@/shared/ui/layout/NavContent.vue'
-import IconButton from '@/shared/ui/components/IconButton.vue'
 
 const route = useRoute()
 const drawerOpen = ref(false)
+const drawerNav = ref<{ replayLogo: () => void } | null>(null)
 
 watch(
   () => route.fullPath,
@@ -14,6 +13,10 @@ watch(
     drawerOpen.value = false
   },
 )
+
+watch(drawerOpen, (isOpen) => {
+  if (isOpen) drawerNav.value?.replayLogo()
+})
 
 function open() {
   drawerOpen.value = true
@@ -32,10 +35,7 @@ defineExpose({ open, close })
     <Teleport to="body">
       <div v-if="drawerOpen" class="drawer-backdrop" @click="close" />
       <div class="drawer" :class="{ open: drawerOpen }">
-        <IconButton variant="tertiary" class="drawer-close" aria-label="Close menu" @click="close">
-          <ArrowLeft />
-        </IconButton>
-        <NavContent @navigate="close" />
+        <NavContent ref="drawerNav" @navigate="close" />
       </div>
     </Teleport>
   </template>
@@ -49,13 +49,13 @@ defineExpose({ open, close })
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  background-color: none;
+  backdrop-filter: var(--backdrop-blur);
   z-index: 200;
 }
 
 .drawer {
   padding: var(--spacing-lg);
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  padding-bottom: max(56px, env(safe-area-inset-bottom));
   box-sizing: border-box;
   position: fixed;
   top: 0;
@@ -70,19 +70,23 @@ defineExpose({ open, close })
   transition: transform 200ms ease-out;
 }
 
-.drawer.open {
-  transform: translateX(0);
+.drawer :deep(.nav-content) {
+  height: 100%;
 }
 
-.drawer-close {
-  position: absolute;
-  right: var(--spacing-lg);
-  bottom: max(10px, env(safe-area-inset-bottom));
+.drawer.open {
+  transform: translateX(0);
 }
 
 @media (min-width: 768px) {
   .app-sidebar-rail {
     display: flex;
+    flex: 0 0 248px;
+    box-sizing: border-box;
+    padding: var(--spacing-lg) var(--spacing-md);
+    background-color: var(--color-app-bg);
+    overflow-y: auto;
+    z-index: 4;
   }
 
   .drawer,

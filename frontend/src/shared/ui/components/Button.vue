@@ -32,9 +32,17 @@ withDefaults(
   border: 2px solid transparent;
   border-radius: var(--input-radius);
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-medium);
   line-height: 1;
   cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+
+  &:active:not(:disabled) {
+    transform: translateY(1px) scale(0.985);
+  }
 
   &:focus {
     box-shadow: var(--input-shadow-focus);
@@ -48,32 +56,40 @@ withDefaults(
 }
 
 .button.primary {
-  background-color: var(--color-primary);
-  color: var(--color-surface);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
 }
 
 .button.secondary {
-  background-color: var(--color-surface);
+  background-color: var(--input-color-background);
   color: var(--input-color-text);
   border: var(--button-border);
 }
 
 .button.tertiary {
-  background-color: var(--color-surface);
+  background-color: var(--color-primary-soft);
   color: var(--color-primary);
-  border: 2px solid var(--color-primary);
+  border: 2px solid transparent;
+
+  &:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
 }
 
 .button.warn {
   background-color: var(--color-danger);
-  color: var(--color-surface);
+  color: #fff;
 }
 
 .button.float {
   color: var(--input-color-text);
   border-radius: var(--radius-xl);
   background-color: var(--color-surface);
-  box-shadow: var(--shadow-interact);
+  box-shadow: var(--shadow-glow);
 }
 
 .button-icon {

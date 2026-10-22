@@ -20,10 +20,16 @@ import { Plus } from '@lucide/vue'
   gap: 4px;
   min-height: 75px;
   border-radius: var(--input-radius);
-  border: 2px dashed var(--input-color-label);
+  border: 2px dashed var(--color-primary-border);
+  background-color: transparent;
   font-size: var(--font-size-sm);
-  color: var(--input-color-label);
+  color: var(--color-primary);
   cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.add-tile:hover {
+  background-color: var(--color-primary-soft);
 }
 
 .add-tile:focus-visible {

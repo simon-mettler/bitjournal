@@ -137,7 +137,6 @@ const hueId = useId()
   position: relative;
   height: 140px;
   border-radius: 8px;
-  border: 2px solid var(--colorpicker-area-color-border);
 }
 
 .area-thumb {
@@ -217,7 +216,6 @@ const hueId = useId()
 }
 
 .button-done {
-  flex: 1;
   margin-top: 16px;
 }
 </style>

@@ -44,7 +44,7 @@ const open = defineModel<boolean>('open', { default: false })
 <style scoped>
 /* see https://reka-ui.com/docs/components/drawer#animating-the-drawer */
 .drawer-overlay {
-  background-color: var(--color-app-backdrop);
+  backdrop-filter: var(--backdrop-blur);
   position: fixed;
   inset: 0;
   z-index: 30;
@@ -71,10 +71,14 @@ const open = defineModel<boolean>('open', { default: false })
 * stretches rather than visually detaching while it rubber-bands.
 */
 .drawer-content {
+  --input-color-background: var(--color-surface-muted);
+  --input-shadow: none;
   --bleed: 48px;
 
   background-color: var(--drawer-color-background);
-  border-radius: 16px 16px 0 0;
+  backdrop-filter: var(--glass-filter-overlay);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   position: fixed;
   inset-inline: 0;
   bottom: 0;

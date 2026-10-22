@@ -306,7 +306,6 @@ const yearLabel = computed(() => String(placeholder.value.year))
 <style scoped>
 .dp-container {
   width: 100%;
-  background-color: var(--color-surface);
 }
 
 .dp-root {
@@ -361,7 +360,7 @@ const yearLabel = computed(() => String(placeholder.value.year))
 .dp-head-cell {
   text-align: center;
   font-size: 0.75rem;
-  color: #78716c;
+  color: var(--color-text-light);
   border-radius: 0.375rem;
 }
 
@@ -384,7 +383,7 @@ const yearLabel = computed(() => String(placeholder.value.year))
   white-space: nowrap;
   font-size: 0.875rem;
   font-weight: 400;
-  color: #000000;
+  color: var(--color-text);
   outline: none;
   cursor: default;
   background-color: transparent;
@@ -396,8 +395,8 @@ const yearLabel = computed(() => String(placeholder.value.year))
 }
 
 .dp-cell-trigger[data-selected] {
-  background-color: var(--color-primary) !important;
-  color: var(--color-surface);
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary);
 }
 
 .dp-cell-trigger[data-today] {
@@ -412,7 +411,8 @@ const yearLabel = computed(() => String(placeholder.value.year))
 }
 
 .dp-day-trigger[data-outside-view] {
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--color-surface-medium);
+  opacity: 0.6;
 }
 
 .dp-picker-grid {

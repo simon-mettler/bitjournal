@@ -76,14 +76,15 @@ const sliderValue = computed<number[]>({
   flex: 1;
   height: 6px;
   border-radius: 999px;
-  background-color: var(--input-color-border);
+  background-color: var(--color-surface-muted);
+  box-shadow: inset 0 1px 2px rgba(26 34 50 / 12%);
 }
 
 .range-slider-range {
   position: absolute;
   height: 100%;
   border-radius: 999px;
-  background-color: var(--color-primary);
+  background: var(--color-primary);
 }
 
 .range-slider-thumb {
@@ -91,8 +92,12 @@ const sliderValue = computed<number[]>({
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background-color: var(--color-primary);
-  box-shadow: 0 0 0 4px oklab(from var(--color-primary) l a b / 0.2);
+  background-color: #fff;
+  border: 3px solid var(--color-primary);
+  box-sizing: border-box;
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 4px oklab(from var(--color-primary) l a b / 0.2);
   cursor: pointer;
 }
 
