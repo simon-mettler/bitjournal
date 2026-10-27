@@ -6,6 +6,8 @@ WORKDIR /build
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./
+ARG APP_VERSION
+ENV APP_VERSION=$APP_VERSION
 RUN npm run build
 
 
