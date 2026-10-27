@@ -10,6 +10,8 @@ const logo = ref<{ replay: () => void } | null>(null)
 const emit = defineEmits<{ navigate: [] }>()
 
 defineExpose({ replayLogo: () => logo.value?.replay() })
+
+const appVersion = __APP_VERSION__
 </script>
 
 <template>
@@ -34,6 +36,7 @@ defineExpose({ replayLogo: () => logo.value?.replay() })
       </ul>
     </div>
     <Button class="nav-content-logout" @click="auth.logout()">Logout</Button>
+    <span class="nav-content-version">v{{ appVersion }}</span>
   </nav>
 </template>
 
@@ -95,5 +98,11 @@ defineExpose({ replayLogo: () => logo.value?.replay() })
 
 .nav-content-logout {
   margin-top: auto;
+}
+
+.nav-content-version {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--input-color-label);
 }
 </style>

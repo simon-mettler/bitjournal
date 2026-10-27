@@ -6,7 +6,7 @@ body {
   background-color: var(--color-app-bg);
   color: var(--color-text);
   margin: 0px;
-  font-family: 'Figtree', sans-serif;
+  font-family: 'Figtree Variable', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -50,8 +50,11 @@ h3 {
   background: var(--color-primary-soft);
 }
 
-/* Theme switches cross-fade instead of snapping */
 body,
 .app-shell {
   transition: background-color 200ms ease;
+}
+
+body:has(.dialog-overlay, .drawer-overlay, .drawer-backdrop) .app-shell-content {
+  overflow: hidden;
 }

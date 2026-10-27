@@ -10,6 +10,7 @@ import BoardTabs from '@/shared/ui/components/BoardTabs.vue'
 import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
 import SignalCard from '@/shared/ui/components/SignalCard.vue'
 import Header from '@/shared/ui/components/Header.vue'
+import Button from '@/shared/ui/components/Button.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
 import DropdownMenu from '@/shared/ui/components/DropdownMenu.vue'
 import type { DropdownMenuOption } from '@/shared/ui/components/DropdownMenu.vue'
@@ -383,7 +384,7 @@ onMounted(async () => {
           v-model:boards="boards"
           v-model:active="activeTabId"
           :editing="boardEditing"
-          :show-tabs="boardEditing || boards.length > 0"
+          show-tabs
           :pinned="pinnedTabs"
           v-bind="boardApi"
         />
@@ -451,11 +452,16 @@ onMounted(async () => {
         </template>
       </SignalPickerDialog>
 
-      <p v-if="activeSignals.length === 0 && !canEditSignals" class="empty-state">
-        {{
-          activeBoard ? 'No signals in this board yet. Tap Edit to add some.' : 'No signals yet.'
-        }}
-      </p>
+      <div v-if="activeSignals.length === 0 && !canEditSignals" class="empty-state">
+        <p>
+          {{
+            activeBoard ? 'No signals in this board yet. Tap Edit to add some.' : 'No signals yet.'
+          }}
+        </p>
+        <Button v-if="signals.length === 0" @click="router.push({ name: 'signal-add' })">
+          Create signal
+        </Button>
+      </div>
     </template>
   </div>
 
@@ -511,7 +517,15 @@ onMounted(async () => {
 .empty-state {
   grid-column: 1 / -1;
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
   text-align: center;
   color: var(--input-color-label);
+}
+
+.empty-state p {
+  margin: 0;
 }
 </style>

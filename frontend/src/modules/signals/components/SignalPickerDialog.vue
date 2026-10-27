@@ -59,7 +59,11 @@ onMounted(loadSignals)
 </script>
 
 <template>
-  <Modal v-model:open="open" :title="title ?? (multiple ? 'Add signals' : 'Select signal')">
+  <Modal
+    v-model:open="open"
+    no-auto-focus
+    :title="title ?? (multiple ? 'Add signals' : 'Select signal')"
+  >
     <template #trigger>
       <slot name="trigger">
         <Button>{{ multiple ? 'Add signal' : 'Select signal' }}</Button>
@@ -84,7 +88,7 @@ onMounted(loadSignals)
     </ul>
 
     <template #footer>
-      <Button v-if="allowCreate" variant="secondary" @click="onCreate">Create new signal</Button>
+      <Button v-if="allowCreate" variant="secondary" @click="onCreate">Create signal</Button>
       <DialogClose v-else as-child>
         <Button variant="secondary">Cancel</Button>
       </DialogClose>
@@ -108,8 +112,6 @@ onMounted(loadSignals)
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 .picker-row {

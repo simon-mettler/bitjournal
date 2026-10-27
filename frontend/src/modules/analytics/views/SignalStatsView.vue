@@ -142,19 +142,19 @@ onMounted(() => {
 
     <p v-if="!signal || !stats">Loading...</p>
     <div v-else class="stat-tiles">
-      <div class="stat-tile">
-        <span class="stat-tile-label">Total</span>
+      <div class="stats-card stat-tile">
+        <span class="stats-card-title">Total</span>
         <StatValue class="stat-tile-value" :parts="formatStatParts(signal, stats.total)" />
       </div>
-      <div class="stat-tile">
-        <span class="stat-tile-label">Average</span>
+      <div class="stats-card stat-tile">
+        <span class="stats-card-title">Average</span>
         <StatValue class="stat-tile-value" :parts="formatStatParts(signal, stats.average)" />
       </div>
     </div>
 
-    <div v-if="signal && stats" class="chart-section">
+    <div v-if="signal && stats" class="stats-card chart-section">
       <div class="chart-section-header">
-        <span class="chart-section-title">Over time</span>
+        <span class="stats-card-title">Over time</span>
         <ToggleGroup v-model="chartType" :options="chartTypeOptions" />
       </div>
       <TimeseriesChart
@@ -165,16 +165,16 @@ onMounted(() => {
       />
     </div>
 
-    <div v-if="signal && stats" class="chart-section">
+    <div v-if="signal && stats" class="stats-card chart-section">
       <div class="chart-section-header">
-        <span class="chart-section-title">By day of week</span>
+        <span class="stats-card-title">By day of week</span>
       </div>
       <DayOfWeekChart :signal="signal" :day-of-week="stats.day_of_week" />
     </div>
 
-    <div v-if="signal && stats" class="chart-section">
+    <div v-if="signal && stats" class="stats-card chart-section">
       <div class="chart-section-header">
-        <span class="chart-section-title">By day &amp; hour</span>
+        <span class="stats-card-title">By day &amp; hour</span>
       </div>
       <HeatmapChart :signal="signal" :heatmap="stats.heatmap" />
     </div>
@@ -228,22 +228,24 @@ onMounted(() => {
   margin-top: 16px;
 }
 
-.stat-tile {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.stats-card {
   padding: 16px;
   border-radius: var(--radius-md);
   background-color: var(--color-surface);
   box-shadow: var(--shadow-card);
 }
 
-.stat-tile-label {
+.stats-card-title {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--input-color-label);
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .stat-tile-value {
@@ -254,10 +256,6 @@ onMounted(() => {
 
 .chart-section {
   margin-top: 24px;
-  padding: 16px;
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  box-shadow: var(--shadow-card);
 }
 
 .chart-section-header {
@@ -265,11 +263,5 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
-}
-
-.chart-section-title {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text);
 }
 </style>

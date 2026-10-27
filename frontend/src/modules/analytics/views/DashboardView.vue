@@ -223,7 +223,7 @@ onMounted(async () => {
           v-model:active="activeBoardId"
           noun="dashboard"
           :editing="editing"
-          :show-tabs="boards.length > 0 && (editing || boards.length > 1)"
+          :show-tabs="boards.length > 0"
           :delete-description="describeBoardDelete"
           v-bind="boardApi"
         />
@@ -332,7 +332,8 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 0 var(--padding-app);
+  padding: var(--padding-app);
+  padding-top: 0;
 }
 
 .widget-card {

@@ -48,16 +48,18 @@ const time = defineModel<TimeValue>('time')
     </div>
 
     <div class="draft-controls">
-      <IconButton variant="secondary" aria-label="Add note" @click="emit('noteClick')">
-        <Pencil />
-      </IconButton>
-      <IconButton variant="secondary" aria-label="Set location" @click="emit('locationClick')">
-        <MapPin />
-      </IconButton>
-      <IconButton variant="secondary" aria-label="Tag people" @click="emit('peopleClick')">
-        <Users />
-        <span v-if="participantCount" class="draft-icon-badge">{{ participantCount }}</span>
-      </IconButton>
+      <div v-if="false">
+        <IconButton variant="secondary" aria-label="Add note" @click="emit('noteClick')">
+          <Pencil />
+        </IconButton>
+        <IconButton variant="secondary" aria-label="Set location" @click="emit('locationClick')">
+          <MapPin />
+        </IconButton>
+        <IconButton variant="secondary" aria-label="Tag people" @click="emit('peopleClick')">
+          <Users />
+          <span v-if="participantCount" class="draft-icon-badge">{{ participantCount }}</span>
+        </IconButton>
+      </div>
 
       <span class="draft-spacer" />
 

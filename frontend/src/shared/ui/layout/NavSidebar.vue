@@ -29,8 +29,6 @@ defineExpose({ open, close })
 </script>
 
 <template>
-  <NavContent class="app-sidebar-rail" />
-
   <template v-if="!route.meta.hideNav">
     <Teleport to="body">
       <div v-if="drawerOpen" class="drawer-backdrop" @click="close" />
@@ -42,10 +40,6 @@ defineExpose({ open, close })
 </template>
 
 <style scoped>
-.app-sidebar-rail {
-  display: none;
-}
-
 .drawer-backdrop {
   position: fixed;
   inset: 0;
@@ -76,22 +70,5 @@ defineExpose({ open, close })
 
 .drawer.open {
   transform: translateX(0);
-}
-
-@media (min-width: 768px) {
-  .app-sidebar-rail {
-    display: flex;
-    flex: 0 0 248px;
-    box-sizing: border-box;
-    padding: var(--spacing-lg) var(--spacing-md);
-    background-color: var(--color-app-bg);
-    overflow-y: auto;
-    z-index: 4;
-  }
-
-  .drawer,
-  .drawer-backdrop {
-    display: none;
-  }
 }
 </style>

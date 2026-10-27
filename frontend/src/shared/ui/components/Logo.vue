@@ -98,7 +98,7 @@ defineExpose({ replay })
 
 .word {
   fill: currentcolor;
-  font-family: Figtree, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Figtree Variable', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 600;
   font-size: 296px;
 }
