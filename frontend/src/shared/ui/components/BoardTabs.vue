@@ -152,7 +152,7 @@ defineExpose({ askAddBoard })
 
 <style scoped>
 .board-tabs {
-  width: 100vw;
-  margin: 10px 0 0 -16px;
+  width: calc(100% + 2 * var(--padding-app));
+  margin: 10px 0 0 calc(-1 * var(--padding-app));
 }
 </style>

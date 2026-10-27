@@ -38,7 +38,7 @@ async function handleSubmit() {
 
 <template>
   <AuthLogo />
-  <Header heading="Login"></Header>
+  <Header class="auth-header" heading="Login"></Header>
   <form @submit.prevent="handleSubmit">
     <InputText v-model="email" type="email" label="Email" required />
     <InputText v-model="password" type="password" label="Password" required />
@@ -60,6 +60,14 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
+.auth-header,
+form {
+  width: 100%;
+  max-width: 530px;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -73,5 +81,6 @@ form > button {
 
 .login-hint {
   text-align: center;
+  margin-bottom: 8px;
 }
 </style>

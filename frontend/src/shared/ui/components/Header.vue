@@ -32,7 +32,7 @@ defineProps<{
   background-color: var(--header-color-background);
   padding: var(--padding-app);
   box-sizing: border-box;
-  max-width: 100vw;
+  max-width: 100%;
   transition: box-shadow 200ms ease;
 }
 

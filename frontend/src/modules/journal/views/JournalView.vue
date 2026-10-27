@@ -184,7 +184,7 @@ onMounted(load)
           <span class="filter-button-icon">
             <CalendarDays :size="18" />
           </span>
-          <span class="filter-button-label">Up to:</span>
+          <span class="filter-button-label">Date:</span>
           <span class="filter-button-value">{{ dateBoundaryLabel }}</span>
           <ChevronRight :size="16" class="filter-button-chevron" />
         </button>

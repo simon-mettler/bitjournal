@@ -14,7 +14,7 @@ export function useSortableList<T>(
   { enabled, onSorted, ...options }: SortableListOptions,
 ) {
   const sortable = useSortable(el, list, {
-    animation: 150,
+    animation: 250,
     watchElement: true, // the element may be rendered conditionally
     disabled: enabled ? !enabled.value : false,
     ...options,

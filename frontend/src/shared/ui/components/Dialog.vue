@@ -14,6 +14,8 @@ import { X } from '@lucide/vue'
 defineProps<{
   title: string
   description?: string
+  hideClose?: boolean
+  noAutoFocus?: boolean
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
@@ -26,7 +28,10 @@ const open = defineModel<boolean>('open', { default: false })
     </DialogTrigger>
     <DialogPortal>
       <DialogOverlay class="dialog-overlay" />
-      <DialogContent class="dialog-content">
+      <DialogContent
+        class="dialog-content"
+        @open-auto-focus="noAutoFocus && $event.preventDefault()"
+      >
         <DialogTitle class="dialog-title">
           {{ title }}
         </DialogTitle>
@@ -42,7 +47,7 @@ const open = defineModel<boolean>('open', { default: false })
           <slot name="footer" />
         </div>
 
-        <DialogClose class="dialog-close" aria-label="Close">
+        <DialogClose v-if="!hideClose" class="dialog-close" aria-label="Close">
           <X />
         </DialogClose>
       </DialogContent>
@@ -58,6 +63,8 @@ const open = defineModel<boolean>('open', { default: false })
   inset: 0;
   animation: overlayShow 700ms cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .dialog-content {
@@ -74,7 +81,9 @@ const open = defineModel<boolean>('open', { default: false })
   transform: translate(-50%, -50%);
   width: 83vw;
   max-width: 450px;
-  max-height: calc(var(--visual-viewport-height) - var(--spacing-md) - var(--spacing-md));
+  max-height: calc(
+    var(--visual-viewport-height) - 2 * var(--spacing-md) - 2 * var(--dialog-padding)
+  );
   padding: var(--dialog-padding);
   display: flex;
   flex-direction: column;
@@ -86,6 +95,7 @@ const open = defineModel<boolean>('open', { default: false })
   flex-direction: column;
   gap: var(--spacing-md);
   overflow-y: auto;
+  overscroll-behavior: contain;
   min-height: 0;
   padding: 4px;
   margin: -4px;
