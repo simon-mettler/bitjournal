@@ -1,3 +1,4 @@
+import '@fontsource-variable/figtree'
 import './shared/ui/tokens.css'
 import './shared/ui/base.css'
 
