@@ -30,10 +30,10 @@ async function submit() {
       board_id: boardId,
       ...formStateToPayload(form.value, form.value.signalId),
     })
-    toaster.toast({ description: 'Widget created.', variant: 'success' })
+    toaster.toast({ description: 'Widget added.', variant: 'success' })
     router.back()
   } catch {
-    toaster.toast({ description: 'Could not create widget.', variant: 'danger' })
+    toaster.toast({ description: 'Could not add widget.', variant: 'danger' })
   } finally {
     submitting.value = false
   }
@@ -42,7 +42,7 @@ async function submit() {
 
 <template>
   <AppShellHeader>
-    <Header heading="Create widget"></Header>
+    <Header heading="Add widget"></Header>
   </AppShellHeader>
 
   <div class="add-widget-content">
@@ -53,7 +53,7 @@ async function submit() {
     <Footer>
       <Button variant="secondary" @click="router.back()">Cancel</Button>
       <Button :disabled="submitting" variant="primary" @click="submit">
-        {{ submitting ? 'Saving...' : 'Create widget' }}
+        {{ submitting ? 'Saving...' : 'Add widget' }}
       </Button>
     </Footer>
   </AppShellFooter>

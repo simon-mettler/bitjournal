@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { CirclePlus, CircleCheck } from '@lucide/vue'
 import Drawer from '@/shared/ui/components/Drawer.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import RangeSlider from '@/shared/ui/components/RangeSlider.vue'
@@ -128,10 +127,6 @@ function submit() {
         <Button variant="secondary" @click="open = false"> Cancel </Button>
 
         <Button variant="primary" @click="submit">
-          <template #icon>
-            <CircleCheck v-if="editing" :size="18" />
-            <CirclePlus v-else :size="18" />
-          </template>
           {{ editing ? 'Save' : 'Add' }}
         </Button>
       </div>
