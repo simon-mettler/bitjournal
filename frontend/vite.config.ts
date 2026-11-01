@@ -24,7 +24,8 @@ export default defineConfig({
     vue(),
     //    vueDevTools(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      injectRegister: false,
 
       manifest: {
         name: 'Bitjournal',
@@ -34,6 +35,8 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
+        theme_color: '#eef2f9',
+        background_color: '#069dc0',
 
         icons: [
           {
@@ -46,13 +49,17 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
           },
+          {
+            src: '/pwa-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
         ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,woff2}'],
-      },
-      devOptions: {
-        enabled: true,
+        navigateFallbackDenylist: [/^\/api\//, /^\/admin(\/|$)/, /^\/static\//],
       },
     }),
   ],

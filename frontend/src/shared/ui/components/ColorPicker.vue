@@ -96,15 +96,18 @@ const hueId = useId()
       </div>
 
       <!-- HEX value field -->
-      <InputText
-        v-model="hexDraft"
-        label="HEX"
-        placeholder="#000000"
-        spellcheck="false"
-        autocomplete="off"
-        @blur="commitHex"
-        @keydown.enter.prevent="commitHex"
-      />
+      <div class="hex-row">
+        <span class="hex-swatch" :style="{ backgroundColor: hexColor }" aria-hidden="true" />
+        <InputText
+          v-model="hexDraft"
+          label="HEX"
+          placeholder="#000000"
+          spellcheck="false"
+          autocomplete="off"
+          @blur="commitHex"
+          @keydown.enter.prevent="commitHex"
+        />
+      </div>
     </div>
 
     <template #footer>
@@ -131,6 +134,24 @@ const hueId = useId()
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+}
+
+.hex-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.hex-row > :last-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.hex-swatch {
+  flex-shrink: 0;
+  width: var(--input-height);
+  height: var(--input-height);
+  border-radius: var(--input-radius);
 }
 
 .area {

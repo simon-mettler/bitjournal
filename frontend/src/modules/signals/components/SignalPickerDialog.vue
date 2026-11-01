@@ -16,7 +16,7 @@ const props = withDefaults(
   }>(),
   { excludeIds: () => [], multiple: true },
 )
-const emit = defineEmits<{ add: [signals: Signal[]]; create: [] }>()
+const emit = defineEmits<{ add: [signals: Signal[]]; create: [name: string] }>()
 
 const open = ref(false)
 const search = ref('')
@@ -46,7 +46,8 @@ function confirmAdd(chosen: Signal[]) {
 
 function onCreate() {
   open.value = false
-  emit('create')
+  emit('create', search.value.trim())
+  search.value = ''
 }
 
 function onRowClick(signal: Signal) {
