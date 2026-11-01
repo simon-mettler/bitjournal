@@ -130,7 +130,10 @@ function setDraftTimestamp() {
 }
 
 function onAddSignalEntry(signal: Signal) {
-  if (boardEditing.value) return
+  if (boardEditing.value) {
+    void router.push({ name: 'signal-edit', params: { id: signal.id } })
+    return
+  }
   setDraftTimestamp()
   draftBarVisible.value = true
   if (signal.type === 'tally') {
@@ -247,6 +250,8 @@ function persistSignals(board: Board) {
 
 useSortableList(gridEl, boardSignals, {
   handle: '.signal-card-handle',
+  draggable: '.signal-card',
+  ghostClass: 'signal-ghost',
   enabled: canEditSignals,
   onSorted: () => activeBoard.value && persistSignals(activeBoard.value),
 })
@@ -279,9 +284,12 @@ function onRemoveSignalFromBoard(signal: Signal) {
   })
 }
 
-function onCreateSignalForBoard() {
+function onCreateSignalForBoard(name: string) {
   if (!activeBoard.value) return
-  void router.push({ name: 'signal-add', query: { boardId: activeBoard.value.id } })
+  void router.push({
+    name: 'signal-add',
+    query: { boardId: activeBoard.value.id, ...(name && { name }) },
+  })
 }
 
 // Add newly created signal to board.
@@ -301,7 +309,9 @@ function addCreatedSignalFromRoute() {
   persistSignals(board)
 }
 
-onBeforeRouteLeave(() => {
+onBeforeRouteLeave((to) => {
+  // keep edit mode when opening a signal's settings from the board
+  if (to.name === 'signal-edit') return
   boardEditing.value = false
 })
 
@@ -452,6 +462,10 @@ onMounted(async () => {
         </template>
       </SignalPickerDialog>
 
+      <AddTile v-if="boardEditing && !activeBoard" @click="router.push({ name: 'signal-add' })">
+        Create signal
+      </AddTile>
+
       <div v-if="activeSignals.length === 0 && !canEditSignals" class="empty-state">
         <p>
           {{
@@ -503,6 +517,14 @@ onMounted(async () => {
   padding-bottom: 220px;
 }
 
+.signal-card.is-editing:active {
+  transform: none;
+}
+
+.signal-ghost {
+  opacity: 0.4;
+}
+
 .edit-hint {
   margin: 0 0 12px;
   padding: 0 var(--padding-app);
@@ -511,6 +533,8 @@ onMounted(async () => {
 }
 
 .signal-card.is-editing {
+  /* a transform transition would swallow SortableJS's FLIP animation */
+  transition: box-shadow 160ms ease;
   cursor: default;
 }
 

@@ -13,8 +13,8 @@ const emit = defineEmits<{ created: [signal: Signal] }>()
 const router = useRouter()
 const route = useRoute()
 
-const signalName = ref('')
-const color = ref('#324245')
+const signalName = ref(typeof route.query.name === 'string' ? route.query.name : '')
+const color = ref('#069dc0')
 const icon = ref('')
 const signalUnit = ref('')
 const selectedSignalType = ref<CreateSignalPayload['type']>('tally')
@@ -29,7 +29,7 @@ const signalFormRef = ref<InstanceType<typeof SignalForm>>()
 
 function resetForm() {
   signalName.value = ''
-  color.value = '#324245'
+  color.value = '#069dc0'
   icon.value = ''
   signalUnit.value = ''
   selectedSignalType.value = 'tally'
