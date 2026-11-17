@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, type Ref } from 'vue'
+import { computed, nextTick, onActivated, onDeactivated, onMounted, ref, type Ref } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 import { getLocalTimeZone, today, type DateValue } from '@internationalized/date'
 import { CalendarDays, ChevronRight, ListFilter, Plus } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
@@ -16,6 +17,8 @@ import { getEvents, cursorOf, deleteEvent } from '@/modules/events/api'
 import type { SignalLogic } from '@/modules/events/api'
 import { groupEventsByDay } from '@/modules/journal/format'
 import { useToast } from '@/shared/lib/useToast'
+import { useAppShellScroll } from '@/shared/lib/useAppShellScroll'
+import { consumeStale } from '@/shared/lib/staleness'
 import type { Event } from '@/modules/events/types'
 import type { Signal } from '@/modules/signals/types'
 
@@ -110,15 +113,24 @@ const eventPendingDelete = ref<Event | null>(null)
 const deleting = ref(false)
 
 let loadId = 0
+let loadedOnce = false
 
-async function load() {
+async function load({ silent = false, keepCount = 0 } = {}) {
   const id = ++loadId
-  loading.value = true
+  if (!silent) loading.value = true
   try {
     const { data } = await getEvents(currentFilterParams())
     if (id !== loadId) return
-    events.value = data.results
-    nextCursor.value = cursorOf(data.next)
+    let results = data.results
+    let cursor = cursorOf(data.next)
+    while (cursor && results.length < keepCount) {
+      const more = await getEvents({ ...currentFilterParams(), cursor })
+      if (id !== loadId) return
+      results = [...results, ...more.data.results]
+      cursor = cursorOf(more.data.next)
+    }
+    events.value = results
+    nextCursor.value = cursor
   } finally {
     if (id === loadId) loading.value = false
   }
@@ -162,11 +174,43 @@ async function confirmDelete() {
   }
 }
 
-onMounted(load)
+// This view is kept alive (see AppShell), so filters, loaded events and drafts survive
+// navigation. The scroll container is the shared app shell, so restore its position by hand.
+const { y: scrollY } = useAppShellScroll()
+let savedScrollY = 0
+
+onBeforeRouteLeave(() => {
+  savedScrollY = scrollY.value
+})
+
+onMounted(() => load())
+
+// Teleported content (the shell header) is not removed when a view is deactivated by
+// KeepAlive, so only render it while the view is active.
+const active = ref(true)
+onDeactivated(() => {
+  active.value = false
+})
+
+onActivated(async () => {
+  active.value = true
+  // The first activation coincides with mount, which already loads.
+  const stale = consumeStale('journal') // also clears flags set before the first load
+  if (!loadedOnce) {
+    loadedOnce = true
+    return
+  }
+  if (stale) {
+    // Refresh in place and keep the scroll position, so you land back on the edited entry
+    await load({ silent: true, keepCount: events.value.length })
+  }
+  await nextTick()
+  scrollY.value = savedScrollY
+})
 </script>
 
 <template>
-  <AppShellHeader>
+  <AppShellHeader v-if="active">
     <Header heading="Journal" />
   </AppShellHeader>
 

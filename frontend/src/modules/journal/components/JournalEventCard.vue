@@ -61,6 +61,8 @@ const options: DropdownMenuOption[] = [
         :key="entry.signal.id"
         :signal="entry.signal"
         :value="formatDraftEntryLabel(entry)"
+        clickable
+        @click="router.push({ name: 'signal-stats', params: { id: entry.signal.id } })"
       />
     </div>
   </div>

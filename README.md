@@ -7,7 +7,6 @@
 
 <p align="center">
   Track anything. See the patterns.<br>
-  Your journal, your data.
 </p>
 
 <p align="center">
