@@ -315,7 +315,12 @@ onBeforeRouteLeave((to) => {
   boardEditing.value = false
 })
 
+const savingDraft = ref(false)
+
 async function onSaveDraft() {
+  if (savingDraft.value) return
+  savingDraft.value = true
+
   const payload = {
     occurred_at: draftDateTime.value.toDate().toISOString(),
     entries: draftSignalEntries.value.map((e) => ({
@@ -340,6 +345,8 @@ async function onSaveDraft() {
   } catch (err) {
     toaster.toast({ description: 'Could not save event.', variant: 'danger' })
     console.error(err)
+  } finally {
+    savingDraft.value = false
   }
 }
 
@@ -495,6 +502,7 @@ onMounted(async () => {
     v-model:date="draftDate"
     v-model:time="draftTime"
     :entries="draftSignalEntries"
+    :saving="savingDraft"
     @edit-entry="onEditSignalEntry"
     @remove-entry="onRemoveSignalEntry"
     @note-click="onNoteClick"
