@@ -15,12 +15,28 @@ const appVersion: string =
     }
   ).version
 
+// Unique per build. Baked into the bundle and emitted as /version.json so a running
+// app can tell whether the server has a newer build (see shared/lib/appUpdate.ts).
+const buildId = `${appVersion}-${Date.now().toString(36)}`
+
 // https://vite.dev/config/
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
+    __BUILD_ID__: JSON.stringify(buildId),
   },
   plugins: [
+    {
+      name: 'bitjournal-version-json',
+      apply: 'build',
+      generateBundle() {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'version.json',
+          source: JSON.stringify({ buildId }),
+        })
+      },
+    },
     vue(),
     //    vueDevTools(),
     VitePWA({
@@ -28,9 +44,9 @@ export default defineConfig({
       injectRegister: false,
 
       manifest: {
-        name: 'Bitjournal',
-        short_name: 'Bitjournal',
-        description: 'Log anything and learn',
+        name: 'bitjournal',
+        short_name: 'bitjournal',
+        description: 'Track anything. See the patterns.',
         id: '/',
         start_url: '/',
         scope: '/',

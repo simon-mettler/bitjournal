@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -5,7 +7,10 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db import connection, OperationalError
-from rest_framework_simplejwt.exceptions import TokenError
+from django.utils import timezone
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.settings import api_settings as jwt_settings
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.users.serializers import RegisterSerializer
 
@@ -44,7 +49,49 @@ class CookieTokenRefreshView(TokenRefreshView):
         if not refresh_token:
             return Response({'detail': 'No refresh token cookie'}, status=401)
         request.data['refresh'] = refresh_token
-        return super().post(request, *args, **kwargs)
+        try:
+            return super().post(request, *args, **kwargs)
+        except InvalidToken:
+            access = self._access_for_recently_rotated(refresh_token)
+            if access is None:
+                raise
+            # No new refresh token: the cookie set by the winning request stays valid.
+            return Response({'access': access})
+
+    @staticmethod
+    def _access_for_recently_rotated(raw_token):
+        """Grace window for a refresh token that was rotated moments ago.
+
+        Rotation blacklists the old token, so two requests racing with the same
+        cookie (app update reload, two tabs, a response lost while the page
+        unloaded) would log the loser out. Within REFRESH_ROTATION_LEEWAY we
+        hand the loser a fresh access token only. Tokens blacklisted by logout
+        are never accepted: a rotation always leaves a successor token behind.
+        """
+        try:
+            token = RefreshToken(raw_token, verify=False)
+            token.verify_token_type()
+            token.check_exp()
+            user_id = token[jwt_settings.USER_ID_CLAIM]
+            blacklisted = BlacklistedToken.objects.get(token__jti=token[jwt_settings.JTI_CLAIM])
+        except (TokenError, KeyError, BlacklistedToken.DoesNotExist):
+            return None
+
+        now = timezone.now()
+        if now - blacklisted.blacklisted_at > settings.REFRESH_ROTATION_LEEWAY:
+            return None
+
+        successor_exists = OutstandingToken.objects.filter(
+            user_id=user_id,
+            created_at__gte=blacklisted.blacklisted_at - timedelta(seconds=5),
+            blacklistedtoken__isnull=True,
+        ).exists()
+        if not successor_exists:
+            return None
+
+        if not User.objects.filter(pk=user_id, is_active=True).exists():
+            return None
+        return str(token.access_token)
 
 
 class RegistrationEnabled(permissions.BasePermission):

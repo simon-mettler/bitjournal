@@ -2,7 +2,14 @@
 
 All notable changes to bitjournal are documented in this file.
 
-## v0.1.2
+## v0.1.4
+
+### Updated
+
+- PWA updates now happen automatically in the background
+- Infos about the PWA install, version and service worker are now displayed under App > Settings
+
+## v0.1.3
 
 ### Added
 
