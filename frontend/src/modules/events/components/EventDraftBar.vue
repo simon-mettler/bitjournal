@@ -72,7 +72,7 @@ const time = defineModel<TimeValue>('time')
     <div class="draft-footer">
       <Button variant="secondary" @click="emit('cancel')">Cancel</Button>
       <Button variant="primary" :disabled="entries.length === 0" @click="emit('save')"
-        >Save Entry</Button
+        >Save event</Button
       >
     </div>
   </div>

@@ -18,6 +18,10 @@ const summaryMethod = [
   { value: 'total', label: 'Total' },
   { value: 'average', label: 'Average' },
 ]
+const averageWeighting = [
+  { value: 'event', label: 'Every event' },
+  { value: 'day', label: 'Every day' },
+]
 
 defineProps<{
   errors: Record<string, string[]>
@@ -32,6 +36,10 @@ const selectedSignalType = defineModel<CreateSignalPayload['type']>('type', { re
 const selectedSummaryMethod = defineModel<CreateSignalPayload['summary_method']>('summaryMethod', {
   required: true,
 })
+const selectedAverageWeighting = defineModel<CreateSignalPayload['average_weighting']>(
+  'averageWeighting',
+  { required: true },
+)
 const minValue = defineModel<number>('minValue')
 const maxValue = defineModel<number>('maxValue')
 const minLabel = defineModel<string>('minLabel', { required: true })
@@ -97,6 +105,12 @@ defineExpose({ validateAll, errors: validationErrors })
       :options="summaryMethod"
       label="Summary method"
       placeholder="Summary method"
+    />
+    <Select
+      v-model="selectedAverageWeighting"
+      :options="averageWeighting"
+      label="Average weighting"
+      placeholder="Average weighting"
     />
     <Select
       v-model="selectedSignalType"

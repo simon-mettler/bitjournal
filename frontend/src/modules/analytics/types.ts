@@ -11,6 +11,8 @@ export interface SignalStatsPeriod {
 export interface SignalStatsTimeseriesPoint {
   date: string
   value: number | null
+  sum: number
+  count: number
 }
 
 export interface SignalStatsDayOfWeekPoint {

@@ -21,13 +21,13 @@ const emit = defineEmits<{
 
 const options: DropdownMenuOption[] = [
   {
-    label: 'Edit entry',
+    label: 'Edit event',
     value: 'edit-entry',
     icon: Pencil,
     onSelect: () => router.push({ name: 'track', params: { eventId: props.event.id } }),
   },
   {
-    label: 'Delete entry',
+    label: 'Delete event',
     value: 'delete-entry',
     icon: Trash,
     onSelect: () => emit('requestDelete', props.event),
@@ -45,7 +45,7 @@ const options: DropdownMenuOption[] = [
           <IconButton
             class="journal-card-menu"
             variant="tertiary"
-            :aria-label="`Options for entry at ${formatEventTime(props.event.occurred_at)}`"
+            :aria-label="`Options for event at ${formatEventTime(props.event.occurred_at)}`"
           >
             <MoreVertical :size="18" />
           </IconButton>

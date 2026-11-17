@@ -28,6 +28,11 @@ class SummaryMethod(models.TextChoices):
     SUM = 'total', 'Total'
 
 
+class AverageWeighting(models.TextChoices):
+    EVENT = 'event', 'Every event'
+    DAY = 'day', 'Every day'
+
+
 class SignalCategory(models.Model):
     """ User defined grouping for signals."""
 
@@ -74,6 +79,14 @@ class Signal(models.Model):
         max_length=10,
         choices=SummaryMethod.choices,
         default=SummaryMethod.SUM
+    )
+
+    # How averages are weighted: one mean over all events, or the mean of the daily means
+    # (days without events are skipped).
+    average_weighting = models.CharField(
+        max_length=10,
+        choices=AverageWeighting.choices,
+        default=AverageWeighting.EVENT,
     )
 
     is_archived = models.BooleanField(default=False)

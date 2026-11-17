@@ -7,6 +7,7 @@ import { categoryAxis, valueTooltip, valueYAxis } from '@/modules/analytics/char
 import { parseIsoDate } from '@/modules/analytics/format'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
+import type { SummaryMethod } from '@/modules/signals/types'
 import type { SignalStatsTimeseriesPoint, Timeframe } from '@/modules/analytics/types'
 
 const props = withDefaults(
@@ -42,33 +43,39 @@ const points = computed(() => {
       label: p.date,
       axisLabel: formatShortDate(p.date),
       value: p.value,
+      sum: p.sum,
+      count: p.count,
     }))
   }
   return binTimeseriesByWeek(props.timeseries, props.signal.summary_method).map((bin) => ({
     label: `${formatShortDate(bin.start)} - ${formatShortDate(bin.end)}`,
     axisLabel: formatShortDate(bin.start),
     value: bin.value,
+    sum: bin.sum,
+    count: bin.count,
   }))
 })
 
-// Days without data (null) are skipped, not counted as zero.
-function rollingAverage(values: (number | null)[], window: number): (number | null)[] {
-  return values.map((_, i) => {
-    const present = values
-      .slice(Math.max(0, i - window + 1), i + 1)
-      .filter((v): v is number => v !== null)
-    if (present.length === 0) return null
-    return present.reduce((sum, v) => sum + v, 0) / present.length
+function rollingAverage(
+  steps: { value: number | null; sum: number; count: number }[],
+  window: number,
+  summaryMethod: SummaryMethod,
+): (number | null)[] {
+  return steps.map((_, i) => {
+    const inWindow = steps.slice(Math.max(0, i - window + 1), i + 1)
+    if (summaryMethod === 'average') {
+      const count = inWindow.reduce((acc, s) => acc + s.count, 0)
+      if (count === 0) return null
+      return inWindow.reduce((acc, s) => acc + s.sum, 0) / count
+    }
+    return inWindow.reduce((acc, s) => acc + (s.value ?? 0), 0) / inWindow.length
   })
 }
 
 const rollingAverageWindow = computed(() => (isWeekly.value ? 4 : 7))
 const rollingAverageName = computed(() => (isWeekly.value ? '4-week avg' : '7-day avg'))
 const rollingAverageValues = computed(() =>
-  rollingAverage(
-    points.value.map((p) => p.value),
-    rollingAverageWindow.value,
-  ),
+  rollingAverage(points.value, rollingAverageWindow.value, props.signal.summary_method),
 )
 
 const option = computed<EChartsOption>(() => ({

@@ -258,9 +258,9 @@ onMounted(load)
 
   <AlertDialog
     v-model:open="confirmDeleteOpen"
-    title="Delete entry"
+    title="Delete event"
     confirm-text="Delete"
-    description="Are you sure you want to delete this entry? This can't be undone."
+    description="Are you sure you want to delete this event? This can't be undone."
     @confirm="confirmDelete"
   >
     <template #cancel>

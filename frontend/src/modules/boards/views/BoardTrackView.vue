@@ -338,7 +338,7 @@ async function onSaveDraft() {
     }
     draftSignalEntries.value = []
   } catch (err) {
-    toaster.toast({ description: 'Could not save entry.', variant: 'danger' })
+    toaster.toast({ description: 'Could not save event.', variant: 'danger' })
     console.error(err)
   }
 }
