@@ -11,7 +11,7 @@ from django.db.models import Count, Sum
 from django.db.models.functions import ExtractHour, TruncDate
 
 from apps.events.models import SignalEntry
-from apps.signals.models import Signal, SignalType, SummaryMethod
+from apps.signals.models import AverageWeighting, Signal, SignalType, SummaryMethod
 
 from .models import AnalyticsWidget, WidgetAggregation, WidgetTimeframe, WidgetType
 
@@ -113,7 +113,7 @@ def get_widget_values(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
     """
     period = resolve_widget_period(widget, tz)
     rows = _bin_rows(widget.signal, user, period)
-    totals = _totals(rows)
+    totals = _totals(rows, widget.signal)
     is_timeseries = widget.type == WidgetType.TIMESERIES
 
     if is_timeseries:
@@ -135,7 +135,7 @@ def get_widget_values(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
 def get_signal_stats(signal: Signal, user, period: Period) -> dict:
     rows = _bin_rows(signal, user, period)
     return {
-        **_totals(rows),
+        **_totals(rows, signal),
         'timeseries': _timeseries(rows, signal, period),
         'day_of_week': _day_of_week(rows, signal),
         'heatmap': _heatmap(rows, signal),
@@ -175,24 +175,48 @@ def _bin_rows(signal: Signal, user, period: Period) -> list[tuple[date, int, flo
     return [(r['day'], r['hour'], _to_number(r['total']), r['count']) for r in rows]
 
 
-def _totals(rows) -> dict:
-    total = sum(r[2] for r in rows)
-    count = sum(r[3] for r in rows)
-    return {'total': total, 'average': total / count if count else 0.0, 'count': count}
+def _mean(days: dict, signal: Signal) -> float:
+    """
+    Mean of the numbers behind days = {day: [sum, count]}, following signal.average_weighting:
+    one mean over all events, or the mean of the daily means (days without events are not in days).
+    """
+    if signal.average_weighting == AverageWeighting.DAY:
+        return sum(t / c for t, c in days.values()) / len(days)
+    return sum(t for t, _ in days.values()) / sum(c for _, c in days.values())
+
+
+def _by_day(rows) -> dict:
+    days = defaultdict(lambda: [0.0, 0])
+    for day, _hour, total, count in rows:
+        days[day][0] += total
+        days[day][1] += count
+    return days
+
+
+def _totals(rows, signal: Signal) -> dict:
+    days = _by_day(rows)
+    total = sum(t for t, _ in days.values())
+    count = sum(c for _, c in days.values())
+    return {'total': total, 'average': _mean(days, signal) if count else 0.0, 'count': count}
 
 
 def _grouped(rows, signal: Signal, key) -> dict:
     """
     Bins the rows by key(day, hour) and applies the signals summary_method: the sum, or the
-    average over all entries in the bin. Bins without entries are not in the result.
+    average (see _mean) of the entries in the bin. Bins without entries are not in the result.
+    Returns {key: (value, entry count)}.
     """
-    bins = defaultdict(lambda: [0.0, 0])
+    bins = defaultdict(lambda: defaultdict(lambda: [0.0, 0]))
     for day, hour, total, count in rows:
-        b = bins[key(day, hour)]
+        b = bins[key(day, hour)][day]
         b[0] += total
         b[1] += count
     average = signal.summary_method == SummaryMethod.AVERAGE
-    return {k: (t / c if average else t, c) for k, (t, c) in bins.items()}
+    return {
+        k: (_mean(days, signal) if average else sum(t for t, _ in days.values()),
+            sum(c for _, c in days.values()))
+        for k, days in bins.items()
+    }
 
 
 def _empty_bucket_value(signal: Signal) -> float | None:
@@ -209,9 +233,17 @@ def _timeseries(rows, signal: Signal, period: Period) -> list[dict]:
     and None for average signals.
     """
     by_day = _grouped(rows, signal, lambda day, hour: day)
+    raw = _by_day(rows)
+    if signal.summary_method == SummaryMethod.AVERAGE and signal.average_weighting == AverageWeighting.DAY:
+        raw = {day: [by_day[day][0], 1] for day in raw}
     empty = _empty_bucket_value(signal)
     return [
-        {'date': day.isoformat(), 'value': by_day[day][0] if day in by_day else empty}
+        {
+            'date': day.isoformat(),
+            'value': by_day[day][0] if day in by_day else empty,
+            'sum': raw[day][0] if day in raw else 0.0,
+            'count': raw[day][1] if day in raw else 0,
+        }
         for day in (period.start_local + timedelta(days=i) for i in range((period.end_local - period.start_local).days))
     ]
 

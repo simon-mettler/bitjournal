@@ -9,6 +9,8 @@ export interface TimeseriesBin {
   start: string
   end: string
   value: number | null
+  sum: number
+  count: number
 }
 
 // Periods longer than this are binned into weeks.
@@ -32,28 +34,27 @@ function weekStart(value: string): string {
   return toIsoDate(date)
 }
 
-// Groups daily points into monday-based calendar weeks.
-// Uses 'total' or 'average' based on signal setting a
 export function binTimeseriesByWeek(
   points: SignalStatsTimeseriesPoint[],
   summaryMethod: SummaryMethod,
 ): TimeseriesBin[] {
-  const bins: (TimeseriesBin & { present: number[] })[] = []
+  const bins: TimeseriesBin[] = []
 
   for (const point of points) {
     const start = weekStart(point.date)
     let bin = bins[bins.length - 1]
     if (!bin || bin.start !== start) {
-      bin = { start, end: point.date, value: null, present: [] }
+      bin = { start, end: point.date, value: null, sum: 0, count: 0 }
       bins.push(bin)
     }
     bin.end = point.date
-    if (point.value !== null) bin.present.push(point.value)
+    bin.sum += point.sum
+    bin.count += point.count
   }
 
-  return bins.map(({ start, end, present }) => {
-    if (present.length === 0) return { start, end, value: null }
-    const sum = present.reduce((acc, v) => acc + v, 0)
-    return { start, end, value: summaryMethod === 'average' ? sum / present.length : sum }
-  })
+  for (const bin of bins) {
+    if (summaryMethod === 'average') bin.value = bin.count > 0 ? bin.sum / bin.count : null
+    else bin.value = bin.sum
+  }
+  return bins
 }

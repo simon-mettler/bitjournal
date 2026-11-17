@@ -13,6 +13,7 @@ import type { TimeValue } from 'reka-ui'
 defineProps<{
   entries: DraftEntry[]
   participantCount?: number
+  saving?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -70,9 +71,13 @@ const time = defineModel<TimeValue>('time')
     </div>
 
     <div class="draft-footer">
-      <Button variant="secondary" @click="emit('cancel')">Cancel</Button>
-      <Button variant="primary" :disabled="entries.length === 0" @click="emit('save')"
-        >Save Entry</Button
+      <Button variant="secondary" :disabled="saving" @click="emit('cancel')">Cancel</Button>
+      <Button
+        variant="primary"
+        :disabled="entries.length === 0 || saving"
+        :aria-busy="saving"
+        @click="emit('save')"
+        >{{ saving ? 'Saving…' : 'Save event' }}</Button
       >
     </div>
   </div>

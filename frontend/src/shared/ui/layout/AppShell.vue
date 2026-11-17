@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { ref, provide, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useScroll } from '@vueuse/core'
 import NavBottom from '@/shared/ui/layout/NavBottom.vue'
@@ -17,6 +17,13 @@ const contentRef = ref<HTMLElement | null>(null)
 const sidebar = ref<{ open: () => void } | null>(null)
 const scroll = useScroll(contentRef)
 provide(SCROLL_KEY, scroll)
+
+watch(
+  () => route.fullPath,
+  () => {
+    if (contentRef.value) contentRef.value.scrollTop = 0
+  },
+)
 </script>
 
 <template>
@@ -38,7 +45,11 @@ provide(SCROLL_KEY, scroll)
       <header :id="APP_SHELL_HEADER_ID" class="app-shell-header" />
 
       <main ref="contentRef" class="app-shell-content">
-        <RouterView />
+        <RouterView v-slot="{ Component }">
+          <KeepAlive include="JournalView">
+            <component :is="Component" />
+          </KeepAlive>
+        </RouterView>
       </main>
 
       <footer :id="APP_SHELL_FOOTER_ID" class="app-shell-footer" />

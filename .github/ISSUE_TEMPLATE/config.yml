@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Feature request
+    url: https://github.com/simon-mettler/bitjournal/discussions/new?category=ideas
+    about: Feature requests are not accepted as issues. Please open a discussion.
+  - name: Question or help with self-hosting
+    url: https://github.com/simon-mettler/bitjournal/discussions/new?category=q-a
+    about: Ask questions in discussions. Check the self-hosting guide and troubleshooting page first.
+  - name: Security vulnerability
+    url: https://github.com/simon-mettler/bitjournal/security/advisories/new
+    about: Report security problems privately, never in a public issue.

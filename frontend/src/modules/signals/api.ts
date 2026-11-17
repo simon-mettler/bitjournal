@@ -1,4 +1,5 @@
 import { api } from '@/shared/api'
+import { markStale } from '@/shared/lib/staleness'
 import type { Signal, SignalCategory } from './types'
 
 export type CreateSignalPayload = Omit<Signal, 'id' | 'created_at' | 'updated_at' | 'is_archived'>
@@ -22,12 +23,16 @@ export function createSignal(payload: CreateSignalPayload) {
   return api.post<Signal>('signals/', payload)
 }
 
-export function updateSignal(id: string, payload: UpdateSignalPayload) {
-  return api.patch<Signal>(`signals/${id}/`, payload)
+export async function updateSignal(id: string, payload: UpdateSignalPayload) {
+  const res = await api.patch<Signal>(`signals/${id}/`, payload)
+  markStale('journal')
+  return res
 }
 
-export function deleteSignal(id: string) {
-  return api.delete(`signals/${id}/`)
+export async function deleteSignal(id: string) {
+  const res = await api.delete(`signals/${id}/`)
+  markStale('journal')
+  return res
 }
 
 // Categories

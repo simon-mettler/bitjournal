@@ -47,7 +47,7 @@ function tooltipText(dow: number, hour: number): string {
   const bin = byBin.value.get(`${dow}-${hour}`)
   if (!bin) return `${label} - no entries`
 
-  const entries = `${bin.count} ${bin.count === 1 ? 'entry' : 'entries'}`
+  const entries = `${bin.count} ${bin.count === 1 ? 'event' : 'events'}`
   // For tallies the value is the entry count, so don't repeat it.
   if (props.signal.type === 'tally' && props.signal.summary_method === 'total') {
     return `${label} - ${entries}`

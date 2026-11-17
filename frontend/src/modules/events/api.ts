@@ -1,4 +1,5 @@
 import { api } from '@/shared/api'
+import { markStale } from '@/shared/lib/staleness'
 import type { CreateEventPayload, UpdateEventPayload, Event } from './types'
 
 export interface PaginatedResponse<T> {
@@ -36,12 +37,16 @@ export function getEvent(id: string) {
   return api.get<Event>(`events/${id}/`)
 }
 
-export function updateEvent(id: string, payload: UpdateEventPayload) {
-  return api.put<Event>(`events/${id}/`, payload)
+export async function updateEvent(id: string, payload: UpdateEventPayload) {
+  const res = await api.put<Event>(`events/${id}/`, payload)
+  markStale('journal')
+  return res
 }
 
-export function createEvent(payload: CreateEventPayload) {
-  return api.post<Event>('events/', payload)
+export async function createEvent(payload: CreateEventPayload) {
+  const res = await api.post<Event>('events/', payload)
+  markStale('journal')
+  return res
 }
 
 export function deleteEvent(id: string) {

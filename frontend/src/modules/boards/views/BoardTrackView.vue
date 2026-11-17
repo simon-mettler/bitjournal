@@ -315,7 +315,12 @@ onBeforeRouteLeave((to) => {
   boardEditing.value = false
 })
 
+const savingDraft = ref(false)
+
 async function onSaveDraft() {
+  if (savingDraft.value) return
+  savingDraft.value = true
+
   const payload = {
     occurred_at: draftDateTime.value.toDate().toISOString(),
     entries: draftSignalEntries.value.map((e) => ({
@@ -338,8 +343,10 @@ async function onSaveDraft() {
     }
     draftSignalEntries.value = []
   } catch (err) {
-    toaster.toast({ description: 'Could not save entry.', variant: 'danger' })
+    toaster.toast({ description: 'Could not save event.', variant: 'danger' })
     console.error(err)
+  } finally {
+    savingDraft.value = false
   }
 }
 
@@ -495,6 +502,7 @@ onMounted(async () => {
     v-model:date="draftDate"
     v-model:time="draftTime"
     :entries="draftSignalEntries"
+    :saving="savingDraft"
     @edit-entry="onEditSignalEntry"
     @remove-entry="onRemoveSignalEntry"
     @note-click="onNoteClick"
@@ -510,7 +518,8 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 0 var(--padding-app);
+  padding: var(--padding-app);
+  padding-top: 0;
 }
 
 .signal-grid.has-draft-bar {
