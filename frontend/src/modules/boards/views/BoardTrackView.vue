@@ -518,7 +518,8 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 0 var(--padding-app);
+  padding: var(--padding-app);
+  padding-top: 0;
 }
 
 .signal-grid.has-draft-bar {

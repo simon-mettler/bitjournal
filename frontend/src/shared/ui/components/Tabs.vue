@@ -33,6 +33,7 @@ const model = defineModel<string>({ required: true })
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
+  padding-right: var(--padding-app);
 
   & > :first-child {
     margin-left: 16px;
