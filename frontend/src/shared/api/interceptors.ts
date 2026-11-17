@@ -1,6 +1,6 @@
 import { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { api } from './axios'
-import { useAuthStore } from '@/modules/authentication/store'
+import { isUnauthorized, useAuthStore } from '@/modules/authentication/store'
 
 let refreshing: Promise<string> | null = null
 let initialized = false
@@ -32,7 +32,7 @@ export function setupApiInterceptors() {
         refreshing ??= auth
           .refreshAccessToken()
           .catch((refreshError) => {
-            void auth.logout()
+            if (isUnauthorized(refreshError)) auth.clearSession()
             throw refreshError
           })
           .finally(() => (refreshing = null))

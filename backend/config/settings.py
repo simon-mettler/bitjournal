@@ -164,6 +164,7 @@ REST_FRAMEWORK = {
 }
 
 REFRESH_TOKEN_LIFETIME = timedelta(days=180)
+REFRESH_ROTATION_LEEWAY = timedelta(seconds=60)
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
@@ -192,6 +193,20 @@ USE_TZ = True
 FRONTEND_DIST = Path(os.getenv('FRONTEND_DIST', BASE_DIR.parent / 'frontend' / 'dist'))
 if FRONTEND_DIST.is_dir():
     WHITENOISE_ROOT = FRONTEND_DIST
+
+
+
+def _whitenoise_headers(headers, path, url):
+    if url in ('/sw.js', '/version.json', '/manifest.webmanifest', '/index.html'):
+        headers['Cache-Control'] = 'no-cache'
+
+
+def _is_immutable_file(path, url):
+    return url.startswith('/assets/')
+
+
+WHITENOISE_ADD_HEADERS_FUNCTION = _whitenoise_headers
+WHITENOISE_IMMUTABLE_FILE_TEST = _is_immutable_file
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'

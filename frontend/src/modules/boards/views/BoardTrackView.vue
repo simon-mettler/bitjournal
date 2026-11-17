@@ -42,6 +42,7 @@ import {
   fromDate,
 } from '@internationalized/date'
 import type { TimeValue } from 'reka-ui'
+import { useUpdateGuard } from '@/shared/lib/useUpdateGuard'
 
 const route = useRoute()
 const router = useRouter()
@@ -61,6 +62,12 @@ const selectedSignal = ref<Signal | null>(null)
 const editingSignalEntry = ref<DraftEntry | null>(null)
 const editingSignalEntryId = ref<string | null>(null)
 const draftSignalEntries = ref<DraftEntry[]>([])
+
+useUpdateGuard(
+  computed(
+    () => draftBarVisible.value || entryDrawerOpen.value || draftSignalEntries.value.length > 0,
+  ),
+)
 const draftDateTime = ref<ZonedDateTime>(now(getLocalTimeZone())) as Ref<ZonedDateTime>
 
 const draftDate = computed<DateValue>({
