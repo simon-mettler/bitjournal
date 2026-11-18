@@ -2,6 +2,12 @@
 
 All notable changes to bitjournal are documented in this file.
 
+## v0.1.5
+
+### Updated
+
+- Emails can now be sent via SMTP
+
 ## v0.1.4
 
 ### Updated

@@ -5,14 +5,14 @@ from apps.users.mail import MailError, send_templated_mail
 
 
 class Command(BaseCommand):
-    help = 'Send a test mail through the configured provider (honors EMAIL_CATCH_ALL).'
+    help = 'Send a test mail through the configured SMTP server (honors EMAIL_CATCH_ALL).'
 
     def add_arguments(self, parser):
         parser.add_argument('to', help='Recipient (replaced by EMAIL_CATCH_ALL when set)')
 
     def handle(self, *args, **options):
         if not settings.EMAIL_ENABLED:
-            raise CommandError('Email is disabled: set RESEND_API_KEY and DEFAULT_FROM_EMAIL.')
+            raise CommandError('Email is disabled: set EMAIL_HOST, DEFAULT_FROM_EMAIL and SITE_URL.')
         try:
             send_templated_mail(options['to'], 'test')
         except MailError as exc:
