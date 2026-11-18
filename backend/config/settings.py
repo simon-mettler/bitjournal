@@ -32,11 +32,16 @@ ALLOWED_HOSTS = env_list('ALLOWED_HOSTS')
 # Set REGISTRATION_ENABLED=false to close sign-ups.
 REGISTRATION_ENABLED = os.getenv('REGISTRATION_ENABLED', 'true').lower() == 'true'
 
-# Email (sent through Resend, see apps/users/mail.py)
-RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
-
-# DEBUG always sends from Resend's test sender.
-DEFAULT_FROM_EMAIL = 'onboarding@resend.dev' if DEBUG else os.getenv('DEFAULT_FROM_EMAIL', '')
+# Email, sent over SMTP with Django's SMTP backend (see apps/users/mail.py).
+EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+# STARTTLS (usually port 587) is the default; EMAIL_USE_SSL=true selects implicit TLS (port 465).
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'false').lower() == 'true'
+EMAIL_USE_TLS = not EMAIL_USE_SSL and os.getenv('EMAIL_USE_TLS', 'true').lower() == 'true'
+EMAIL_TIMEOUT = 15
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '')
 EMAIL_CATCH_ALL = os.getenv('EMAIL_CATCH_ALL', '')
 # Public base URL of the frontend, used to build links in mails (reset, confirm email).
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:5173' if DEBUG else '').rstrip('/')
@@ -47,7 +52,7 @@ PASSWORD_RESET_TIMEOUT = 60 * 60
 # Lifetime of email change confirmation links (seconds).
 EMAIL_CHANGE_TIMEOUT = 60 * 60 * 24
 
-EMAIL_ENABLED = bool(RESEND_API_KEY and DEFAULT_FROM_EMAIL and SITE_URL)
+EMAIL_ENABLED = bool(EMAIL_HOST and DEFAULT_FROM_EMAIL and SITE_URL)
 
 # Public instance config: GET /api/config/
 INSTANCE_NOTICE = os.getenv('INSTANCE_NOTICE', '')

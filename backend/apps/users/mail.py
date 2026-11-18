@@ -1,7 +1,7 @@
 import logging
 
-import resend
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ class MailError(Exception):
 
 
 def send_mail(to, subject, text, html=None):
-    """Send a mail through Resend."""
+    """Send a mail through the configured SMTP server."""
     if not settings.EMAIL_ENABLED:
         raise MailError('Email is not configured.')
 
@@ -26,18 +26,11 @@ def send_mail(to, subject, text, html=None):
     elif settings.DEBUG:
         raise MailError('DEBUG is on and EMAIL_CATCH_ALL is not set: refusing to send.')
 
-    payload = {
-        'from': settings.DEFAULT_FROM_EMAIL,
-        'to': [recipient],
-        'subject': subject,
-        'text': text,
-    }
+    message = EmailMultiAlternatives(subject, text, settings.DEFAULT_FROM_EMAIL, [recipient])
     if html:
-        payload['html'] = html
-
-    resend.api_key = settings.RESEND_API_KEY
+        message.attach_alternative(html, 'text/html')
     try:
-        resend.Emails.send(payload)
+        message.send()
     except Exception as exc:
         logger.exception('Sending mail to %s failed', recipient)
         raise MailError('Sending the mail failed.') from exc
