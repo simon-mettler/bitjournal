@@ -4,6 +4,7 @@ import Header from '@/shared/ui/components/Header.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import { useToast } from '@/shared/lib/useToast'
+import ExtensionSlot from '@/shared/ui/components/ExtensionSlot.vue'
 import ChangeEmailForm from '../components/ChangeEmailForm.vue'
 import ChangePasswordForm from '../components/ChangePasswordForm.vue'
 import { getMe } from '../api'
@@ -39,6 +40,8 @@ onMounted(async () => {
       <h2>Change password</h2>
       <ChangePasswordForm />
     </section>
+
+    <ExtensionSlot name="account" />
 
     <section>
       <h2>Delete account</h2>

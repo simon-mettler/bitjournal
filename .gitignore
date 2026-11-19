@@ -4,6 +4,9 @@
 
 node_modules/
 
+# Optional private extensions (see frontend/src/shared/lib/extensions.ts)
+frontend/src/extensions/
+
 # OS / editor
 .DS_Store
 .idea/

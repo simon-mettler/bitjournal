@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Toast from '@/shared/ui/components/Toast.vue'
+import ExtensionSlot from '@/shared/ui/components/ExtensionSlot.vue'
 import AppShell from '@/shared/ui/layout/AppShell.vue'
 import { useViewportHeight } from './shared/lib/useViewportHeight'
 import { watch } from 'vue'
@@ -22,5 +23,6 @@ watch(
 
 <template>
   <Toast />
+  <ExtensionSlot name="app" />
   <AppShell />
 </template>
