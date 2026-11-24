@@ -34,3 +34,19 @@ export function changeEmail(payload: ChangeEmailPayload) {
 export function confirmEmailChange(payload: { token: string }) {
   return api.post<{ email: string }>('users/me/email/confirm/', payload)
 }
+
+export async function exportData() {
+  const response = await api.get<Blob>('users/me/export/', { responseType: 'blob' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(response.data)
+  link.download = `bitjournal-export-${new Date().toISOString().slice(0, 10)}.json`
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+export function importData(file: File, password: string) {
+  const body = new FormData()
+  body.append('file', file)
+  body.append('password', password)
+  return api.post<void>('users/me/import/', body)
+}

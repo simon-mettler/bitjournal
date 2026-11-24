@@ -2,6 +2,12 @@
 
 All notable changes to bitjournal are documented in this file.
 
+## v0.1.6
+
+### Added
+
+- Data can now be exported and imported into another account running the same version of bitjournal.
+
 ## v0.1.5
 
 ### Updated
