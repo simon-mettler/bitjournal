@@ -7,11 +7,21 @@ import { useToast } from '@/shared/lib/useToast'
 import ExtensionSlot from '@/shared/ui/components/ExtensionSlot.vue'
 import ChangeEmailForm from '../components/ChangeEmailForm.vue'
 import ChangePasswordForm from '../components/ChangePasswordForm.vue'
-import { getMe } from '../api'
+import { exportData, getMe } from '../api'
+import ImportDataDialog from '../components/ImportDataDialog.vue'
 import DeleteAccountDialog from '../components/DeleteAccountDialog.vue'
 
 const { toast } = useToast()
 const deleteOpen = ref(false)
+const importOpen = ref(false)
+
+async function handleExport() {
+  try {
+    await exportData()
+  } catch {
+    toast({ title: 'Could not export your data', variant: 'danger' })
+  }
+}
 const email = ref('')
 
 onMounted(async () => {
@@ -44,12 +54,25 @@ onMounted(async () => {
     <ExtensionSlot name="account" />
 
     <section>
+      <h2>Your data</h2>
+      <p>
+        Download all your signals, boards, dashboards and events as a file, or replace everything
+        with a previously exported file. Works across bitjournal instances.
+      </p>
+      <div class="actions">
+        <Button variant="secondary" @click="handleExport">Export</Button>
+        <Button variant="warn" @click="importOpen = true">Import</Button>
+      </div>
+    </section>
+
+    <section>
       <h2>Delete account</h2>
       <p>Permanently delete your account and all your data.</p>
       <Button variant="warn" @click="deleteOpen = true">Delete account</Button>
     </section>
   </div>
 
+  <ImportDataDialog v-model:open="importOpen" />
   <DeleteAccountDialog v-model:open="deleteOpen" />
 </template>
 
@@ -64,6 +87,10 @@ onMounted(async () => {
 section {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-md);
+}
+.actions {
+  display: flex;
   gap: var(--spacing-md);
 }
 </style>

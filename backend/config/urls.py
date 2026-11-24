@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/', include('apps.boards.urls')),
     path('api/', include('apps.events.urls')),
     path('api/', include('apps.analytics.urls')),
+    path('api/', include('apps.dataport.urls')),
     # SPA fallback: anything that isn't api/admin/static or a missing file (has an extension).
     re_path(r'^(?!(?:api|admin|static)(?:/|$))(?P<path>(?:.*/)?[^/.]*)$', spa_index),
 ]

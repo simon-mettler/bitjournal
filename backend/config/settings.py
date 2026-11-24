@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'apps.events',
     'apps.boards',
     'apps.analytics',
+    'apps.dataport',
 ]
 
 MIDDLEWARE = [
