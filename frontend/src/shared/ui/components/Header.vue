@@ -31,6 +31,7 @@ defineProps<{
   z-index: 2;
   background-color: var(--header-color-background);
   padding: var(--padding-app);
+  padding-inline: calc(var(--padding-app) + max(0px, (100% - var(--content-max, 100%)) / 2));
   box-sizing: border-box;
   max-width: 100%;
   transition: box-shadow 200ms ease;

@@ -17,9 +17,20 @@
   box-sizing: border-box;
   background-color: var(--color-surface);
   padding: var(--padding-app);
+  padding-inline: calc(var(--padding-app) + max(0px, (100% - var(--content-max, 100%)) / 2));
   padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
   box-shadow: var(--shadow-footer);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+@media (min-width: 768px) {
+  .footer {
+    justify-content: center;
+  }
+
+  .footer :deep(button) {
+    flex: 0 1 220px;
+  }
 }
 
 :deep(button) {

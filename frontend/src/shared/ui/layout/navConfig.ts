@@ -30,14 +30,14 @@ export const moreNavIcon = MoreHorizontal
 
 export const sidebarGroups: NavGroup[] = [
   {
+    label: 'Configuration',
+    items: [{ label: 'Manage signals', icon: Radio, to: { name: 'manage-signals' } }],
+  },
+  {
     label: 'Settings',
     items: [
       { label: 'App', icon: SlidersHorizontal, to: { name: 'app-settings' } },
       { label: 'Account', icon: UserRound, to: { name: 'account' } },
     ],
-  },
-  {
-    label: 'Configuration',
-    items: [{ label: 'Manage signals', icon: Radio, to: { name: 'manage-signals' } }],
   },
 ]
