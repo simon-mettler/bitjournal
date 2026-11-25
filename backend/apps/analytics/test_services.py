@@ -57,28 +57,21 @@ def test_day_weighting_is_mean_of_daily_means(stats):
     assert result['count'] == 5  # still the number of logs
 
 
+def by_start(result):
+    return {p['start']: p for p in result['timeseries']['points']}
+
+
 @pytest.mark.parametrize('weighting', AverageWeighting.values)
 def test_days_without_logs_are_skipped(stats, weighting):
-    series = {p['date']: p for p in stats(weighting)['timeseries']}
+    series = by_start(stats(weighting))
     assert series['2026-11-04']['value'] is None
-    assert series['2026-11-04']['count'] == 0
-
-
-def test_days_without_logs_are_skipped_in_day_mode_at_week_end(stats):
-    series = {p['date']: p for p in stats(AverageWeighting.DAY)['timeseries']}
-    assert series['2026-11-08']['count'] == 0
+    assert series['2026-11-08']['value'] is None
 
 
 def test_daily_values_are_the_same_in_both_modes(stats):
-    log_values = [p['value'] for p in stats(AverageWeighting.EVENT)['timeseries']]
-    day_values = [p['value'] for p in stats(AverageWeighting.DAY)['timeseries']]
+    log_values = [p['value'] for p in by_start(stats(AverageWeighting.EVENT)).values()]
+    day_values = [p['value'] for p in by_start(stats(AverageWeighting.DAY)).values()]
     assert log_values == day_values
-
-
-@pytest.mark.parametrize('weighting, expected', [(AverageWeighting.EVENT, 1.8), (AverageWeighting.DAY, 3.0)])
-def test_timeseries_sum_and_count_give_the_weekly_average(stats, weighting, expected):
-    series = stats(weighting)['timeseries']
-    assert sum(p['sum'] for p in series) / sum(p['count'] for p in series) == pytest.approx(expected)
 
 
 def test_day_of_week_and_heatmap_follow_the_weighting(stats):

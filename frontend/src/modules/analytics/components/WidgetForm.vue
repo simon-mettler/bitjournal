@@ -9,15 +9,11 @@ import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
 import { getSignals } from '@/modules/signals/api'
 import type { Signal } from '@/modules/signals/types'
-import type {
-  WidgetAggregation,
-  WidgetChartType,
-  WidgetTimeframe,
-  WidgetType,
-} from '@/modules/analytics/types'
+import type { WidgetChartType, WidgetTimeframe, WidgetType } from '@/modules/analytics/types'
 import type { WidgetFormState } from '@/modules/analytics/widgetFormState'
 import {
   WIDGET_TIMEFRAME_LABELS,
+  aggregationOptions,
   earlierQuarterOptions,
   earlierYearOptions,
 } from '@/modules/analytics/format'
@@ -35,10 +31,13 @@ const typeOptions: { value: WidgetType; label: string }[] = [
   { value: 'value', label: 'Value' },
   { value: 'timeseries', label: 'Over time' },
 ]
-const aggregationOptions: { value: WidgetAggregation; label: string }[] = [
-  { value: 'total', label: 'Total' },
-  { value: 'average', label: 'Average' },
-]
+const displayOptions = computed(() => aggregationOptions(selectedSignal.value))
+
+watch(selectedSignal, (signal) => {
+  if (signal && !displayOptions.value.some((o) => o.value === form.value.aggregation)) {
+    form.value.aggregation = 'average'
+  }
+})
 const chartTypeOptions: { value: WidgetChartType; label: string }[] = [
   { value: 'bar', label: 'Bar' },
   { value: 'line', label: 'Line' },
@@ -160,7 +159,7 @@ defineExpose({ validateAll, errors })
 
     <div v-if="!isTimeseries" class="field">
       <span class="label">Display</span>
-      <ToggleGroup v-model="form.aggregation" :options="aggregationOptions" class="toggle" />
+      <ToggleGroup v-model="form.aggregation" :options="displayOptions" class="toggle" />
     </div>
 
     <template v-else>

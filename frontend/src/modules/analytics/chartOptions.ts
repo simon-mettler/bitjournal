@@ -45,18 +45,40 @@ export function categoryAxis(
   }
 }
 
-// Durations axis that snaps to whole seconds/minutes/hours.
-export function valueYAxis(signal: Signal, values: (number | null)[]): EChartsOption['yAxis'] {
+// Bounds of the y-axis. Sums and bars start at zero. Averages of range signals use the
+// configured scale, line charts of averaged measurements fit the data.
+export function valueAxisBounds(
+  signal: Signal,
+  values: (number | null)[],
+  chartType: 'bar' | 'line',
+): { min?: number; max?: number; scale?: boolean } {
+  if (signal.summary_method !== 'average') return {}
+  if (signal.type === 'range' && signal.range_config) {
+    // values logged before the range was changed can lie outside of it
+    const present = values.filter((v) => v !== null)
+    const min = Math.min(Number(signal.range_config.min_value), ...present)
+    const max = Math.max(Number(signal.range_config.max_value), ...present)
+    return { min: chartType === 'bar' ? Math.min(0, min) : min, max }
+  }
+  return signal.type === 'value' && chartType === 'line' ? { scale: true } : {}
+}
+
+// Durations axis snaps to whole seconds/minutes/hours.
+export function valueYAxis(
+  signal: Signal,
+  values: (number | null)[],
+  chartType: 'bar' | 'line' = 'bar',
+): EChartsOption['yAxis'] {
   const scale =
     signal.type === 'duration' ? durationAxisScale(Math.max(0, ...values.map((v) => v ?? 0))) : null
   return {
     type: 'value',
+    ...valueAxisBounds(signal, values, chartType),
     splitLine: { lineStyle: { color: chartColors.gridLine } },
     axisLabel: {
       color: chartColors.axisLabel,
       formatter: scale ? (value: number) => formatDurationAxisLabel(value) : undefined,
     },
-    max: scale?.max,
-    interval: scale?.interval,
+    ...(scale && { max: scale.max, interval: scale.interval }),
   }
 }

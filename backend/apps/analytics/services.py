@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from django.db.models import Count, Sum
+from django.db.models import Count, Min, Sum
 from django.db.models.functions import ExtractHour, TruncDate
 
 from apps.events.models import SignalEntry
@@ -19,6 +19,10 @@ TIMEFRAMES = ('week', 'month', 'quarter', 'year')
 
 UTC = ZoneInfo('UTC')
 
+# Periods longer than this are shown in weekly steps (365 daily bars are too dense to read).
+WEEKLY_STEP_MIN_DAYS = 100
+# Number of steps (the current one and the ones before it) behind one point of the trend line.
+TREND_WINDOW = {'day': 7, 'week': 4}
 
 @dataclass
 class Period:
@@ -74,11 +78,10 @@ def _make_period(timeframe: str, start_local: date, end_local: date, tz: ZoneInf
     )
 
 
-def resolve_widget_period(widget: AnalyticsWidget, tz: ZoneInfo) -> Period:
+def resolve_widget_period(widget: AnalyticsWidget, tz: ZoneInfo, today: date) -> Period:
     """
-    Resolve timeframe relative to local tz.
+    Resolve timeframe relative to today, the current date in tz.
     """
-    today = datetime.now(tz).date()
     timeframe = widget.timeframe
 
     if timeframe == WidgetTimeframe.TODAY:
@@ -111,32 +114,45 @@ def get_widget_values(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
     """
     Data for one widget, shaped by its type. 'timeseries' is only filled for over time widgets.
     """
-    period = resolve_widget_period(widget, tz)
-    rows = _bin_rows(widget.signal, user, period)
-    totals = _totals(rows, widget.signal)
+    today = datetime.now(tz).date()
+    period = resolve_widget_period(widget, tz, today)
+    first_day = _first_entry_day(widget.signal, user, tz)
+    all_rows = _bin_rows(widget.signal, user, _with_trend_lookback(period))
+    rows = _within(all_rows, period)
+    totals = _totals(rows, widget.signal, period, first_day, today)
     is_timeseries = widget.type == WidgetType.TIMESERIES
 
     if is_timeseries:
         value = None
-    elif widget.aggregation == WidgetAggregation.AVERAGE:
-        value = totals['average'] if totals['count'] else None
-    else:
+    elif widget.aggregation == WidgetAggregation.TOTAL:
         value = totals['total']
+    elif not totals['count']:
+        value = None
+    elif (widget.aggregation == WidgetAggregation.PER_EVENT
+          and widget.signal.summary_method == SummaryMethod.SUM):
+        value = totals['total'] / totals['count']  # today included, an event is never unfinished
+    else:
+        value = totals['average']
 
     return {
         'widget_id': widget.id,
         'value': value,
         'count': totals['count'],
         'period': {'start': period.start_local.isoformat(), 'end': period.end_local.isoformat()},
-        'timeseries': _timeseries(rows, widget.signal, period) if is_timeseries else None,
+        'timeseries': (
+            _timeseries(all_rows, widget.signal, period, first_day, today) if is_timeseries else None
+        ),
     }
 
 
-def get_signal_stats(signal: Signal, user, period: Period) -> dict:
-    rows = _bin_rows(signal, user, period)
+def get_signal_stats(signal: Signal, user, period: Period, today: date | None = None) -> dict:
+    today = today or datetime.now(period.tz).date()
+    first_day = _first_entry_day(signal, user, period.tz)
+    all_rows = _bin_rows(signal, user, _with_trend_lookback(period))
+    rows = _within(all_rows, period)
     return {
-        **_totals(rows, signal),
-        'timeseries': _timeseries(rows, signal, period),
+        **_totals(rows, signal, period, first_day, today),
+        'timeseries': _timeseries(all_rows, signal, period, first_day, today),
         'day_of_week': _day_of_week(rows, signal),
         'heatmap': _heatmap(rows, signal),
     }
@@ -175,6 +191,41 @@ def _bin_rows(signal: Signal, user, period: Period) -> list[tuple[date, int, flo
     return [(r['day'], r['hour'], _to_number(r['total']), r['count']) for r in rows]
 
 
+def _week_start(day: date) -> date:
+    return day - timedelta(days=day.weekday())  # Monday
+
+
+def _step(period: Period) -> str:
+    return 'week' if (period.end_local - period.start_local).days > WEEKLY_STEP_MIN_DAYS else 'day'
+
+
+def _with_trend_lookback(period: Period) -> Period:
+    """
+    The period widened by the data the trend line needs: the steps before the first one and,
+    for weekly steps, the full calendar weeks at both edges.
+    """
+    window = TREND_WINDOW[_step(period)]
+    if _step(period) == 'day':
+        start, end = period.start_local - timedelta(days=window - 1), period.end_local
+    else:
+        start = _week_start(period.start_local) - timedelta(weeks=window - 1)
+        end = _week_start(period.end_local - timedelta(days=1)) + timedelta(weeks=1)
+    return _make_period(period.timeframe, start, end, period.tz)
+
+
+def _within(rows, period: Period) -> list:
+    return [row for row in rows if period.start_local <= row[0] < period.end_local]
+
+
+def _first_entry_day(signal: Signal, user, tz: ZoneInfo) -> date | None:
+    """
+    Local date of the signal's first entry. Total signals only count empty days as 0 from then on.
+    """
+    first = SignalEntry.objects.filter(signal=signal, event__user=user).aggregate(
+        first=Min('event__occurred_at'))['first']
+    return first and first.astimezone(tz).date()
+
+
 def _mean(days: dict, signal: Signal) -> float:
     """
     Mean of the numbers behind days = {day: [sum, count]}, following signal.average_weighting:
@@ -193,11 +244,33 @@ def _by_day(rows) -> dict:
     return days
 
 
-def _totals(rows, signal: Signal) -> dict:
+def _per_day(days: dict, period: Period, first_day: date | None, today: date) -> float:
+    """
+    Total per day over the completed days of the period since the first entry, including days
+    without entries. Today is unfinished and only used if there is no completed day.
+    """
+    if first_day is None:
+        return 0.0
+    start = max(period.start_local, first_day)
+    end = min(period.end_local, today)
+    if end <= start:
+        return days[today][0] if today in days else 0.0
+    return sum(t for day, (t, _) in days.items() if start <= day < end) / (end - start).days
+
+
+def _totals(rows, signal: Signal, period: Period, first_day: date | None, today: date) -> dict:
+    """
+    Total, average and entry count of the period. The average of a total signal is per day,
+    the one of an average signal follows its average_weighting.
+    """
     days = _by_day(rows)
     total = sum(t for t, _ in days.values())
     count = sum(c for _, c in days.values())
-    return {'total': total, 'average': _mean(days, signal) if count else 0.0, 'count': count}
+    if signal.summary_method == SummaryMethod.SUM:
+        average = _per_day(days, period, first_day, today)
+    else:
+        average = _mean(days, signal) if count else 0.0
+    return {'total': total, 'average': average, 'count': count}
 
 
 def _grouped(rows, signal: Signal, key) -> dict:
@@ -226,26 +299,82 @@ def _empty_bucket_value(signal: Signal) -> float | None:
     return None if signal.summary_method == SummaryMethod.AVERAGE else 0.0
 
 
-def _timeseries(rows, signal: Signal, period: Period) -> list[dict]:
+def _dates(start: date, end: date) -> list[date]:
+    """Days from start (inclusive) to end (exclusive)."""
+    return [start + timedelta(days=i) for i in range((end - start).days)]
+
+
+def _step_value(days: dict, span: list[date], signal: Signal, first_day: date | None, today: date) -> float | None:
     """
-    One row per local calendar day in the period. The daily value follows the
-    signal's summary_method (sum or average). Days without entries are 0 for sum signals
-    and None for average signals.
+    Value of one step: sum or average of its entries. Without entries it is None, except for
+    total signals on days that have passed since the first entry, which are a real 0.
     """
-    by_day = _grouped(rows, signal, lambda day, hour: day)
-    raw = _by_day(rows)
-    if signal.summary_method == SummaryMethod.AVERAGE and signal.average_weighting == AverageWeighting.DAY:
-        raw = {day: [by_day[day][0], 1] for day in raw}
-    empty = _empty_bucket_value(signal)
-    return [
-        {
-            'date': day.isoformat(),
-            'value': by_day[day][0] if day in by_day else empty,
-            'sum': raw[day][0] if day in raw else 0.0,
-            'count': raw[day][1] if day in raw else 0,
-        }
-        for day in (period.start_local + timedelta(days=i) for i in range((period.end_local - period.start_local).days))
-    ]
+    found = {day: days[day] for day in span if day in days}
+    if signal.summary_method == SummaryMethod.AVERAGE:
+        return _mean(found, signal) if found else None
+    if found:
+        return sum(t for t, _ in found.values())
+    tracked = first_day is not None and span[-1] >= first_day and span[0] <= today
+    return 0.0 if tracked else None
+
+
+def _trend_value(days: dict, start: date, length: int, window: int, signal: Signal,
+                 first_day: date | None, today: date) -> float | None:
+    """
+    Moving average at the step of `length` days beginning at start, over it and the steps before.
+    Average signals: mean of the entries in the window. Total signals: mean step total, only
+    counting steps that are over and began on or after the first entry.
+    """
+    if start > today:
+        return None
+    starts = [start - timedelta(days=length * i) for i in range(window)]
+    spans = [_dates(s, s + timedelta(days=length)) for s in starts]
+    if signal.summary_method == SummaryMethod.AVERAGE:
+        found = {day: days[day] for span in spans for day in span if day in days}
+        return _mean(found, signal) if found else None
+
+    def is_complete(span):
+        return first_day is not None and span[0] >= first_day and span[-1] < today
+
+    if spans[0][-1] >= today:  # no trend point on the unfinished step
+        return None
+    totals = [sum(days[day][0] for day in span if day in days) for span in spans if is_complete(span)]
+    return sum(totals) / len(totals) if totals else None
+
+
+def _timeseries(rows, signal: Signal, period: Period, first_day: date | None, today: date) -> dict:
+    """
+    The period in daily or weekly steps (weeks start Monday and are clipped to the period).
+    Rows must include the trend lookback, see _with_trend_lookback.
+    """
+    step = _step(period)
+    length = 7 if step == 'week' else 1
+    days = _by_day(rows)
+
+    spans = defaultdict(list)
+    for day in _dates(period.start_local, period.end_local):
+        spans[_week_start(day) if step == 'week' else day].append(day)
+
+    points = []
+    for step_start, span in spans.items():
+        value = _step_value(days, span, signal, first_day, today)
+        partial = (
+            signal.summary_method == SummaryMethod.SUM
+            and value is not None
+            and (
+                len(span) < length
+                or span[0] <= today <= span[-1]
+                or (first_day is not None and span[0] < first_day <= span[-1])
+            )
+        )
+        points.append({
+            'start': span[0].isoformat(),
+            'end': span[-1].isoformat(),
+            'value': value,
+            'trend': _trend_value(days, step_start, length, TREND_WINDOW[step], signal, first_day, today),
+            'partial': partial,
+        })
+    return {'step': step, 'points': points}
 
 
 def _day_of_week(rows, signal: Signal) -> list[dict]:

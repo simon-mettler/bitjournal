@@ -7,7 +7,14 @@ All notable changes to bitjournal are documented in this file.
 ### Added
 
 - Data can now be exported and imported into another account running the same version of bitjournal.
-- Added wide screen layout for use on PC or tablet
+- Added wide screen layout for use on desktop PC or tablet
+
+### Updated
+
+- Averages and totals are now calculated on the server (instead of client-side).
+- Charts: lines for 'average' signals now connect across empty days
+- Charts: averaged range signals use their configured range on the y-axis
+- Charts: calculation of the 7-day rolling average updated (missing values, incomplete bins)
 
 ## v0.1.5
 

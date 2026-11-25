@@ -23,8 +23,12 @@ import {
   updateAnalyticsBoard,
 } from '@/modules/analytics/api'
 import TimeseriesChart from '@/modules/analytics/components/TimeseriesChart.vue'
-import { formatStatParts, formatWidgetTimeframe, type StatPart } from '@/modules/analytics/format'
-import { periodUsesWeeklyBins } from '@/modules/analytics/timeseriesBins'
+import {
+  formatStatParts,
+  formatWidgetTimeframe,
+  widgetAggregationLabel,
+  type StatPart,
+} from '@/modules/analytics/format'
 import { useDashboardUiStore } from '@/modules/analytics/store/dashboardUiStore'
 import type {
   AnalyticsBoard,
@@ -279,7 +283,6 @@ onMounted(async () => {
             :timeseries="values[widget.id].timeseries!"
             :chart-type="widget.chart_type"
             :show-average="widget.show_average"
-            :weekly="periodUsesWeeklyBins(values[widget.id].period)"
             :height="220"
           />
           <span class="widget-meta">{{ formatWidgetTimeframe(widget) }}</span>
@@ -291,13 +294,7 @@ onMounted(async () => {
             :parts="displayValue(widget)"
           />
           <span class="widget-meta">
-            {{
-              hasNoEntries(widget)
-                ? 'No entries'
-                : widget.aggregation === 'average'
-                  ? 'Average'
-                  : 'Total'
-            }}
+            {{ hasNoEntries(widget) ? 'No entries' : widgetAggregationLabel(widget) }}
             · {{ formatWidgetTimeframe(widget) }}
           </span>
         </template>

@@ -9,10 +9,16 @@ export interface SignalStatsPeriod {
 }
 
 export interface SignalStatsTimeseriesPoint {
-  date: string
+  start: string // first and last day of the step, inclusive
+  end: string
   value: number | null
-  sum: number
-  count: number
+  trend: number | null // moving average
+  partial: boolean // the sum doesn't cover the full step
+}
+
+export interface SignalStatsTimeseries {
+  step: 'day' | 'week'
+  points: SignalStatsTimeseriesPoint[]
 }
 
 export interface SignalStatsDayOfWeekPoint {
@@ -37,14 +43,14 @@ export interface SignalStats {
   total: number
   average: number
   count: number
-  timeseries: SignalStatsTimeseriesPoint[]
+  timeseries: SignalStatsTimeseries
   day_of_week: SignalStatsDayOfWeekPoint[]
   heatmap: SignalStatsHeatmapPoint[]
 }
 
 export type WidgetType = 'value' | 'timeseries'
 export type WidgetChartType = 'bar' | 'line'
-export type WidgetAggregation = 'total' | 'average'
+export type WidgetAggregation = 'total' | 'average' | 'per_event'
 export type WidgetTimeframe =
   | 'today'
   | 'yesterday'
@@ -88,5 +94,5 @@ export interface AnalyticsWidgetValue {
     start: string
     end: string
   }
-  timeseries: SignalStatsTimeseriesPoint[] | null
+  timeseries: SignalStatsTimeseries | null
 }
