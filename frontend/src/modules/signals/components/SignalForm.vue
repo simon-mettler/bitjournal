@@ -101,23 +101,25 @@ defineExpose({ validateAll, errors: validationErrors })
     </div>
 
     <Select
+      v-model="selectedSignalType"
+      :options="signalType"
+      label="Signal type"
+      placeholder="Choose a type"
+      :disabled="lockType"
+    />
+    <Select
+      v-if="selectedSignalType !== 'tally'"
       v-model="selectedSummaryMethod"
       :options="summaryMethod"
       label="Summary method"
       placeholder="Summary method"
     />
     <Select
+      v-if="selectedSignalType !== 'tally' && selectedSummaryMethod === 'average'"
       v-model="selectedAverageWeighting"
       :options="averageWeighting"
       label="Average weighting"
       placeholder="Average weighting"
-    />
-    <Select
-      v-model="selectedSignalType"
-      :options="signalType"
-      label="Signal type"
-      placeholder="Choose a type"
-      :disabled="lockType"
     />
 
     <InputText

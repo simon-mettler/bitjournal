@@ -2,7 +2,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from rest_framework import serializers
 
-from apps.signals.models import Signal
+from apps.signals.models import Signal, SignalType, SummaryMethod
 from apps.signals.serializers import SignalSerializer
 
 from .models import (
@@ -96,6 +96,15 @@ class AnalyticsWidgetWriteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'days': 'Required for this timeframe.'})
         else:
             attrs['days'] = None
+        if attrs.get('aggregation') == WidgetAggregation.PER_EVENT and not is_timeseries:
+            signal = attrs['signal']
+            if signal.type == SignalType.TALLY:
+                raise serializers.ValidationError(
+                    {'aggregation': 'Every tally event counts as 1, so there is no average per event.'}
+                )
+            # the average of an average signal already follows its own weighting
+            if signal.summary_method == SummaryMethod.AVERAGE:
+                attrs['aggregation'] = WidgetAggregation.AVERAGE
         if is_timeseries:
             attrs['aggregation'] = WidgetAggregation.TOTAL
         else:

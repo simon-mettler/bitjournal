@@ -99,6 +99,11 @@ class Signal(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_type_display()})"
 
+    def save(self, *args, **kwargs):
+        if self.type == SignalType.TALLY:
+            self.summary_method = SummaryMethod.SUM
+        super().save(*args, **kwargs)
+
     def clean(self):
         if self.pk is not None:
             original_type = Signal.objects.filter(pk=self.pk).values_list('type', flat=True).first()

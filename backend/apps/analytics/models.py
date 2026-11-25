@@ -17,6 +17,7 @@ class WidgetType(models.TextChoices):
 class WidgetAggregation(models.TextChoices):
     TOTAL = 'total', 'Total'
     AVERAGE = 'average', 'Average'
+    PER_EVENT = 'per_event', 'Average per event'
 
 
 class WidgetTimeframe(models.TextChoices):

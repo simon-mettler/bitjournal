@@ -1,28 +1,29 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Chart from '@/shared/ui/components/Chart.vue'
-import { binTimeseriesByWeek, WEEKLY_BIN_TIMEFRAMES } from '@/modules/analytics/timeseriesBins'
 import { chartColors, signalColor } from '@/modules/analytics/chartColors'
-import { categoryAxis, valueTooltip, valueYAxis } from '@/modules/analytics/chartOptions'
+import {
+  categoryAxis,
+  valueAxisBounds,
+  valueTooltip,
+  valueYAxis,
+} from '@/modules/analytics/chartOptions'
+import { lineData, lineSymbolOptions } from '@/modules/analytics/lineSymbols'
 import { parseIsoDate } from '@/modules/analytics/format'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
-import type { SummaryMethod } from '@/modules/signals/types'
-import type { SignalStatsTimeseriesPoint, Timeframe } from '@/modules/analytics/types'
+import type { SignalStatsTimeseries } from '@/modules/analytics/types'
 
 const props = withDefaults(
   defineProps<{
     signal: Signal
-    timeseries: SignalStatsTimeseriesPoint[]
-    timeframe?: Timeframe
+    timeseries: SignalStatsTimeseries
     chartType: 'bar' | 'line'
     showAverage?: boolean
-    weekly?: boolean
     height?: number
   }>(),
   {
     showAverage: true,
-    weekly: undefined,
   },
 )
 
@@ -32,51 +33,61 @@ function formatShortDate(value: string): string {
   return shortDateFormat.format(parseIsoDate(value))
 }
 
-const isWeekly = computed(
-  () =>
-    props.weekly ?? (props.timeframe !== undefined && WEEKLY_BIN_TIMEFRAMES.has(props.timeframe)),
+const isWeekly = computed(() => props.timeseries.step === 'week')
+
+const points = computed(() =>
+  props.timeseries.points.map((p) => {
+    const range = isWeekly.value
+      ? `${formatShortDate(p.start)} - ${formatShortDate(p.end)}`
+      : p.start
+    return {
+      ...p,
+      label: p.partial ? `${range} (incomplete)` : range,
+      axisLabel: formatShortDate(p.start),
+    }
+  }),
 )
 
-const points = computed(() => {
-  if (!isWeekly.value) {
-    return props.timeseries.map((p) => ({
-      label: p.date,
-      axisLabel: formatShortDate(p.date),
-      value: p.value,
-      sum: p.sum,
-      count: p.count,
-    }))
-  }
-  return binTimeseriesByWeek(props.timeseries, props.signal.summary_method).map((bin) => ({
-    label: `${formatShortDate(bin.start)} - ${formatShortDate(bin.end)}`,
-    axisLabel: formatShortDate(bin.start),
-    value: bin.value,
-    sum: bin.sum,
-    count: bin.count,
-  }))
+const values = computed(() => points.value.map((p) => p.value))
+const trendValues = computed(() => points.value.map((p) => p.trend))
+const trendName = computed(() => (isWeekly.value ? '4-week avg' : '7-day avg'))
+const axisValues = computed(() =>
+  props.showAverage ? [...values.value, ...trendValues.value] : values.value,
+)
+const hasZeroBaseline = computed(() => {
+  const bounds = valueAxisBounds(props.signal, axisValues.value, props.chartType)
+  return !bounds.scale && (bounds.min ?? 0) === 0
 })
 
-function rollingAverage(
-  steps: { value: number | null; sum: number; count: number }[],
-  window: number,
-  summaryMethod: SummaryMethod,
-): (number | null)[] {
-  return steps.map((_, i) => {
-    const inWindow = steps.slice(Math.max(0, i - window + 1), i + 1)
-    if (summaryMethod === 'average') {
-      const count = inWindow.reduce((acc, s) => acc + s.count, 0)
-      if (count === 0) return null
-      return inWindow.reduce((acc, s) => acc + s.sum, 0) / count
-    }
-    return inWindow.reduce((acc, s) => acc + (s.value ?? 0), 0) / inWindow.length
-  })
-}
+const connectsGaps = computed(() => props.signal.summary_method === 'average')
 
-const rollingAverageWindow = computed(() => (isWeekly.value ? 4 : 7))
-const rollingAverageName = computed(() => (isWeekly.value ? '4-week avg' : '7-day avg'))
-const rollingAverageValues = computed(() =>
-  rollingAverage(points.value, rollingAverageWindow.value, props.signal.summary_method),
-)
+const mainSeries = computed(() => {
+  const color = signalColor(props.signal)
+  if (props.chartType === 'bar') {
+    return {
+      name: props.signal.name,
+      type: 'bar' as const,
+      data: points.value.map((p) => ({
+        value: p.value,
+        itemStyle: p.partial ? { opacity: 0.45 } : undefined,
+      })),
+      barMaxWidth: 24,
+      itemStyle: { color, borderRadius: [8, 8, 0, 0] },
+    }
+  }
+  return {
+    name: props.signal.name,
+    type: 'line' as const,
+    data: lineData(values.value, connectsGaps.value),
+    ...lineSymbolOptions,
+    connectNulls: connectsGaps.value,
+    // smaller when every value is marked, to keep long periods readable
+    symbolSize: connectsGaps.value ? 6 : 8,
+    itemStyle: { color },
+    lineStyle: { width: 2, color },
+    areaStyle: hasZeroBaseline.value ? { color, opacity: 0.1 } : undefined,
+  }
+})
 
 const option = computed<EChartsOption>(() => ({
   tooltip: valueTooltip(props.signal),
@@ -86,7 +97,7 @@ const option = computed<EChartsOption>(() => ({
         name: props.signal.name,
         itemStyle: props.chartType === 'line' ? { opacity: 0 } : undefined, // hide legend dot
       },
-      ...(props.showAverage ? [{ name: rollingAverageName.value, itemStyle: { opacity: 0 } }] : []),
+      ...(props.showAverage ? [{ name: trendName.value, itemStyle: { opacity: 0 } }] : []),
     ],
     bottom: 0,
     left: 'center',
@@ -104,35 +115,19 @@ const option = computed<EChartsOption>(() => ({
     points.value.map((p) => p.label),
     (index) => points.value[index].axisLabel,
   ),
-  yAxis: valueYAxis(
-    props.signal,
-    points.value.map((p) => p.value),
-  ),
+  yAxis: valueYAxis(props.signal, axisValues.value, props.chartType),
   series: [
-    {
-      name: props.signal.name,
-      type: props.chartType,
-      data: points.value.map((p) => p.value),
-      barMaxWidth: 24,
-      itemStyle:
-        props.chartType === 'bar'
-          ? { color: signalColor(props.signal), borderRadius: [8, 8, 0, 0] }
-          : { color: signalColor(props.signal) },
-      lineStyle:
-        props.chartType === 'line' ? { width: 2, color: signalColor(props.signal) } : undefined,
-      areaStyle:
-        props.chartType === 'line' ? { color: signalColor(props.signal), opacity: 0.1 } : undefined,
-      symbol: props.chartType === 'line' ? 'circle' : 'none',
-      symbolSize: 8,
-      showSymbol: false,
-    },
+    mainSeries.value,
     ...(props.showAverage
       ? [
           {
-            name: rollingAverageName.value,
+            name: trendName.value,
             type: 'line' as const,
-            data: rollingAverageValues.value,
-            symbol: 'none',
+            data: lineData(trendValues.value),
+            ...lineSymbolOptions,
+            connectNulls: connectsGaps.value,
+            symbolSize: 5,
+            itemStyle: { color: chartColors.primary },
             lineStyle: { width: 2, color: chartColors.primary, type: 'dashed' as const },
           },
         ]

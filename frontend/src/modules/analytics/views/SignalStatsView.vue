@@ -15,7 +15,12 @@ import DayOfWeekChart from '@/modules/analytics/components/DayOfWeekChart.vue'
 import HeatmapChart from '@/modules/analytics/components/HeatmapChart.vue'
 import { getSignal } from '@/modules/signals/api'
 import { getSignalStats } from '@/modules/analytics/api'
-import { formatStatParts, formatPeriodRange, shiftPeriod } from '@/modules/analytics/format'
+import {
+  averageLabel,
+  formatStatParts,
+  formatPeriodRange,
+  shiftPeriod,
+} from '@/modules/analytics/format'
 import { useToast } from '@/shared/lib/useToast'
 import { useSignalStatsUiStore } from '@/modules/analytics/store/signalStatsUiStore'
 import type { Signal } from '@/modules/signals/types'
@@ -147,7 +152,7 @@ onMounted(() => {
         <StatValue class="stat-tile-value" :parts="formatStatParts(signal, stats.total)" />
       </div>
       <div class="stats-card stat-tile">
-        <span class="stats-card-title">Average</span>
+        <span class="stats-card-title">{{ averageLabel(signal) }}</span>
         <StatValue class="stat-tile-value" :parts="formatStatParts(signal, stats.average)" />
       </div>
     </div>
@@ -157,12 +162,7 @@ onMounted(() => {
         <span class="stats-card-title">Over time</span>
         <ToggleGroup v-model="chartType" :options="chartTypeOptions" />
       </div>
-      <TimeseriesChart
-        :signal="signal"
-        :timeseries="stats.timeseries"
-        :timeframe="stats.period.timeframe"
-        :chart-type="chartType"
-      />
+      <TimeseriesChart :signal="signal" :timeseries="stats.timeseries" :chart-type="chartType" />
     </div>
 
     <div v-if="signal && stats" class="stats-card chart-section">
