@@ -13,9 +13,9 @@ export interface WidgetFormState {
   days: number
 }
 
-export function defaultWidgetFormState(): WidgetFormState {
+export function defaultWidgetFormState(type: WidgetType = 'value'): WidgetFormState {
   return {
-    type: 'value',
+    type,
     title: '',
     signalId: undefined,
     aggregation: 'total',

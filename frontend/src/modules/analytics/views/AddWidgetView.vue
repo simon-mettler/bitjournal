@@ -9,6 +9,7 @@ import AppShellFooter from '@/shared/ui/layout/AppShellFooter.vue'
 import WidgetForm from '@/modules/analytics/components/WidgetForm.vue'
 import { createAnalyticsWidget } from '@/modules/analytics/api'
 import { defaultWidgetFormState, formStateToPayload } from '@/modules/analytics/widgetFormState'
+import { findWidgetDefinition } from '@/modules/analytics/widgetRegistry'
 import { useToast } from '@/shared/lib/useToast'
 
 const route = useRoute()
@@ -17,7 +18,10 @@ const toaster = useToast()
 
 const boardId = route.params.boardId as string
 
-const form = ref(defaultWidgetFormState())
+// the route guard only lets known types through
+const definition = findWidgetDefinition(route.params.type)!
+
+const form = ref(defaultWidgetFormState(definition.type))
 const submitting = ref(false)
 const widgetFormRef = ref<InstanceType<typeof WidgetForm>>()
 
@@ -42,7 +46,7 @@ async function submit() {
 
 <template>
   <AppShellHeader>
-    <Header heading="Add widget"></Header>
+    <Header :heading="`Add ${definition.name.toLowerCase()} widget`" />
   </AppShellHeader>
 
   <div class="add-widget-content">

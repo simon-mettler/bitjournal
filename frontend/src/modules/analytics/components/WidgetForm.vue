@@ -9,7 +9,7 @@ import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
 import { getSignals } from '@/modules/signals/api'
 import type { Signal } from '@/modules/signals/types'
-import type { WidgetChartType, WidgetTimeframe, WidgetType } from '@/modules/analytics/types'
+import type { WidgetChartType, WidgetTimeframe } from '@/modules/analytics/types'
 import type { WidgetFormState } from '@/modules/analytics/widgetFormState'
 import {
   WIDGET_TIMEFRAME_LABELS,
@@ -27,10 +27,6 @@ const signals = ref<Signal[]>([])
 const selectedSignal = computed(() => signals.value.find((s) => s.id === form.value.signalId))
 const isTimeseries = computed(() => form.value.type === 'timeseries')
 
-const typeOptions: { value: WidgetType; label: string }[] = [
-  { value: 'value', label: 'Value' },
-  { value: 'timeseries', label: 'Over time' },
-]
 const displayOptions = computed(() => aggregationOptions(selectedSignal.value))
 
 watch(selectedSignal, (signal) => {
@@ -58,12 +54,6 @@ const timeframeOptions = computed(() =>
     )
     .map(([value, label]) => ({ value, label })),
 )
-
-watch(isTimeseries, (timeseries) => {
-  if (timeseries && SINGLE_DAY_TIMEFRAMES.includes(form.value.timeframe)) {
-    form.value.timeframe = 'this_week'
-  }
-})
 
 const timeframeModel = computed({
   get: () => form.value.timeframe,
@@ -118,11 +108,6 @@ defineExpose({ validateAll, errors })
 
 <template>
   <div class="form">
-    <div class="field">
-      <span class="label">Widget type</span>
-      <ToggleGroup v-model="form.type" :options="typeOptions" class="toggle" />
-    </div>
-
     <div class="field">
       <span class="label">Signal</span>
       <div class="signal-chips">

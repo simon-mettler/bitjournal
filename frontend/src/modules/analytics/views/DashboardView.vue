@@ -167,7 +167,7 @@ function openWidget(widget: AnalyticsWidget) {
 
 function openAddWidget() {
   if (!activeBoard.value) return
-  void router.push({ name: 'analytics-widget-add', params: { boardId: activeBoard.value.id } })
+  void router.push({ name: 'analytics-widget-gallery', params: { boardId: activeBoard.value.id } })
 }
 
 function widgetOptions(widget: AnalyticsWidget): DropdownMenuOption[] {
