@@ -8,11 +8,13 @@ const boardRoutes = [
     path: '/track',
     name: 'track',
     component: BoardTrackView,
+    meta: { wide: true },
   },
   {
     path: '/track/:eventId?',
     name: 'track',
     component: BoardTrackView,
+    meta: { wide: true },
   },
 ]
 

@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { ref, provide, watch } from 'vue'
+import { computed, ref, provide, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useScroll } from '@vueuse/core'
 import NavBottom from '@/shared/ui/layout/NavBottom.vue'
 import { useAuthStore } from '@/modules/authentication/store'
-import DesktopNotice from '@/shared/ui/components/DesktopNotice.vue'
-import { Menu } from '@lucide/vue'
-import IconButton from '@/shared/ui/components/IconButton.vue'
 import NavSidebar from '@/shared/ui/layout/NavSidebar.vue'
 import { SCROLL_KEY } from '@/shared/lib/useAppShellScroll'
 import { APP_SHELL_HEADER_ID, APP_SHELL_FOOTER_ID } from '@/shared/lib/appShellSlots'
@@ -18,6 +15,8 @@ const sidebar = ref<{ open: () => void } | null>(null)
 const scroll = useScroll(contentRef)
 provide(SCROLL_KEY, scroll)
 
+const showNav = computed(() => auth.isAuthenticated && !route.meta.hideNav)
+
 watch(
   () => route.fullPath,
   () => {
@@ -27,19 +26,8 @@ watch(
 </script>
 
 <template>
-  <div class="app-shell">
-    <template v-if="auth.isAuthenticated">
-      <NavSidebar ref="sidebar" />
-      <IconButton
-        v-if="!route.meta.hideNav"
-        variant="tertiary"
-        class="app-shell-menu"
-        aria-label="Open menu"
-        @click="sidebar?.open()"
-      >
-        <Menu />
-      </IconButton>
-    </template>
+  <div class="app-shell" :class="{ 'has-nav': showNav, 'is-wide': route.meta.wide }">
+    <NavSidebar v-if="auth.isAuthenticated" ref="sidebar" />
 
     <div class="app-shell-main">
       <header :id="APP_SHELL_HEADER_ID" class="app-shell-header" />
@@ -54,19 +42,25 @@ watch(
 
       <footer :id="APP_SHELL_FOOTER_ID" class="app-shell-footer" />
 
-      <template v-if="!route.meta.hideNav">
-        <NavBottom class="app-shell-bottom-nav" @more-click="sidebar?.open()" />
-      </template>
+      <NavBottom
+        v-if="!route.meta.hideNav"
+        class="app-shell-bottom-nav"
+        @more-click="sidebar?.open()"
+      />
     </div>
-
-    <DesktopNotice />
   </div>
 </template>
 
 <style scoped>
 .app-shell {
+  --nav-width: 0px;
+  --content-max: 640px;
   display: flex;
   height: 100dvh;
+}
+
+.app-shell.is-wide {
+  --content-max: 1080px;
 }
 
 .app-shell-main {
@@ -83,28 +77,6 @@ watch(
   min-height: 0;
 }
 
-.app-shell-menu {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .app-shell {
-    justify-content: center;
-  }
-
-  .app-shell-main {
-    max-width: 600px;
-  }
-
-  .app-shell-menu {
-    display: inline-flex;
-    position: fixed;
-    top: var(--spacing-md);
-    left: var(--spacing-md);
-    z-index: 5;
-  }
-}
-
 .app-shell-header {
   grid-area: header;
 }
@@ -113,6 +85,7 @@ watch(
   overflow-y: auto;
   min-height: 0;
   grid-area: content;
+  padding-inline: max(0px, calc((100% - var(--content-max)) / 2));
 }
 
 .app-shell-footer {
@@ -122,5 +95,23 @@ watch(
 .app-shell-bottom-nav {
   display: flex;
   grid-area: bottom-nav;
+}
+
+/* tablet: nav rail replaces the bottom nav */
+@media (min-width: 768px) {
+  .app-shell.has-nav {
+    --nav-width: 88px;
+  }
+
+  .app-shell-bottom-nav {
+    display: none;
+  }
+}
+
+/* desktop: full sidebar */
+@media (min-width: 1024px) {
+  .app-shell.has-nav {
+    --nav-width: 248px;
+  }
 }
 </style>

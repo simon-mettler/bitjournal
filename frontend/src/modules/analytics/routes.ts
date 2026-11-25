@@ -14,6 +14,7 @@ const analyticsRoutes = [
     path: '/dashboard',
     name: 'dashboard',
     component: DashboardView,
+    meta: { wide: true },
   },
   {
     path: '/manage/analytics-boards/:boardId/widgets/add',

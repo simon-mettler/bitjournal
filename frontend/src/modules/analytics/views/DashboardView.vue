@@ -336,6 +336,24 @@ onMounted(async () => {
   padding-top: 0;
 }
 
+@media (min-width: 768px) {
+  .widget-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+  }
+}
+
+@media (min-width: 1024px) {
+  .widget-grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-flow: dense;
+  }
+
+  .widget-card.wide {
+    grid-column: span 2;
+  }
+}
+
 .widget-card {
   display: flex;
   flex-direction: column;

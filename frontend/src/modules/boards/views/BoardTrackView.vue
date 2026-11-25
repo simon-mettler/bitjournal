@@ -529,6 +529,19 @@ onMounted(async () => {
   padding-top: 0;
 }
 
+@media (min-width: 768px) {
+  .signal-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+  }
+}
+
+@media (min-width: 1024px) {
+  .signal-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 .signal-grid.has-draft-bar {
   padding-bottom: 220px;
 }

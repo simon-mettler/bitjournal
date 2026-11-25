@@ -323,6 +323,7 @@ const yearLabel = computed(() => String(placeholder.value.year))
 .dp-heading-group {
   display: flex;
   align-items: center;
+  gap: 0.375rem;
 }
 
 .dp-nav-button {
@@ -370,6 +371,8 @@ const yearLabel = computed(() => String(placeholder.value.year))
 
 .dp-cell {
   position: relative;
+  display: flex;
+  justify-content: center;
   text-align: center;
   font-size: 0.875rem;
 }

@@ -2,8 +2,11 @@
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import NavContent from '@/shared/ui/layout/NavContent.vue'
+import { useIsDesktopUp, useIsTabletUp } from '@/shared/lib/useBreakpoint'
 
 const route = useRoute()
+const isTablet = useIsTabletUp()
+const isDesktop = useIsDesktopUp()
 const drawerOpen = ref(false)
 const drawerNav = ref<{ replayLogo: () => void } | null>(null)
 
@@ -13,6 +16,11 @@ watch(
     drawerOpen.value = false
   },
 )
+
+// the drawer only exists on mobile; close it if the viewport grows past it
+watch(isTablet, (tablet) => {
+  if (tablet) drawerOpen.value = false
+})
 
 watch(drawerOpen, (isOpen) => {
   if (isOpen) drawerNav.value?.replayLogo()
@@ -30,7 +38,13 @@ defineExpose({ open, close })
 
 <template>
   <template v-if="!route.meta.hideNav">
-    <Teleport to="body">
+    <!-- tablet/desktop: persistent navigation (rail, then full sidebar) -->
+    <aside v-if="isTablet" class="sidebar" :class="{ rail: !isDesktop }">
+      <NavContent persistent :rail="!isDesktop" />
+    </aside>
+
+    <!-- mobile: "More" drawer -->
+    <Teleport v-else to="body">
       <div v-if="drawerOpen" class="drawer-backdrop" @click="close" />
       <div class="drawer" :class="{ open: drawerOpen }">
         <NavContent ref="drawerNav" @navigate="close" />
@@ -40,6 +54,24 @@ defineExpose({ open, close })
 </template>
 
 <style scoped>
+.sidebar {
+  flex: none;
+  width: var(--nav-width);
+  box-sizing: border-box;
+  padding: var(--spacing-lg) var(--spacing-md);
+  overflow-y: auto;
+  background-color: var(--color-app-bg);
+  border-right: 1px solid var(--color-border);
+}
+
+.sidebar.rail {
+  padding-inline: var(--spacing-sm);
+}
+
+.sidebar :deep(.nav-content) {
+  min-height: 100%;
+}
+
 .drawer-backdrop {
   position: fixed;
   inset: 0;

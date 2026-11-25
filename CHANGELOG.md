@@ -7,6 +7,7 @@ All notable changes to bitjournal are documented in this file.
 ### Added
 
 - Data can now be exported and imported into another account running the same version of bitjournal.
+- Added wide screen layout for use on PC or tablet
 
 ## v0.1.5
 

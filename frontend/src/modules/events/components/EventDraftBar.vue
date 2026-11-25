@@ -89,8 +89,10 @@ const time = defineModel<TimeValue>('time')
   --input-shadow: none;
   position: fixed;
   bottom: 0;
-  left: 0;
+  left: var(--nav-width, 0px);
   right: 0;
+  margin-inline: auto;
+  max-width: var(--content-max, none);
   z-index: 25;
   display: flex;
   flex-direction: column;
