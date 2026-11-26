@@ -9,7 +9,7 @@ from django.db import models
 from uuid import uuid7
 
 from .choices import (
-    WidgetAggregation,
+    WidgetCalculation,
     WidgetChartType,
     WidgetTimeframe,
     WidgetType,

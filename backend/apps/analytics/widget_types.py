@@ -9,9 +9,8 @@ from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
 
-from apps.signals.models import SignalType, SummaryMethod
-
-from .choices import WidgetAggregation, WidgetChartType, WidgetTimeframe, WidgetType
+from .calculations import available_calculations
+from .choices import WidgetCalculation, WidgetChartType, WidgetTimeframe, WidgetType
 
 
 @dataclass(frozen=True)
@@ -50,7 +49,8 @@ class WidgetDefinition:
         return self.with_defaults(config)
 
     def config_for_signal(self, config: dict, signal) -> dict:
-        """Applied when a user saves a widget: reject or adjust settings that don't fit the signal."""
+        if 'calculation' in config and config['calculation'] not in available_calculations(signal):
+            raise ValidationError('This calculation is not available for the signal.')
         return config
 
     def data(self, widget_data) -> dict:
@@ -58,38 +58,27 @@ class WidgetDefinition:
         raise NotImplementedError
 
 
-class ValueDefinition(WidgetDefinition):
-    settings = {
-        'aggregation': Setting(WidgetAggregation.TOTAL.value, tuple(WidgetAggregation.values)),
-    }
+CALCULATION = Setting(WidgetCalculation.TOTAL.value, tuple(WidgetCalculation.values))
 
-    def config_for_signal(self, config, signal):
-        if config['aggregation'] != WidgetAggregation.PER_EVENT:
-            return config
-        if signal.type == SignalType.TALLY:
-            raise ValidationError('Every tally event counts as 1, so there is no average per event.')
-        # the average of an average signal already follows its own weighting
-        if signal.summary_method == SummaryMethod.AVERAGE:
-            return {**config, 'aggregation': WidgetAggregation.AVERAGE.value}
-        return config
+
+class ValueDefinition(WidgetDefinition):
+    settings = {'calculation': CALCULATION}
 
     def data(self, widget_data):
         totals = widget_data.totals
-        aggregation = widget_data.config['aggregation']
-        if aggregation == WidgetAggregation.TOTAL:
-            value = totals['total']
-        elif not totals['count']:
-            value = None
-        elif (aggregation == WidgetAggregation.PER_EVENT
-              and widget_data.signal.summary_method == SummaryMethod.SUM):
-            value = totals['total'] / totals['count']  # today included, an event is never unfinished
-        else:
-            value = totals['average']
-        return {'value': value, 'timeseries': None}
+        calculation = widget_data.calculation
+        has_value = (
+            totals['count']
+            or calculation == WidgetCalculation.TOTAL
+            or (calculation == WidgetCalculation.DAILY_AVERAGE
+                and widget_data.signal.empty_days_as_zero)
+        )
+        return {'value': totals[calculation] if has_value else None, 'timeseries': None}
 
 
 class TimeseriesDefinition(WidgetDefinition):
     settings = {
+        'calculation': CALCULATION,
         'chart_type': Setting(WidgetChartType.BAR.value, tuple(WidgetChartType.values)),
         'show_average': Setting(True),
     }

@@ -5,11 +5,13 @@ import type {
   AnalyticsWidgetValue,
   SignalStats,
   Timeframe,
+  WidgetCalculation,
 } from './types'
 
 export interface GetSignalStatsParams {
   timeframe: Timeframe
   periodStart: string // YYYY-MM-DD, local calendar date
+  calculation?: WidgetCalculation // default: preselected by the signal's summary method
 }
 
 export function getSignalStats(signalId: string, params: GetSignalStatsParams) {
@@ -17,6 +19,7 @@ export function getSignalStats(signalId: string, params: GetSignalStatsParams) {
     params: {
       timeframe: params.timeframe,
       period_start: params.periodStart,
+      calculation: params.calculation,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
   })

@@ -10,10 +10,11 @@ import {
 } from '@/modules/analytics/chartOptions'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
-import type { SignalStatsDayOfWeekPoint } from '@/modules/analytics/types'
+import type { SignalStatsDayOfWeekPoint, WidgetCalculation } from '@/modules/analytics/types'
 
 const props = defineProps<{
   signal: Signal
+  calculation: WidgetCalculation
   dayOfWeek: SignalStatsDayOfWeekPoint[]
 }>()
 
@@ -33,7 +34,7 @@ const option = computed<EChartsOption>(() => ({
     outerBoundsContain: 'axisLabel',
   },
   xAxis: categoryAxis(DAY_LABELS),
-  yAxis: valueYAxis(props.signal, values.value),
+  yAxis: valueYAxis(props.signal, props.calculation, values.value),
   series: [
     {
       name: props.signal.name,

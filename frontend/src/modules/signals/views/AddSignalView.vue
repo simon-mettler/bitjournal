@@ -19,7 +19,7 @@ const icon = ref('')
 const signalUnit = ref('')
 const selectedSignalType = ref<CreateSignalPayload['type']>('tally')
 const selectedSummaryMethod = ref<CreateSignalPayload['summary_method']>('total')
-const selectedAverageWeighting = ref<CreateSignalPayload['average_weighting']>('event')
+const emptyDaysAsZero = ref(false)
 const minValue = ref<number>()
 const maxValue = ref<number>()
 const minLabel = ref('')
@@ -35,7 +35,7 @@ function resetForm() {
   signalUnit.value = ''
   selectedSignalType.value = 'tally'
   selectedSummaryMethod.value = 'total'
-  selectedAverageWeighting.value = 'event'
+  emptyDaysAsZero.value = false
   minValue.value = undefined
   maxValue.value = undefined
   minLabel.value = ''
@@ -51,7 +51,7 @@ async function submitSignal() {
     name: signalName.value,
     type: selectedSignalType.value,
     summary_method: selectedSummaryMethod.value,
-    average_weighting: selectedAverageWeighting.value,
+    empty_days_as_zero: emptyDaysAsZero.value,
     color: color.value,
     icon: icon.value || 'Circle',
   }
@@ -106,7 +106,7 @@ async function submitSignal() {
       v-model:unit="signalUnit"
       v-model:type="selectedSignalType"
       v-model:summary-method="selectedSummaryMethod"
-      v-model:average-weighting="selectedAverageWeighting"
+      v-model:empty-days-as-zero="emptyDaysAsZero"
       v-model:min-value="minValue"
       v-model:max-value="maxValue"
       v-model:min-label="minLabel"

@@ -2,12 +2,8 @@
 import { computed } from 'vue'
 import StatValue from '@/modules/analytics/components/StatValue.vue'
 import WidgetMeta from '@/modules/analytics/components/WidgetMeta.vue'
-import {
-  formatStatParts,
-  formatWidgetTimeframe,
-  widgetAggregationLabel,
-  type StatPart,
-} from '@/modules/analytics/format'
+import { CALCULATION_LABELS, showsEmptyDaysAsZero } from '@/modules/analytics/calculations'
+import { formatStatParts, formatWidgetTimeframe, type StatPart } from '@/modules/analytics/format'
 import type { AnalyticsWidgetOf, AnalyticsWidgetValue } from '@/modules/analytics/types'
 
 const props = defineProps<{
@@ -15,7 +11,14 @@ const props = defineProps<{
   data?: AnalyticsWidgetValue // undefined while loading
 }>()
 
-const hasNoEntries = computed(() => props.data?.count === 0)
+const hasNoEntries = computed(
+  () =>
+    props.data?.count === 0 &&
+    !(
+      showsEmptyDaysAsZero(props.widget.signal, props.widget.config.calculation) &&
+      props.data.value !== null
+    ),
+)
 
 const parts = computed<StatPart[]>(() => {
   if (!props.data) return [{ text: '…' }]
@@ -24,9 +27,7 @@ const parts = computed<StatPart[]>(() => {
 })
 
 const label = computed(() =>
-  hasNoEntries.value
-    ? 'No entries'
-    : widgetAggregationLabel(props.widget.config.aggregation, props.widget.signal),
+  hasNoEntries.value ? 'No entries' : CALCULATION_LABELS[props.widget.config.calculation],
 )
 </script>
 

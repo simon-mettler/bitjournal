@@ -2,11 +2,12 @@
 import { computed } from 'vue'
 import Chart from '@/shared/ui/components/Chart.vue'
 import { formatStatValue } from '@/modules/analytics/format'
+import { isLevel } from '@/modules/analytics/calculations'
 import { chartColors, signalColor } from '@/modules/analytics/chartColors'
 import { DAY_LABELS, tooltipStyle } from '@/modules/analytics/chartOptions'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
-import type { SignalStatsHeatmapPoint } from '@/modules/analytics/types'
+import type { SignalStatsHeatmapPoint, WidgetCalculation } from '@/modules/analytics/types'
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
 
@@ -14,6 +15,7 @@ const HOURS = Array.from({ length: 24 }, (_, h) => String(h))
 
 const props = defineProps<{
   signal: Signal
+  calculation: WidgetCalculation
   heatmap: SignalStatsHeatmapPoint[]
 }>()
 
@@ -49,10 +51,11 @@ function tooltipText(dow: number, hour: number): string {
 
   const entries = `${bin.count} ${bin.count === 1 ? 'event' : 'events'}`
   // For tallies the value is the entry count, so don't repeat it.
-  if (props.signal.type === 'tally' && props.signal.summary_method === 'total') {
+  if (props.signal.type === 'tally') {
     return `${label} - ${entries}`
   }
-  const prefix = props.signal.summary_method === 'average' ? 'avg ' : ''
+  // a daily average per hour is only shown for average signals, others show the sum
+  const prefix = isLevel(props.signal, props.calculation) ? 'avg ' : 'total '
   return `${label} - ${prefix}${formatStatValue(props.signal, bin.value)} (${entries})`
 }
 

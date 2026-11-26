@@ -2,8 +2,11 @@
 import { computed } from 'vue'
 import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import SettingField from '@/modules/analytics/components/settings/SettingField.vue'
+import CalculationSetting from '@/modules/analytics/components/settings/CalculationSetting.vue'
 import type { TimeseriesWidgetConfig, WidgetChartType } from '@/modules/analytics/types'
+import type { Signal } from '@/modules/signals/types'
 
+defineProps<{ signal?: Signal }>()
 const config = defineModel<TimeseriesWidgetConfig>({ required: true })
 
 const chartTypeOptions: { value: WidgetChartType; label: string }[] = [
@@ -22,6 +25,7 @@ const averageModel = computed({
 </script>
 
 <template>
+  <CalculationSetting v-model="config.calculation" :signal="signal" chart />
   <SettingField label="Chart type">
     <ToggleGroup v-model="config.chart_type" :options="chartTypeOptions" />
   </SettingField>

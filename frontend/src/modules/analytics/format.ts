@@ -1,12 +1,6 @@
 import type { CalendarDate } from '@internationalized/date'
 import type { Signal } from '@/modules/signals/types'
-import type {
-  AnalyticsWidget,
-  SignalStatsPeriod,
-  Timeframe,
-  WidgetAggregation,
-  WidgetTimeframe,
-} from './types'
+import type { AnalyticsWidget, SignalStatsPeriod, Timeframe, WidgetTimeframe } from './types'
 
 export interface StatPart {
   text: string
@@ -71,29 +65,6 @@ export function formatStatValue(signal: Signal, value: number): string {
   return formatStatParts(signal, value)
     .map((part) => part.text)
     .join('')
-}
-
-export function averageLabel(signal: Signal): string {
-  if (signal.summary_method === 'total') return 'Average per day'
-  return signal.average_weighting === 'day'
-    ? 'Average (days weighted equally)'
-    : 'Average per event'
-}
-
-export function aggregationOptions(
-  signal: Signal | undefined,
-): { value: WidgetAggregation; label: string }[] {
-  const total = { value: 'total' as const, label: 'Total' }
-  if (signal?.summary_method !== 'total') return [total, { value: 'average', label: 'Average' }]
-  const perDay = { value: 'average' as const, label: 'Avg per day' }
-  if (signal.type === 'tally') return [total, perDay]
-  return [total, perDay, { value: 'per_event', label: 'Avg per event' }]
-}
-
-export function widgetAggregationLabel(aggregation: WidgetAggregation, signal: Signal): string {
-  if (aggregation === 'total') return 'Total'
-  if (aggregation === 'per_event' && signal.summary_method === 'total') return 'Average per event'
-  return averageLabel(signal)
 }
 
 const SHIFT_BY_TIMEFRAME: Record<

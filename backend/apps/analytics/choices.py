@@ -8,10 +8,10 @@ class WidgetType(models.TextChoices):
     TIMESERIES = 'timeseries', 'Over time'
 
 
-class WidgetAggregation(models.TextChoices):
+class WidgetCalculation(models.TextChoices):
     TOTAL = 'total', 'Total'
-    AVERAGE = 'average', 'Average'
-    PER_EVENT = 'per_event', 'Average per event'
+    DAILY_AVERAGE = 'daily_average', 'Daily average'
+    AVERAGE = 'average', 'Average per entry'
 
 
 class WidgetTimeframe(models.TextChoices):

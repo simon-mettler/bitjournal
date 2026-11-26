@@ -3,6 +3,8 @@ import type { Signal } from '@/modules/signals/types'
 import { formatStatValue, formatDurationAxisLabel, durationAxisScale } from './format'
 import { tooltipBesidePointer } from './tooltipPosition'
 import { chartColors } from './chartColors'
+import { isLevel } from './calculations'
+import type { WidgetCalculation } from './types'
 
 export const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -45,14 +47,15 @@ export function categoryAxis(
   }
 }
 
-// Bounds of the y-axis. Sums and bars start at zero. Averages of range signals use the
-// configured scale, line charts of averaged measurements fit the data.
+// Bounds of the y-axis. Amounts and bars start at zero. Averages of range signals use the
+// configured scale, line charts of averaged values fit the data.
 export function valueAxisBounds(
   signal: Signal,
+  calculation: WidgetCalculation,
   values: (number | null)[],
   chartType: 'bar' | 'line',
 ): { min?: number; max?: number; scale?: boolean } {
-  if (signal.summary_method !== 'average') return {}
+  if (!isLevel(signal, calculation)) return {}
   if (signal.type === 'range' && signal.range_config) {
     // values logged before the range was changed can lie outside of it
     const present = values.filter((v) => v !== null)
@@ -66,6 +69,7 @@ export function valueAxisBounds(
 // Durations axis snaps to whole seconds/minutes/hours.
 export function valueYAxis(
   signal: Signal,
+  calculation: WidgetCalculation,
   values: (number | null)[],
   chartType: 'bar' | 'line' = 'bar',
 ): EChartsOption['yAxis'] {
@@ -73,7 +77,7 @@ export function valueYAxis(
     signal.type === 'duration' ? durationAxisScale(Math.max(0, ...values.map((v) => v ?? 0))) : null
   return {
     type: 'value',
-    ...valueAxisBounds(signal, values, chartType),
+    ...valueAxisBounds(signal, calculation, values, chartType),
     splitLine: { lineStyle: { color: chartColors.gridLine } },
     axisLabel: {
       color: chartColors.axisLabel,

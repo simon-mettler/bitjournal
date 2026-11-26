@@ -7,8 +7,6 @@ export interface SignalCategory {
 
 export type SignalType = 'tally' | 'range' | 'value' | 'duration'
 export type SummaryMethod = 'total' | 'average'
-// Averages are one mean over all events, or the mean of the daily means (days without events skipped)
-export type AverageWeighting = 'event' | 'day'
 
 export interface Signal {
   id: string
@@ -18,7 +16,7 @@ export interface Signal {
   icon?: string
   color?: string
   summary_method: SummaryMethod
-  average_weighting: AverageWeighting
+  empty_days_as_zero: boolean
   is_archived: boolean
   range_config?: SignalRangeConfig | null
   value_config?: SignalValueConfig | null

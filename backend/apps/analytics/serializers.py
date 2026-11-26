@@ -6,7 +6,7 @@ from rest_framework import serializers
 from apps.signals.models import Signal
 from apps.signals.serializers import SignalSerializer
 
-from .models import AnalyticsBoard, AnalyticsWidget, WidgetTimeframe, WidgetType
+from .models import AnalyticsBoard, AnalyticsWidget, WidgetCalculation, WidgetTimeframe, WidgetType
 from .services import TIMEFRAMES
 from .widget_types import WIDGET_TYPES
 
@@ -23,6 +23,7 @@ class SignalStatsQuerySerializer(serializers.Serializer):
     timeframe = serializers.ChoiceField(choices=TIMEFRAMES)
     period_start = serializers.DateField()
     tz = serializers.CharField(validators=[validate_tz_name])
+    calculation = serializers.ChoiceField(choices=WidgetCalculation.choices, required=False)
 
 
 class TimezoneQuerySerializer(serializers.Serializer):

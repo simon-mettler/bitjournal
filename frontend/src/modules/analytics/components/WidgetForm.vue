@@ -15,6 +15,7 @@ import {
   earlierQuarterOptions,
   earlierYearOptions,
 } from '@/modules/analytics/format'
+import { defaultCalculation } from '@/modules/analytics/calculations'
 import { widgetDefinition } from '@/modules/analytics/widgetRegistry'
 import { useFormValidation } from '@/shared/lib/useFormValidation'
 import { required, maxLength, when } from '@/shared/lib/validators'
@@ -61,6 +62,15 @@ const { errors, validateField, validateAll } = useFormValidation(
       when(needsDays, required('Enter a number of days')),
       when(needsDays, (v) => v >= 1 || 'At least 1 day'),
     ],
+  },
+)
+
+// Picking a signal preselects its calculation. A saved widget keeps its own.
+watch(
+  () => form.value.signalId,
+  (id) => {
+    const signal = signals.value.find((s) => s.id === id)
+    if (signal) form.value.config.calculation = defaultCalculation(signal)
   },
 )
 

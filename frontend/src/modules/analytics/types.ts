@@ -26,7 +26,6 @@ export interface SignalStatsDayOfWeekPoint {
   value: number | null
 }
 
-// value is the sum or average based on signal summary_method of the entries in the bin.
 export interface SignalStatsHeatmapPoint {
   dow: number
   hour: number
@@ -41,15 +40,17 @@ export interface SignalStats {
   }
   period: SignalStatsPeriod
   total: number
-  average: number
+  daily_average: number | null // null: nothing to average
+  average: number | null // per entry
   count: number
+  calculation: WidgetCalculation
   timeseries: SignalStatsTimeseries
   day_of_week: SignalStatsDayOfWeekPoint[]
   heatmap: SignalStatsHeatmapPoint[]
 }
 
 export type WidgetChartType = 'bar' | 'line'
-export type WidgetAggregation = 'total' | 'average' | 'per_event'
+export type WidgetCalculation = 'total' | 'daily_average' | 'average' // average: per entry
 export type WidgetTimeframe =
   | 'today'
   | 'yesterday'
@@ -64,10 +65,11 @@ export type WidgetTimeframe =
   | 'last_days'
 
 export interface ValueWidgetConfig {
-  aggregation: WidgetAggregation
+  calculation: WidgetCalculation
 }
 
 export interface TimeseriesWidgetConfig {
+  calculation: WidgetCalculation
   chart_type: WidgetChartType
   show_average: boolean
 }

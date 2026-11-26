@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Select from '@/shared/ui/components/Select.vue'
 import ColorPicker from '@/shared/ui/components/ColorPicker.vue'
 import IconPicker from '@/shared/ui/components/IconPicker.vue'
@@ -18,9 +19,9 @@ const summaryMethod = [
   { value: 'total', label: 'Total' },
   { value: 'average', label: 'Average' },
 ]
-const averageWeighting = [
-  { value: 'event', label: 'Every event' },
-  { value: 'day', label: 'Every day' },
+const emptyDayOptions = [
+  { value: 'leave_out', label: 'Leave out' },
+  { value: 'zero', label: 'Count as 0' },
 ]
 
 defineProps<{
@@ -36,14 +37,20 @@ const selectedSignalType = defineModel<CreateSignalPayload['type']>('type', { re
 const selectedSummaryMethod = defineModel<CreateSignalPayload['summary_method']>('summaryMethod', {
   required: true,
 })
-const selectedAverageWeighting = defineModel<CreateSignalPayload['average_weighting']>(
-  'averageWeighting',
-  { required: true },
-)
+const emptyDaysAsZero = defineModel<boolean>('emptyDaysAsZero', { required: true })
 const minValue = defineModel<number>('minValue')
 const maxValue = defineModel<number>('maxValue')
 const minLabel = defineModel<string>('minLabel', { required: true })
 const maxLabel = defineModel<string>('maxLabel', { required: true })
+
+const offersEmptyDaysAsZero = computed(
+  () => selectedSignalType.value !== 'tally' && selectedSummaryMethod.value === 'average',
+)
+
+const emptyDaysModel = computed({
+  get: () => (emptyDaysAsZero.value ? 'zero' : 'leave_out'),
+  set: (value: string) => (emptyDaysAsZero.value = value === 'zero'),
+})
 
 const isRange = () => selectedSignalType.value === 'range'
 const isValue = () => selectedSignalType.value === 'value'
@@ -107,20 +114,18 @@ defineExpose({ validateAll, errors: validationErrors })
       placeholder="Choose a type"
       :disabled="lockType"
     />
-    <Select
-      v-if="selectedSignalType !== 'tally'"
-      v-model="selectedSummaryMethod"
-      :options="summaryMethod"
-      label="Summary method"
-      placeholder="Summary method"
-    />
-    <Select
-      v-if="selectedSignalType !== 'tally' && selectedSummaryMethod === 'average'"
-      v-model="selectedAverageWeighting"
-      :options="averageWeighting"
-      label="Average weighting"
-      placeholder="Average weighting"
-    />
+    <div v-if="selectedSignalType !== 'tally'">
+      <Select
+        v-model="selectedSummaryMethod"
+        :options="summaryMethod"
+        label="Summary method"
+        placeholder="Summary method"
+      />
+      <p class="form-hint">How several entries on one day are combined.</p>
+    </div>
+    <div v-if="offersEmptyDaysAsZero">
+      <Select v-model="emptyDaysModel" :options="emptyDayOptions" label="Days without entries" />
+    </div>
 
     <InputText
       v-if="selectedSignalType === 'value'"
@@ -170,6 +175,14 @@ defineExpose({ validateAll, errors: validationErrors })
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.form-hint {
+  margin: 6px 0 0;
+  padding-left: 8px;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  color: var(--input-color-label);
 }
 
 .form-name {
