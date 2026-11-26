@@ -23,7 +23,9 @@ def populated(user):
     SignalRangeConfig.objects.create(signal=mood, min_value=1, max_value=5)
     weight = Signal.objects.create(user=user, name='Weight', type=SignalType.VALUE)
     SignalValueConfig.objects.create(signal=weight, unit='kg')
-    run = Signal.objects.create(user=user, name='Run', type=SignalType.DURATION)
+    run = Signal.objects.create(
+        user=user, name='Run', type=SignalType.DURATION,
+        summary_method='average', empty_days_as_zero=True)
 
     board = SignalBoard.objects.create(user=user, name='Morning', order=1)
     for order, signal in enumerate([run, mood]):
@@ -83,7 +85,7 @@ def test_invalid_import_changes_nothing(populated):
     assert SignalEntry.objects.filter(event__user=populated).count() == 2
 
 
-@pytest.mark.parametrize('version', [1, 3])
+@pytest.mark.parametrize('version', [3, 5])
 def test_rejects_other_versions(populated, version):
     exported = export_user(populated) | {'version': version}
     with pytest.raises(InvalidExport):
@@ -91,7 +93,7 @@ def test_rejects_other_versions(populated, version):
     assert populated.signals.count() == 3
 
 
-@pytest.mark.parametrize('config', [None, [], {'nope': 1}, {'aggregation': 'median'}])
+@pytest.mark.parametrize('config', [None, [], {'nope': 1}, {'calculation': 'median'}])
 def test_rejects_invalid_widget_config(populated, config):
     exported = export_user(populated)
     exported['analytics_boards'][0]['widgets'][0]['config'] = config
@@ -101,11 +103,12 @@ def test_rejects_invalid_widget_config(populated, config):
 
 
 def test_import_keeps_settings_that_no_longer_fit_the_signal(populated):
-    # a signal can be switched to "average" after a widget was saved
-    AnalyticsWidget.objects.filter(board__user=populated).update(config={'aggregation': 'per_event'})
-    Signal.objects.filter(user=populated, name='Mood').update(summary_method='average')
+    # the import checks a config's shape only: a tally offers no average per entry
+    AnalyticsWidget.objects.filter(board__user=populated).update(config={'calculation': 'average'})
+    Signal.objects.filter(user=populated, name='Mood').update(type='tally')
+    Signal.objects.get(user=populated, name='Mood').range_config.delete()
     import_user(populated, export_user(populated))
-    assert AnalyticsWidget.objects.get(board__user=populated).config == {'aggregation': 'per_event'}
+    assert AnalyticsWidget.objects.get(board__user=populated).config == {'calculation': 'average'}
 
 
 def upload(data, password='x'):
