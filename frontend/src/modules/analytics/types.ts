@@ -26,7 +26,6 @@ export interface SignalStatsDayOfWeekPoint {
   value: number | null
 }
 
-// value is the sum or average based on signal summary_method of the entries in the bin.
 export interface SignalStatsHeatmapPoint {
   dow: number
   hour: number
@@ -41,16 +40,17 @@ export interface SignalStats {
   }
   period: SignalStatsPeriod
   total: number
-  average: number
+  daily_average: number | null // null: nothing to average
+  average: number | null // per entry
   count: number
+  calculation: WidgetCalculation
   timeseries: SignalStatsTimeseries
   day_of_week: SignalStatsDayOfWeekPoint[]
   heatmap: SignalStatsHeatmapPoint[]
 }
 
-export type WidgetType = 'value' | 'timeseries'
 export type WidgetChartType = 'bar' | 'line'
-export type WidgetAggregation = 'total' | 'average' | 'per_event'
+export type WidgetCalculation = 'total' | 'daily_average' | 'average' // average: per entry
 export type WidgetTimeframe =
   | 'today'
   | 'yesterday'
@@ -64,19 +64,41 @@ export type WidgetTimeframe =
   | 'year'
   | 'last_days'
 
-export interface AnalyticsWidget {
-  id: string
-  order: number
-  type: WidgetType
-  title: string
-  signal: Signal
-  aggregation: WidgetAggregation
+export interface ValueWidgetConfig {
+  calculation: WidgetCalculation
+}
+
+export interface TimeseriesWidgetConfig {
+  calculation: WidgetCalculation
   chart_type: WidgetChartType
   show_average: boolean
+}
+
+// The settings of each widget type. A new type starts here.
+export interface WidgetConfigByType {
+  value: ValueWidgetConfig
+  timeseries: TimeseriesWidgetConfig
+}
+
+export type WidgetType = keyof WidgetConfigByType
+export type WidgetConfig = WidgetConfigByType[WidgetType]
+
+interface AnalyticsWidgetBase {
+  id: string
+  order: number
+  title: string
+  signal: Signal
   timeframe: WidgetTimeframe
   period_start: string | null
   days: number | null
 }
+
+export type AnalyticsWidgetOf<T extends WidgetType> = AnalyticsWidgetBase & {
+  type: T
+  config: WidgetConfigByType[T]
+}
+
+export type AnalyticsWidget = { [T in WidgetType]: AnalyticsWidgetOf<T> }[WidgetType]
 
 export interface AnalyticsBoard {
   id: string

@@ -16,13 +16,12 @@ from apps.events.models import Event, SignalEntry
 from apps.signals.models import Signal, SignalCategory, SignalRangeConfig, SignalValueConfig
 
 FORMAT = 'bitjournal-export'
-VERSION = 1
+VERSION = 4
 
-SIGNAL_FIELDS = ('name', 'type', 'icon', 'color', 'summary_method', 'average_weighting', 'is_archived')
+SIGNAL_FIELDS = ('name', 'type', 'icon', 'color', 'summary_method', 'empty_days_as_zero', 'is_archived')
 RANGE_FIELDS = ('min_value', 'max_value', 'min_label', 'max_label')
 WIDGET_FIELDS = (
-    'order', 'type', 'title', 'aggregation', 'chart_type', 'show_average',
-    'timeframe', 'period_start', 'days',
+    'order', 'type', 'title', 'config', 'timeframe', 'period_start', 'days',
 )
 BATCH_SIZE = 1000
 
@@ -71,6 +70,7 @@ def export_user(user) -> dict:
     def export_widget(widget):
         return {
             **_fields(widget, WIDGET_FIELDS),
+            'config': widget.settings,
             'signal': str(widget.signal_id),
             'period_start': widget.period_start and widget.period_start.isoformat(),
         }

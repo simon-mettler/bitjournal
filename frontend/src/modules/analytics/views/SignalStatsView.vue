@@ -16,11 +16,13 @@ import HeatmapChart from '@/modules/analytics/components/HeatmapChart.vue'
 import { getSignal } from '@/modules/signals/api'
 import { getSignalStats } from '@/modules/analytics/api'
 import {
-  averageLabel,
-  formatStatParts,
-  formatPeriodRange,
-  shiftPeriod,
-} from '@/modules/analytics/format'
+  CALCULATION_LABELS,
+  availableCalculations,
+  calculationHint,
+  calculationOptions,
+  countsEmptyDaysAsZero,
+} from '@/modules/analytics/calculations'
+import { formatStatParts, formatPeriodRange, shiftPeriod } from '@/modules/analytics/format'
 import { useToast } from '@/shared/lib/useToast'
 import { useSignalStatsUiStore } from '@/modules/analytics/store/signalStatsUiStore'
 import type { Signal } from '@/modules/signals/types'
@@ -43,12 +45,19 @@ const timeframeOptions = [
 ]
 
 const signalStatsUiStore = useSignalStatsUiStore()
-const { timeframe, chartType } = storeToRefs(signalStatsUiStore)
+const { timeframe, chartType, calculations } = storeToRefs(signalStatsUiStore)
 const anchorDate = ref<CalendarDate>(today(getLocalTimeZone())) as Ref<CalendarDate>
 
 const signalId = route.params.id as string
 const signal = ref<Signal | null>(null)
 const stats = ref<SignalStats | null>(null)
+
+const chosenCalculation = computed(() => calculations.value[signalId])
+
+const calculationModel = computed({
+  get: () => chosenCalculation.value ?? stats.value?.calculation ?? 'total',
+  set: (value) => (calculations.value[signalId] = value),
+})
 
 const isNextDisabled = computed(() => {
   if (!stats.value) return true
@@ -73,6 +82,7 @@ async function loadStats() {
     const { data } = await getSignalStats(signalId, {
       timeframe: timeframe.value,
       periodStart: anchorDate.value.toString(),
+      calculation: chosenCalculation.value,
     })
     if (request === statsRequest) stats.value = data
   } catch (err) {
@@ -80,6 +90,16 @@ async function loadStats() {
     console.error(err)
     toaster.toast({ description: 'Failed to load signal stats', variant: 'danger' })
   }
+}
+
+const heatmapTitleNote = computed(() => {
+  if (stats.value?.calculation !== 'daily_average' || !signal.value) return ''
+  if (signal.value.summary_method === 'total') return ' (total)'
+  return countsEmptyDaysAsZero(signal.value) ? ' (logged entries only)' : ''
+})
+
+function tileParts(signal: Signal, value: number | null) {
+  return value === null ? [{ text: '–' }] : formatStatParts(signal, value)
 }
 
 function goToPreviousPeriod() {
@@ -91,7 +111,7 @@ function goToNextPeriod() {
   anchorDate.value = shiftPeriod(anchorDate.value, timeframe.value, 1)
 }
 
-watch([timeframe, anchorDate], loadStats)
+watch([timeframe, anchorDate, chosenCalculation], loadStats)
 
 onMounted(() => {
   void loadSignal()
@@ -147,14 +167,22 @@ onMounted(() => {
 
     <p v-if="!signal || !stats">Loading...</p>
     <div v-else class="stat-tiles">
-      <div class="stats-card stat-tile">
-        <span class="stats-card-title">Total</span>
-        <StatValue class="stat-tile-value" :parts="formatStatParts(signal, stats.total)" />
+      <div
+        v-for="calculation in availableCalculations(signal)"
+        :key="calculation"
+        class="stats-card stat-tile"
+      >
+        <span class="stats-card-title">{{ CALCULATION_LABELS[calculation] }}</span>
+        <StatValue class="stat-tile-value" :parts="tileParts(signal, stats[calculation])" />
       </div>
-      <div class="stats-card stat-tile">
-        <span class="stats-card-title">{{ averageLabel(signal) }}</span>
-        <StatValue class="stat-tile-value" :parts="formatStatParts(signal, stats.average)" />
-      </div>
+    </div>
+
+    <div v-if="signal && stats" class="calculation-switch">
+      <span class="stats-card-title">Charts show</span>
+      <ToggleGroup v-model="calculationModel" :options="calculationOptions(signal)" />
+      <p class="calculation-hint">
+        {{ calculationHint(stats.calculation, signal) }}
+      </p>
     </div>
 
     <div v-if="signal && stats" class="stats-card chart-section">
@@ -162,21 +190,30 @@ onMounted(() => {
         <span class="stats-card-title">Over time</span>
         <ToggleGroup v-model="chartType" :options="chartTypeOptions" />
       </div>
-      <TimeseriesChart :signal="signal" :timeseries="stats.timeseries" :chart-type="chartType" />
+      <TimeseriesChart
+        :signal="signal"
+        :timeseries="stats.timeseries"
+        :calculation="stats.calculation"
+        :chart-type="chartType"
+      />
     </div>
 
     <div v-if="signal && stats" class="stats-card chart-section">
       <div class="chart-section-header">
         <span class="stats-card-title">By day of week</span>
       </div>
-      <DayOfWeekChart :signal="signal" :day-of-week="stats.day_of_week" />
+      <DayOfWeekChart
+        :signal="signal"
+        :calculation="stats.calculation"
+        :day-of-week="stats.day_of_week"
+      />
     </div>
 
     <div v-if="signal && stats" class="stats-card chart-section">
       <div class="chart-section-header">
-        <span class="stats-card-title">By day &amp; hour</span>
+        <span class="stats-card-title">By day &amp; hour{{ heatmapTitleNote }}</span>
       </div>
-      <HeatmapChart :signal="signal" :heatmap="stats.heatmap" />
+      <HeatmapChart :signal="signal" :calculation="stats.calculation" :heatmap="stats.heatmap" />
     </div>
   </div>
 </template>
@@ -223,9 +260,24 @@ onMounted(() => {
 
 .stat-tiles {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   margin-top: 16px;
+}
+
+.calculation-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 24px;
+}
+
+.calculation-hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  color: var(--input-color-label);
 }
 
 .stats-card {

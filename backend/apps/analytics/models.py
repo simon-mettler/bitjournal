@@ -8,37 +8,14 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from uuid import uuid7
 
+from .choices import (
+    WidgetCalculation,
+    WidgetChartType,
+    WidgetTimeframe,
+    WidgetType,
+)
+from .widget_types import WIDGET_TYPES
 
-class WidgetType(models.TextChoices):
-    VALUE = 'value', 'Display value'
-    TIMESERIES = 'timeseries', 'Over time'
-
-
-class WidgetAggregation(models.TextChoices):
-    TOTAL = 'total', 'Total'
-    AVERAGE = 'average', 'Average'
-    PER_EVENT = 'per_event', 'Average per event'
-
-
-class WidgetTimeframe(models.TextChoices):
-    TODAY = 'today', 'Today'
-    YESTERDAY = 'yesterday', 'Yesterday'
-    THIS_WEEK = 'this_week', 'This week'
-    LAST_WEEK = 'last_week', 'Last week'
-    THIS_MONTH = 'this_month', 'This month'
-    LAST_MONTH = 'last_month', 'Last month'
-    THIS_QUARTER = 'this_quarter', 'This quarter'
-    QUARTER = 'quarter', 'Quarter'
-    THIS_YEAR = 'this_year', 'This year'
-    YEAR = 'year', 'Year'
-    LAST_DAYS = 'last_days', 'Last X days'
-
-
-class WidgetChartType(models.TextChoices):
-    BAR = 'bar', 'Bar'
-    LINE = 'line', 'Line'
-
-TIMESERIES_EXCLUDED_TIMEFRAMES = (WidgetTimeframe.TODAY, WidgetTimeframe.YESTERDAY)
 
 class AnalyticsBoard(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
@@ -70,13 +47,8 @@ class AnalyticsWidget(models.Model):
     title = models.CharField(max_length=100)
 
     signal = models.ForeignKey('signals.Signal', on_delete=models.CASCADE, related_name='analytics_widgets')
-    aggregation = models.CharField(
-        max_length=10,
-        choices=WidgetAggregation.choices,
-        default=WidgetAggregation.TOTAL,
-    )
-    chart_type = models.CharField(max_length=10, choices=WidgetChartType.choices, default=WidgetChartType.BAR)
-    show_average = models.BooleanField(default=True)
+    # Settings of the widget type, see widget_types.py.
+    config = models.JSONField(default=dict, blank=True)
     timeframe = models.CharField(max_length=20, choices=WidgetTimeframe.choices)
     period_start = models.DateField(null=True, blank=True)
     days = models.PositiveIntegerField(null=True, blank=True)
@@ -87,10 +59,21 @@ class AnalyticsWidget(models.Model):
     def __str__(self):
         return f"{self.title} in {self.board.name}"
 
+    @property
+    def definition(self):
+        return WIDGET_TYPES[self.type]
+
+    @property
+    def settings(self) -> dict:
+        return self.definition.with_defaults(self.config)
+
     def clean(self):
         if self.timeframe in (WidgetTimeframe.QUARTER, WidgetTimeframe.YEAR) and self.period_start is None:
             raise ValidationError('Quarter and year timeframes require period_start.')
         if self.timeframe == WidgetTimeframe.LAST_DAYS and not self.days:
             raise ValidationError('Last X days timeframe requires days to be at least 1.')
-        if self.type == WidgetType.TIMESERIES and self.timeframe in TIMESERIES_EXCLUDED_TIMEFRAMES:
-            raise ValidationError('Over time widgets need a timeframe of more than one day.')
+        if self.type not in WIDGET_TYPES:
+            return  # reported by the choices validation of the field
+        if self.timeframe in self.definition.excluded_timeframes:
+            raise ValidationError(self.definition.excluded_timeframe_message)
+        self.config = self.definition.clean_config(self.config)

@@ -10,14 +10,16 @@ import {
 } from '@/modules/analytics/chartOptions'
 import { lineData, lineSymbolOptions } from '@/modules/analytics/lineSymbols'
 import { parseIsoDate } from '@/modules/analytics/format'
+import { isLevel, showsEmptyDaysAsZero } from '@/modules/analytics/calculations'
 import type { EChartsOption } from 'echarts'
 import type { Signal } from '@/modules/signals/types'
-import type { SignalStatsTimeseries } from '@/modules/analytics/types'
+import type { SignalStatsTimeseries, WidgetCalculation } from '@/modules/analytics/types'
 
 const props = withDefaults(
   defineProps<{
     signal: Signal
     timeseries: SignalStatsTimeseries
+    calculation: WidgetCalculation
     chartType: 'bar' | 'line'
     showAverage?: boolean
     height?: number
@@ -55,11 +57,16 @@ const axisValues = computed(() =>
   props.showAverage ? [...values.value, ...trendValues.value] : values.value,
 )
 const hasZeroBaseline = computed(() => {
-  const bounds = valueAxisBounds(props.signal, axisValues.value, props.chartType)
+  const bounds = valueAxisBounds(props.signal, props.calculation, axisValues.value, props.chartType)
   return !bounds.scale && (bounds.min ?? 0) === 0
 })
 
-const connectsGaps = computed(() => props.signal.summary_method === 'average')
+// days counting as 0 are no gaps to connect across
+const connectsGaps = computed(
+  () =>
+    isLevel(props.signal, props.calculation) &&
+    !showsEmptyDaysAsZero(props.signal, props.calculation),
+)
 
 const mainSeries = computed(() => {
   const color = signalColor(props.signal)
@@ -115,7 +122,7 @@ const option = computed<EChartsOption>(() => ({
     points.value.map((p) => p.label),
     (index) => points.value[index].axisLabel,
   ),
-  yAxis: valueYAxis(props.signal, axisValues.value, props.chartType),
+  yAxis: valueYAxis(props.signal, props.calculation, axisValues.value, props.chartType),
   series: [
     mainSeries.value,
     ...(props.showAverage

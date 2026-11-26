@@ -5,7 +5,6 @@ import { storeToRefs } from 'pinia'
 import { Check, GripVertical, MoreVertical, Pencil, X } from '@lucide/vue'
 import AppShellHeader from '@/shared/ui/layout/AppShellHeader.vue'
 import Header from '@/shared/ui/components/Header.vue'
-import StatValue from '@/modules/analytics/components/StatValue.vue'
 import Button from '@/shared/ui/components/Button.vue'
 import IconButton from '@/shared/ui/components/IconButton.vue'
 import AddTile from '@/shared/ui/components/AddTile.vue'
@@ -22,13 +21,7 @@ import {
   reorderAnalyticsBoards,
   updateAnalyticsBoard,
 } from '@/modules/analytics/api'
-import TimeseriesChart from '@/modules/analytics/components/TimeseriesChart.vue'
-import {
-  formatStatParts,
-  formatWidgetTimeframe,
-  widgetAggregationLabel,
-  type StatPart,
-} from '@/modules/analytics/format'
+import { widgetDefinition } from '@/modules/analytics/widgetRegistry'
 import { useDashboardUiStore } from '@/modules/analytics/store/dashboardUiStore'
 import type {
   AnalyticsBoard,
@@ -85,15 +78,6 @@ watch(activeBoardId, (id) => {
   values.value = {}
   if (id) void loadValues(id)
 })
-
-const hasNoEntries = (widget: AnalyticsWidget) => values.value[widget.id]?.count === 0
-
-function displayValue(widget: AnalyticsWidget): StatPart[] {
-  const value = values.value[widget.id]
-  if (!value) return [{ text: '…' }]
-  if (value.count === 0 || value.value === null) return [{ text: '–' }]
-  return formatStatParts(widget.signal, value.value)
-}
 
 // TABS (BOARDS)
 
@@ -167,7 +151,7 @@ function openWidget(widget: AnalyticsWidget) {
 
 function openAddWidget() {
   if (!activeBoard.value) return
-  void router.push({ name: 'analytics-widget-add', params: { boardId: activeBoard.value.id } })
+  void router.push({ name: 'analytics-widget-gallery', params: { boardId: activeBoard.value.id } })
 }
 
 function widgetOptions(widget: AnalyticsWidget): DropdownMenuOption[] {
@@ -241,7 +225,7 @@ onMounted(async () => {
         v-for="widget in widgets"
         :key="widget.id"
         class="widget-card"
-        :class="{ editing, wide: widget.type === 'timeseries' }"
+        :class="{ editing, wide: widgetDefinition(widget.type).wide }"
         @click="editing && openWidget(widget)"
       >
         <div class="widget-top">
@@ -272,32 +256,11 @@ onMounted(async () => {
             </template>
           </DropdownMenu>
         </div>
-        <template v-if="widget.type === 'timeseries'">
-          <p v-if="hasNoEntries(widget)" class="widget-chart-placeholder">
-            No entries in this period
-          </p>
-          <p v-else-if="!values[widget.id]?.timeseries" class="widget-chart-placeholder">…</p>
-          <TimeseriesChart
-            v-else
-            :signal="widget.signal"
-            :timeseries="values[widget.id].timeseries!"
-            :chart-type="widget.chart_type"
-            :show-average="widget.show_average"
-            :height="220"
-          />
-          <span class="widget-meta">{{ formatWidgetTimeframe(widget) }}</span>
-        </template>
-        <template v-else>
-          <StatValue
-            class="widget-value"
-            :style="{ color: widget.signal.color }"
-            :parts="displayValue(widget)"
-          />
-          <span class="widget-meta">
-            {{ hasNoEntries(widget) ? 'No entries' : widgetAggregationLabel(widget) }}
-            · {{ formatWidgetTimeframe(widget) }}
-          </span>
-        </template>
+        <component
+          :is="widgetDefinition(widget.type).display"
+          :widget="widget"
+          :data="values[widget.id]"
+        />
       </div>
 
       <AddTile v-if="editing && activeBoard" class="add-widget-tile" @click="openAddWidget"
@@ -367,15 +330,6 @@ onMounted(async () => {
   padding-right: 14px;
 }
 
-.widget-chart-placeholder {
-  height: 220px;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--input-color-label);
-}
-
 .widget-card.editing {
   cursor: pointer;
 }
@@ -416,16 +370,6 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.widget-value {
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-bold);
-}
-
-.widget-meta {
-  font-size: var(--font-size-sm);
-  color: var(--input-color-label);
 }
 
 .add-widget-tile {

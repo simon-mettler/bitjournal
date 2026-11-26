@@ -28,11 +28,6 @@ class SummaryMethod(models.TextChoices):
     SUM = 'total', 'Total'
 
 
-class AverageWeighting(models.TextChoices):
-    EVENT = 'event', 'Every event'
-    DAY = 'day', 'Every day'
-
-
 class SignalCategory(models.Model):
     """ User defined grouping for signals."""
 
@@ -81,13 +76,7 @@ class Signal(models.Model):
         default=SummaryMethod.SUM
     )
 
-    # How averages are weighted: one mean over all events, or the mean of the daily means
-    # (days without events are skipped).
-    average_weighting = models.CharField(
-        max_length=10,
-        choices=AverageWeighting.choices,
-        default=AverageWeighting.EVENT,
-    )
+    empty_days_as_zero = models.BooleanField(default=False)
 
     is_archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -99,9 +88,15 @@ class Signal(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_type_display()})"
 
+    @property
+    def counts_empty_days_as_zero(self) -> bool:
+        return self.summary_method == SummaryMethod.SUM or self.empty_days_as_zero
+
     def save(self, *args, **kwargs):
         if self.type == SignalType.TALLY:
             self.summary_method = SummaryMethod.SUM
+        if self.summary_method == SummaryMethod.SUM:
+            self.empty_days_as_zero = False
         super().save(*args, **kwargs)
 
     def clean(self):

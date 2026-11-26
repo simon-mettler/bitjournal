@@ -40,7 +40,7 @@ class SignalSerializer(serializers.ModelSerializer):
             'icon',
             'color',
             'summary_method',
-            'average_weighting',
+            'empty_days_as_zero',
             'is_archived',
             'range_config',
             'value_config',

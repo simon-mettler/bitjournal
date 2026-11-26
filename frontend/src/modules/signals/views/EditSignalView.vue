@@ -33,7 +33,7 @@ const color = ref('')
 const icon = ref('')
 const signalUnit = ref('')
 const selectedSummaryMethod = ref<Signal['summary_method']>('total')
-const selectedAverageWeighting = ref<Signal['average_weighting']>('event')
+const emptyDaysAsZero = ref(false)
 const minValue = ref<number>()
 const maxValue = ref<number>()
 const minLabel = ref('')
@@ -49,7 +49,7 @@ async function load() {
     color.value = data.color ?? ''
     icon.value = data.icon ?? ''
     selectedSummaryMethod.value = data.summary_method
-    selectedAverageWeighting.value = data.average_weighting
+    emptyDaysAsZero.value = data.empty_days_as_zero
     if (data.value_config) {
       signalUnit.value = data.value_config.unit ?? ''
     }
@@ -72,7 +72,7 @@ async function save() {
     name: signalName.value,
     type: signal.value.type,
     summary_method: selectedSummaryMethod.value,
-    average_weighting: selectedAverageWeighting.value,
+    empty_days_as_zero: emptyDaysAsZero.value,
     color: color.value,
     icon: icon.value,
   }
@@ -152,7 +152,7 @@ onMounted(load)
       v-model:icon="icon"
       v-model:unit="signalUnit"
       v-model:summary-method="selectedSummaryMethod"
-      v-model:average-weighting="selectedAverageWeighting"
+      v-model:empty-days-as-zero="emptyDaysAsZero"
       v-model:min-value="minValue"
       v-model:max-value="maxValue"
       v-model:min-label="minLabel"

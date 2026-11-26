@@ -1,20 +1,14 @@
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
-from apps.signals.models import Signal, SignalType, SummaryMethod
+from apps.signals.models import Signal
 from apps.signals.serializers import SignalSerializer
 
-from .models import (
-    TIMESERIES_EXCLUDED_TIMEFRAMES,
-    AnalyticsBoard,
-    AnalyticsWidget,
-    WidgetAggregation,
-    WidgetChartType,
-    WidgetTimeframe,
-    WidgetType,
-)
+from .models import AnalyticsBoard, AnalyticsWidget, WidgetCalculation, WidgetTimeframe, WidgetType
 from .services import TIMEFRAMES
+from .widget_types import WIDGET_TYPES
 
 
 def validate_tz_name(value):
@@ -29,6 +23,7 @@ class SignalStatsQuerySerializer(serializers.Serializer):
     timeframe = serializers.ChoiceField(choices=TIMEFRAMES)
     period_start = serializers.DateField()
     tz = serializers.CharField(validators=[validate_tz_name])
+    calculation = serializers.ChoiceField(choices=WidgetCalculation.choices, required=False)
 
 
 class TimezoneQuerySerializer(serializers.Serializer):
@@ -37,12 +32,12 @@ class TimezoneQuerySerializer(serializers.Serializer):
 
 class AnalyticsWidgetSerializer(serializers.ModelSerializer):
     signal = SignalSerializer(read_only=True)
+    config = serializers.JSONField(source='settings', read_only=True)
 
     class Meta:
         model = AnalyticsWidget
         fields = [
-            'id', 'order', 'type', 'title', 'signal', 'aggregation', 'chart_type', 'show_average',
-            'timeframe', 'period_start', 'days',
+            'id', 'order', 'type', 'title', 'signal', 'config', 'timeframe', 'period_start', 'days',
         ]
 
 
@@ -62,13 +57,11 @@ class AnalyticsBoardCreateSerializer(serializers.ModelSerializer):
 
 class AnalyticsWidgetWriteSerializer(serializers.ModelSerializer):
     signal_id = serializers.PrimaryKeyRelatedField(source='signal', queryset=Signal.objects.none())
+    config = serializers.JSONField()
 
     class Meta:
         model = AnalyticsWidget
-        fields = [
-            'type', 'title', 'aggregation', 'chart_type', 'show_average', 'timeframe',
-            'period_start', 'days', 'signal_id',
-        ]
+        fields = ['type', 'title', 'config', 'timeframe', 'period_start', 'days', 'signal_id']
         extra_kwargs = {'days': {'min_value': 1, 'max_value': 1095}}
 
     def get_fields(self):
@@ -81,11 +74,10 @@ class AnalyticsWidgetWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         timeframe = attrs['timeframe']
-        is_timeseries = attrs.get('type', getattr(self.instance, 'type', None)) == WidgetType.TIMESERIES
-        if is_timeseries and timeframe in TIMESERIES_EXCLUDED_TIMEFRAMES:
-            raise serializers.ValidationError(
-                {'timeframe': 'Over time widgets need a timeframe of more than one day.'}
-            )
+        widget_type = attrs.get('type', getattr(self.instance, 'type', WidgetType.VALUE))
+        definition = WIDGET_TYPES[widget_type]
+        if timeframe in definition.excluded_timeframes:
+            raise serializers.ValidationError({'timeframe': definition.excluded_timeframe_message})
         if timeframe in (WidgetTimeframe.QUARTER, WidgetTimeframe.YEAR):
             if attrs.get('period_start') is None:
                 raise serializers.ValidationError({'period_start': 'Required for this timeframe.'})
@@ -96,20 +88,11 @@ class AnalyticsWidgetWriteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'days': 'Required for this timeframe.'})
         else:
             attrs['days'] = None
-        if attrs.get('aggregation') == WidgetAggregation.PER_EVENT and not is_timeseries:
-            signal = attrs['signal']
-            if signal.type == SignalType.TALLY:
-                raise serializers.ValidationError(
-                    {'aggregation': 'Every tally event counts as 1, so there is no average per event.'}
-                )
-            # the average of an average signal already follows its own weighting
-            if signal.summary_method == SummaryMethod.AVERAGE:
-                attrs['aggregation'] = WidgetAggregation.AVERAGE
-        if is_timeseries:
-            attrs['aggregation'] = WidgetAggregation.TOTAL
-        else:
-            attrs['chart_type'] = WidgetChartType.BAR
-            attrs['show_average'] = True
+        try:
+            config = definition.clean_config(attrs['config'])
+            attrs['config'] = definition.config_for_signal(config, attrs['signal'])
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({'config': e.messages})
         return attrs
 
 

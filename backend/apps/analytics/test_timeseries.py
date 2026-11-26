@@ -5,9 +5,9 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from apps.events.models import Event, SignalEntry
-from apps.signals.models import AverageWeighting, Signal, SignalType, SummaryMethod
+from apps.signals.models import Signal, SignalType, SummaryMethod
 
-from .models import AnalyticsBoard, AnalyticsWidget, WidgetAggregation, WidgetTimeframe
+from .models import AnalyticsBoard, AnalyticsWidget, WidgetTimeframe
 from .serializers import AnalyticsWidgetCreateSerializer
 from .services import get_signal_stats, get_widget_values, resolve_period
 
@@ -41,8 +41,9 @@ def average(user):
     return make_signal(user, SummaryMethod.AVERAGE)
 
 
-def stats(signal, user, timeframe='week', start=TODAY, today=TODAY):
-    return get_signal_stats(signal, user, resolve_period(timeframe, start, TZ), today)
+def stats(signal, user, timeframe='week', start=TODAY, today=TODAY, calculation=None):
+    return get_signal_stats(
+        signal, user, resolve_period(timeframe, start, TZ), today, calculation)
 
 
 def column(result, key):
@@ -70,7 +71,8 @@ def test_signal_without_entries_has_no_values(user, total):
     result = stats(total, user)
     assert column(result, 'value') == [None] * 7
     assert column(result, 'trend') == [None] * 7
-    assert result['average'] == 0
+    assert result['total'] == 0
+    assert result['daily_average'] is None and result['average'] is None
 
 
 def test_only_today_is_partial_in_daily_steps(user, total):
@@ -106,16 +108,16 @@ def test_trend_of_average_signal_has_no_minimum(user, average):
     assert column(result, 'trend') == [None, 2, 2, 3, 3, 4, 4]
 
 
-@pytest.mark.parametrize('weighting, expected', [
-    (AverageWeighting.EVENT, 2.2), (AverageWeighting.DAY, 3.0),
+@pytest.mark.parametrize('calculation, expected', [
+    ('average', 2.2), ('daily_average', 3.0),
 ])
-def test_trend_of_average_signal_follows_the_weighting(user, weighting, expected):
-    signal = make_signal(user, SummaryMethod.AVERAGE, average_weighting=weighting)
+def test_trend_of_both_averages(user, calculation, expected):
+    signal = make_signal(user, SummaryMethod.AVERAGE)
     log(user, signal, nov(2), 5)
     for hour in (8, 9, 10):
         log(user, signal, nov(3), 1, hour)
     log(user, signal, nov(4), 3)
-    result = stats(signal, user, start=nov(2), today=nov(30))
+    result = stats(signal, user, start=nov(2), today=nov(30), calculation=calculation)
     assert column(result, 'trend')[2] == pytest.approx(expected)
 
 
@@ -124,18 +126,18 @@ def test_average_of_total_signal_is_per_completed_day(user, total):
     log(user, total, nov(9), 6)
     log(user, total, nov(11), 100)  # today, unfinished
     result = stats(total, user)
-    assert result['average'] == 3  # (6 + 0) / Monday and Tuesday
+    assert result['daily_average'] == 3  # (6 + 0) / Monday and Tuesday
     assert result['total'] == 106
 
 
 def test_average_of_total_signal_starts_at_the_first_entry(user, total):
     log(user, total, nov(10), 6)
-    assert stats(total, user)['average'] == 6
+    assert stats(total, user)['daily_average'] == 6
 
 
 def test_average_of_total_signal_with_only_today(user, total):
     log(user, total, TODAY, 5)
-    assert stats(total, user)['average'] == 5
+    assert stats(total, user)['daily_average'] == 5
 
 
 def test_year_uses_weekly_steps_clipped_to_the_period(user, total):
@@ -180,10 +182,10 @@ def test_tally_is_always_summed(user):
     assert signal.summary_method == SummaryMethod.SUM
 
 
-@pytest.mark.parametrize('aggregation, expected', [
-    (WidgetAggregation.TOTAL, 9), (WidgetAggregation.AVERAGE, 4.5), (WidgetAggregation.PER_EVENT, 3),
+@pytest.mark.parametrize('calculation, expected', [
+    ('total', 9), ('daily_average', 4.5), ('average', 3),
 ])
-def test_widget_value_of_total_signal(user, total, aggregation, expected):
+def test_widget_value_of_total_signal(user, total, calculation, expected):
     today = datetime.now(TZ).date()
     yesterday = today - timedelta(days=1)
     log(user, total, today - timedelta(days=2), 2)
@@ -191,29 +193,7 @@ def test_widget_value_of_total_signal(user, total, aggregation, expected):
     log(user, total, yesterday, 4)
     board = AnalyticsBoard.objects.create(user=user, name='B')
     widget = AnalyticsWidget.objects.create(
-        board=board, signal=total, aggregation=aggregation,
+        board=board, signal=total, config={'calculation': calculation},
         timeframe=WidgetTimeframe.LAST_DAYS, days=3,
     )
     assert get_widget_values(widget, user, TZ)['value'] == pytest.approx(expected)
-
-
-@pytest.mark.parametrize('signal_type, summary_method, expected', [
-    (SignalType.VALUE, SummaryMethod.SUM, WidgetAggregation.PER_EVENT),
-    (SignalType.VALUE, SummaryMethod.AVERAGE, WidgetAggregation.AVERAGE),
-    (SignalType.TALLY, SummaryMethod.SUM, None),  # rejected
-])
-def test_per_event_is_only_kept_for_total_signals_with_values(
-    user, rf, signal_type, summary_method, expected,
-):
-    signal = Signal.objects.create(
-        user=user, name='S', type=signal_type, summary_method=summary_method)
-    board = AnalyticsBoard.objects.create(user=user, name='B')
-    request = rf.post('/')
-    request.user = user
-    serializer = AnalyticsWidgetCreateSerializer(context={'request': request}, data={
-        'board_id': board.id, 'signal_id': signal.id, 'type': 'value', 'title': 'W',
-        'aggregation': 'per_event', 'timeframe': 'this_week',
-    })
-    assert serializer.is_valid() == (expected is not None)
-    if expected is not None:
-        assert serializer.validated_data['aggregation'] == expected

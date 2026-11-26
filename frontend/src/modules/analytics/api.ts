@@ -5,11 +5,13 @@ import type {
   AnalyticsWidgetValue,
   SignalStats,
   Timeframe,
+  WidgetCalculation,
 } from './types'
 
 export interface GetSignalStatsParams {
   timeframe: Timeframe
   periodStart: string // YYYY-MM-DD, local calendar date
+  calculation?: WidgetCalculation // default: preselected by the signal's summary method
 }
 
 export function getSignalStats(signalId: string, params: GetSignalStatsParams) {
@@ -17,6 +19,7 @@ export function getSignalStats(signalId: string, params: GetSignalStatsParams) {
     params: {
       timeframe: params.timeframe,
       period_start: params.periodStart,
+      calculation: params.calculation,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
   })
@@ -24,7 +27,10 @@ export function getSignalStats(signalId: string, params: GetSignalStatsParams) {
 
 export type CreateAnalyticsBoardPayload = Pick<AnalyticsBoard, 'name'>
 
-export type AnalyticsWidgetPayload = Omit<AnalyticsWidget, 'id' | 'order' | 'signal'> & {
+// distributes over the widget types, so type and config stay paired
+type WidgetInput<W> = W extends AnalyticsWidget ? Omit<W, 'id' | 'order' | 'signal'> : never
+
+export type AnalyticsWidgetPayload = WidgetInput<AnalyticsWidget> & {
   signal_id: string
 }
 

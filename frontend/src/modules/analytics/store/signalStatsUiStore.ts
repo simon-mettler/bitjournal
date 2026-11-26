@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-import type { Timeframe } from '../types'
+import type { Timeframe, WidgetCalculation } from '../types'
 
 const STORAGE_KEY = 'bitjournal:signal-stats-ui'
 
 interface PersistedState {
   timeframe: Timeframe
   chartType: 'bar' | 'line'
+  calculations: Record<string, WidgetCalculation> // chosen per signal id
 }
 
 function readPersisted(): Partial<PersistedState> {
@@ -23,14 +24,24 @@ export const useSignalStatsUiStore = defineStore('signal-stats-ui', () => {
   const timeframe = ref<Timeframe>(persisted.timeframe ?? 'week')
   const chartType = ref<'bar' | 'line'>(persisted.chartType ?? 'bar')
 
-  watch([timeframe, chartType], ([newTimeframe, newChartType]) => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ timeframe: newTimeframe, chartType: newChartType }),
-      )
-    } catch {}
-  })
+  const calculations = ref<Record<string, WidgetCalculation>>(persisted.calculations ?? {})
 
-  return { timeframe, chartType }
+  watch(
+    [timeframe, chartType, calculations],
+    () => {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            timeframe: timeframe.value,
+            chartType: chartType.value,
+            calculations: calculations.value,
+          }),
+        )
+      } catch {}
+    },
+    { deep: true },
+  )
+
+  return { timeframe, chartType, calculations }
 })
