@@ -5,6 +5,7 @@ Helpers for signal stats and analytics widgets.
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from functools import cached_property
 from zoneinfo import ZoneInfo
 
 from django.db.models import Count, Min, Sum
@@ -13,7 +14,7 @@ from django.db.models.functions import ExtractHour, TruncDate
 from apps.events.models import SignalEntry
 from apps.signals.models import AverageWeighting, Signal, SignalType, SummaryMethod
 
-from .models import AnalyticsWidget, WidgetAggregation, WidgetTimeframe, WidgetType
+from .models import AnalyticsWidget, WidgetTimeframe
 
 TIMEFRAMES = ('week', 'month', 'quarter', 'year')
 
@@ -110,38 +111,40 @@ def resolve_widget_period(widget: AnalyticsWidget, tz: ZoneInfo, today: date) ->
     raise ValueError(f'Unknown widget timeframe: {timeframe}')
 
 
+class WidgetData:
+    """What the widget type definitions build their data from."""
+
+    def __init__(self, widget: AnalyticsWidget, user, period: Period, today: date):
+        self.signal = widget.signal
+        self.config = widget.settings
+        self.period = period
+        self.today = today
+        self.first_day = _first_entry_day(widget.signal, user, period.tz)
+        self._all_rows = _bin_rows(widget.signal, user, _with_trend_lookback(period))
+        self._rows = _within(self._all_rows, period)
+
+    @cached_property
+    def totals(self) -> dict:
+        return _totals(self._rows, self.signal, self.period, self.first_day, self.today)
+
+    def timeseries(self) -> dict:
+        return _timeseries(self._all_rows, self.signal, self.period, self.first_day, self.today)
+
+
 def get_widget_values(widget: AnalyticsWidget, user, tz: ZoneInfo) -> dict:
     """
-    Data for one widget, shaped by its type. 'timeseries' is only filled for over time widgets.
+    Data for one widget: the period and entry count, plus 'value' and 'timeseries'
+    as filled by the widget's type.
     """
     today = datetime.now(tz).date()
     period = resolve_widget_period(widget, tz, today)
-    first_day = _first_entry_day(widget.signal, user, tz)
-    all_rows = _bin_rows(widget.signal, user, _with_trend_lookback(period))
-    rows = _within(all_rows, period)
-    totals = _totals(rows, widget.signal, period, first_day, today)
-    is_timeseries = widget.type == WidgetType.TIMESERIES
-
-    if is_timeseries:
-        value = None
-    elif widget.aggregation == WidgetAggregation.TOTAL:
-        value = totals['total']
-    elif not totals['count']:
-        value = None
-    elif (widget.aggregation == WidgetAggregation.PER_EVENT
-          and widget.signal.summary_method == SummaryMethod.SUM):
-        value = totals['total'] / totals['count']  # today included, an event is never unfinished
-    else:
-        value = totals['average']
+    data = WidgetData(widget, user, period, today)
 
     return {
         'widget_id': widget.id,
-        'value': value,
-        'count': totals['count'],
+        'count': data.totals['count'],
         'period': {'start': period.start_local.isoformat(), 'end': period.end_local.isoformat()},
-        'timeseries': (
-            _timeseries(all_rows, widget.signal, period, first_day, today) if is_timeseries else None
-        ),
+        **widget.definition.data(data),
     }
 
 

@@ -5,18 +5,17 @@ import InputText from '@/shared/ui/components/InputText.vue'
 import InputNumber from '@/shared/ui/components/InputNumber.vue'
 import SignalChip from '@/shared/ui/components/SignalChip.vue'
 import Select from '@/shared/ui/components/Select.vue'
-import ToggleGroup from '@/shared/ui/components/ToggleGroup.vue'
 import SignalPickerDialog from '@/modules/signals/components/SignalPickerDialog.vue'
 import { getSignals } from '@/modules/signals/api'
 import type { Signal } from '@/modules/signals/types'
-import type { WidgetChartType, WidgetTimeframe } from '@/modules/analytics/types'
+import type { WidgetTimeframe } from '@/modules/analytics/types'
 import type { WidgetFormState } from '@/modules/analytics/widgetFormState'
 import {
   WIDGET_TIMEFRAME_LABELS,
-  aggregationOptions,
   earlierQuarterOptions,
   earlierYearOptions,
 } from '@/modules/analytics/format'
+import { widgetDefinition } from '@/modules/analytics/widgetRegistry'
 import { useFormValidation } from '@/shared/lib/useFormValidation'
 import { required, maxLength, when } from '@/shared/lib/validators'
 
@@ -25,33 +24,14 @@ const form = defineModel<WidgetFormState>({ required: true })
 const signals = ref<Signal[]>([])
 
 const selectedSignal = computed(() => signals.value.find((s) => s.id === form.value.signalId))
-const isTimeseries = computed(() => form.value.type === 'timeseries')
+const definition = computed(() => widgetDefinition(form.value.type))
 
-const displayOptions = computed(() => aggregationOptions(selectedSignal.value))
-
-watch(selectedSignal, (signal) => {
-  if (signal && !displayOptions.value.some((o) => o.value === form.value.aggregation)) {
-    form.value.aggregation = 'average'
-  }
-})
-const chartTypeOptions: { value: WidgetChartType; label: string }[] = [
-  { value: 'bar', label: 'Bar' },
-  { value: 'line', label: 'Line' },
-]
-const averageOptions = [
-  { value: 'on' as const, label: 'Show' },
-  { value: 'off' as const, label: 'Hide' },
-]
 const quarterOptions = earlierQuarterOptions()
 const yearOptions = earlierYearOptions()
 
-// a single day has nothing to plot over time
-const SINGLE_DAY_TIMEFRAMES: WidgetTimeframe[] = ['today', 'yesterday']
 const timeframeOptions = computed(() =>
   Object.entries(WIDGET_TIMEFRAME_LABELS)
-    .filter(
-      ([value]) => !isTimeseries.value || !SINGLE_DAY_TIMEFRAMES.includes(value as WidgetTimeframe),
-    )
+    .filter(([value]) => !definition.value.excludedTimeframes.includes(value as WidgetTimeframe))
     .map(([value, label]) => ({ value, label })),
 )
 
@@ -61,11 +41,6 @@ const timeframeModel = computed({
     form.value.timeframe = value as WidgetTimeframe
     form.value.periodStart = undefined
   },
-})
-
-const averageModel = computed({
-  get: () => (form.value.showAverage ? 'on' : 'off'),
-  set: (value: 'on' | 'off') => (form.value.showAverage = value === 'on'),
 })
 
 const needsPeriodStart = () => form.value.timeframe === 'quarter' || form.value.timeframe === 'year'
@@ -142,21 +117,7 @@ defineExpose({ validateAll, errors })
       @blur="validateField('title')"
     />
 
-    <div v-if="!isTimeseries" class="field">
-      <span class="label">Display</span>
-      <ToggleGroup v-model="form.aggregation" :options="displayOptions" class="toggle" />
-    </div>
-
-    <template v-else>
-      <div class="field">
-        <span class="label">Chart type</span>
-        <ToggleGroup v-model="form.chartType" :options="chartTypeOptions" class="toggle" />
-      </div>
-      <div class="field">
-        <span class="label">Average line</span>
-        <ToggleGroup v-model="averageModel" :options="averageOptions" class="toggle" />
-      </div>
-    </template>
+    <component :is="definition.settings" v-model="form.config" :signal="selectedSignal" />
 
     <Select v-model="timeframeModel" label="Timeframe" :options="timeframeOptions" />
 
@@ -231,9 +192,5 @@ defineExpose({ validateAll, errors })
   padding-left: 8px;
   font-size: var(--font-size-sm);
   color: var(--color-danger);
-}
-
-.toggle {
-  align-self: flex-start;
 }
 </style>

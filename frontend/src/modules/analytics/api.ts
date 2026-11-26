@@ -24,7 +24,10 @@ export function getSignalStats(signalId: string, params: GetSignalStatsParams) {
 
 export type CreateAnalyticsBoardPayload = Pick<AnalyticsBoard, 'name'>
 
-export type AnalyticsWidgetPayload = Omit<AnalyticsWidget, 'id' | 'order' | 'signal'> & {
+// distributes over the widget types, so type and config stay paired
+type WidgetInput<W> = W extends AnalyticsWidget ? Omit<W, 'id' | 'order' | 'signal'> : never
+
+export type AnalyticsWidgetPayload = WidgetInput<AnalyticsWidget> & {
   signal_id: string
 }
 

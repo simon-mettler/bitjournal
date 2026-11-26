@@ -48,7 +48,6 @@ export interface SignalStats {
   heatmap: SignalStatsHeatmapPoint[]
 }
 
-export type WidgetType = 'value' | 'timeseries'
 export type WidgetChartType = 'bar' | 'line'
 export type WidgetAggregation = 'total' | 'average' | 'per_event'
 export type WidgetTimeframe =
@@ -64,19 +63,40 @@ export type WidgetTimeframe =
   | 'year'
   | 'last_days'
 
-export interface AnalyticsWidget {
-  id: string
-  order: number
-  type: WidgetType
-  title: string
-  signal: Signal
+export interface ValueWidgetConfig {
   aggregation: WidgetAggregation
+}
+
+export interface TimeseriesWidgetConfig {
   chart_type: WidgetChartType
   show_average: boolean
+}
+
+// The settings of each widget type. A new type starts here.
+export interface WidgetConfigByType {
+  value: ValueWidgetConfig
+  timeseries: TimeseriesWidgetConfig
+}
+
+export type WidgetType = keyof WidgetConfigByType
+export type WidgetConfig = WidgetConfigByType[WidgetType]
+
+interface AnalyticsWidgetBase {
+  id: string
+  order: number
+  title: string
+  signal: Signal
   timeframe: WidgetTimeframe
   period_start: string | null
   days: number | null
 }
+
+export type AnalyticsWidgetOf<T extends WidgetType> = AnalyticsWidgetBase & {
+  type: T
+  config: WidgetConfigByType[T]
+}
+
+export type AnalyticsWidget = { [T in WidgetType]: AnalyticsWidgetOf<T> }[WidgetType]
 
 export interface AnalyticsBoard {
   id: string

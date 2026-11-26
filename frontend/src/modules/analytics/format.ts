@@ -90,13 +90,10 @@ export function aggregationOptions(
   return [total, perDay, { value: 'per_event', label: 'Avg per event' }]
 }
 
-export function widgetAggregationLabel(
-  widget: Pick<AnalyticsWidget, 'aggregation' | 'signal'>,
-): string {
-  if (widget.aggregation === 'total') return 'Total'
-  if (widget.aggregation === 'per_event' && widget.signal.summary_method === 'total')
-    return 'Average per event'
-  return averageLabel(widget.signal)
+export function widgetAggregationLabel(aggregation: WidgetAggregation, signal: Signal): string {
+  if (aggregation === 'total') return 'Total'
+  if (aggregation === 'per_event' && signal.summary_method === 'total') return 'Average per event'
+  return averageLabel(signal)
 }
 
 const SHIFT_BY_TIMEFRAME: Record<

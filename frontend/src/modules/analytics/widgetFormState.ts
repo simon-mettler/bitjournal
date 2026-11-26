@@ -1,13 +1,12 @@
-import type { AnalyticsWidget, WidgetChartType, WidgetTimeframe, WidgetType } from './types'
+import type { AnalyticsWidget, WidgetConfig, WidgetTimeframe, WidgetType } from './types'
 import type { AnalyticsWidgetPayload } from './api'
+import { widgetDefinition } from './widgetRegistry'
 
 export interface WidgetFormState {
   type: WidgetType
   title: string
   signalId: string | undefined
-  aggregation: AnalyticsWidget['aggregation']
-  chartType: WidgetChartType
-  showAverage: boolean
+  config: WidgetConfig
   timeframe: WidgetTimeframe
   periodStart: string | undefined
   days: number
@@ -18,9 +17,7 @@ export function defaultWidgetFormState(type: WidgetType = 'value'): WidgetFormSt
     type,
     title: '',
     signalId: undefined,
-    aggregation: 'total',
-    chartType: 'bar',
-    showAverage: true,
+    config: widgetDefinition(type).defaultConfig(),
     timeframe: 'this_week',
     periodStart: undefined,
     days: 7,
@@ -32,16 +29,13 @@ export function widgetToFormState(widget: AnalyticsWidget): WidgetFormState {
     type: widget.type,
     title: widget.title,
     signalId: widget.signal.id,
-    aggregation: widget.aggregation,
-    chartType: widget.chart_type,
-    showAverage: widget.show_average,
+    config: { ...widget.config },
     timeframe: widget.timeframe,
     periodStart: widget.period_start ?? undefined,
     days: widget.days ?? 7,
   }
 }
 
-// Caller makes sure a signal is selected (form validation).
 export function formStateToPayload(
   state: WidgetFormState,
   signalId: string,
@@ -50,11 +44,9 @@ export function formStateToPayload(
     type: state.type,
     title: state.title.trim(),
     signal_id: signalId,
-    aggregation: state.aggregation,
-    chart_type: state.chartType,
-    show_average: state.showAverage,
+    config: state.config,
     timeframe: state.timeframe,
     period_start: state.periodStart ?? null,
     days: state.days ?? null,
-  }
+  } as AnalyticsWidgetPayload
 }

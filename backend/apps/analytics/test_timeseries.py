@@ -191,7 +191,7 @@ def test_widget_value_of_total_signal(user, total, aggregation, expected):
     log(user, total, yesterday, 4)
     board = AnalyticsBoard.objects.create(user=user, name='B')
     widget = AnalyticsWidget.objects.create(
-        board=board, signal=total, aggregation=aggregation,
+        board=board, signal=total, config={'aggregation': aggregation},
         timeframe=WidgetTimeframe.LAST_DAYS, days=3,
     )
     assert get_widget_values(widget, user, TZ)['value'] == pytest.approx(expected)
@@ -212,8 +212,8 @@ def test_per_event_is_only_kept_for_total_signals_with_values(
     request.user = user
     serializer = AnalyticsWidgetCreateSerializer(context={'request': request}, data={
         'board_id': board.id, 'signal_id': signal.id, 'type': 'value', 'title': 'W',
-        'aggregation': 'per_event', 'timeframe': 'this_week',
+        'config': {'aggregation': 'per_event'}, 'timeframe': 'this_week',
     })
     assert serializer.is_valid() == (expected is not None)
     if expected is not None:
-        assert serializer.validated_data['aggregation'] == expected
+        assert serializer.validated_data['config'] == {'aggregation': expected}
